@@ -1,0 +1,14 @@
+name: BAuction
+version: '${project.version}'
+main: org.by1337.bauction.Main
+api-version: '1.16'
+depend: [ BLib ]
+authors: [ By1337 ]
+commands:
+  bauc:
+    aliases:
+      - 'ah'
+      - 'auc'
+permissions:
+  bauc.*:
+    default: op

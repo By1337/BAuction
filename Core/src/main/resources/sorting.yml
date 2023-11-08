@@ -1,0 +1,236 @@
+# Сортировка предметов
+# type - COMPARE_MAX или COMPARE_MIN, max - предметы будут находится в порядке убывания value, min - наоборот
+# value - по какому значению отсортировывать предметы, должно быть число
+# selected-name - когда выбрана эта сортировка, unselected-name - когда другая
+# priority - в каком порядке будет список с выбором сортировки
+sorting:
+  sorting-1:
+    name: sorting-1
+    type: COMPARE_MAX
+    value: '{price}'
+    selected-name: '&r  &6✔ Сначала дорогие'
+    unselected-name: '&r&7⏺ Сначала дорогие'
+    priority: 0
+
+  sorting-2:
+    name: sorting-2
+    type: COMPARE_MIN
+    value: '{price}'
+    selected-name: '&r  &6✔ Сначала не дорогие'
+    unselected-name: '&r&7⏺ Сначала не дорогие'
+    priority: 1
+
+  sorting-3:
+    name: sorting-3
+    type: COMPARE_MAX
+    value: '{price_for_one}'
+    selected-name: '&r  &6✔ Сначала дорогие за штуку'
+    unselected-name: '&r&7⏺ Сначала дорогие за штуку'
+    priority: 2
+
+  sorting-4:
+    name: sorting-4
+    type: COMPARE_MIN
+    value: '{price_for_one}'
+    selected-name: '&r  &6✔ Сначала не дорогие за штуку'
+    unselected-name: '&r&7⏺ Сначала не дорогие за штуку'
+    priority: 3
+
+  sorting-5:
+    name: sorting-5
+    type: COMPARE_MAX
+    value: '{sale_time}'
+    selected-name: '&r  &6✔ Сначала новые'
+    unselected-name: '&r&7⏺ Сначала новые'
+    priority: 4
+
+  sorting-6:
+    name: sorting-6
+    type: COMPARE_MIN
+    value: '{sale_time}'
+    selected-name: '&r  &6✔ Сначала старые'
+    unselected-name: '&r&7⏺ Сначала старые'
+    priority: 5
+
+# Каждый предмет получает теги для сортировки
+# Все теги указываются в нижнем регистре
+# В теги попадают
+#   - Материал
+#   - Все зачарования
+#   - Все эффекты зелий
+#   - И несколько особенный
+# Список особенных тегов
+#   - isflammable - Проверьте, не является ли материал блоком и не может ли он загореться.
+#   - isburnable - Проверьте, не представляет ли материал блок и может ли он сгореть.
+#   - isfuel - Проверяет, можно ли использовать этот материал в качестве топлива в печи.
+#   - hasgravity - Действует ли на этот материал сила тяжести.
+#   - issolid - Проверьте, является ли материал блочным и твердым (на нем можно строить)
+#   - isrecord - Если этот материал представляет собой воспроизводимый музыкальный диск.
+#   - isedible - Проверяет, съедобен ли этот материал.
+#   - isblock - Проверяет, является ли этот материал размещаемым блоком.
+#   - any - Любой предмет
+#
+categories:
+  # Это категория по поиску /ah search <>. Она появится только если игрок ввёл эту команду
+  search: # Менять этот ключ нельзя, плагин будет по этому ключу искать selected-name и прочие данные
+    name: search
+    selected-name: '&r  &6✔ {search}' # {search} заменится на то что игрок ввёл в команде
+    unselected-name: '&r&7⏺ {search}'
+    priority: 0 # приоритет он влияет на то в каком порядке будут категории
+    tags: [] # Теги сами подставятся
+  # Все категории ниже можно изменять как угодно плагин не привязан к их ключам
+  any:
+    name: any
+    selected-name: '&r  &6✔ Всё подряд'
+    unselected-name: '&r&7⏺ Всё подряд'
+    priority: 1
+    tags:
+      - 'any'
+  tools:
+    name: tools
+    selected-name: '&r  &6✔ Инструменты'
+    unselected-name: '&r&7⏺ Инструменты'
+    priority: 2
+    tags:
+      - 'is_tool'
+  weapon:
+    name: weapon
+    selected-name: '&r  &6✔ Оружие'
+    unselected-name: '&r&7⏺ Оружие'
+    priority: 3
+    tags:
+      - 'is_weapon'
+  blocks:
+    name: blocks
+    selected-name: '&r  &6✔ Блоки'
+    unselected-name: '&r&7⏺ Блоки'
+    priority: 4
+    tags:
+      - 'is_block'
+  mechanisms:
+    name: mechanisms
+    selected-name: '&r  &6✔ Механизмы'
+    unselected-name: '&r&7⏺ Механизмы'
+    priority: 5
+    tags:
+      - 'tnt'
+      - 'fire_charge'
+      - 'sticky_piston'
+      - 'piston'
+      - 'tripwire_hook'
+      - 'rail'
+      - 'hopper'
+      - 'observer'
+      - 'tnt_minecart'
+      - 'redstone_torch'
+      - 'slime_block'
+      - 'chest_minecart'
+      - 'minecart'
+      - 'hopper_minecart'
+      - 'redstone'
+  alchemy:
+    name: alchemy
+    selected-name: '&r  &6✔ Алхимия'
+    unselected-name: '&r&7⏺ Алхимия'
+    priority: 6
+    tags:
+      - 'glass_bottle'
+      - 'redstone'
+      - 'golden_carrot'
+      - 'glowstone_dust'
+      - 'gunpowder'
+      - 'brown_mushroom'
+      - 'fermented_spider_eye'
+      - 'blaze_powder'
+      - 'scute'
+      - 'magma_cream'
+      - 'nether_wart'
+      - 'turtle_helmet'
+      - 'brewing_stand'
+      - 'phantom_membrane'
+      - 'red_mushroom'
+      - 'dragon_breath'
+      - 'sugar'
+      - 'glistering_melon_slice'
+      - 'ghast_tear'
+      - 'rabbit_foot'
+
+  food:
+    name: food
+    selected-name: '&r  &6✔ Еда'
+    unselected-name: '&r&7⏺ Еда'
+    priority: 7
+    tags:
+      - 'is_edible'
+
+  potions:
+    name: potions
+    selected-name: '&r  &6✔ Зелья'
+    unselected-name: '&r&7⏺ Зелья'
+    priority: 8
+    tags:
+      - 'potion'
+      - 'glass_bottle'
+      - 'splash_potion'
+      - 'lingering_potion'
+
+  enchanted:
+    name: enchanted
+    selected-name: '&r  &6✔ Зачарование'
+    unselected-name: '&r&7⏺ Зачарование'
+    priority: 9
+    tags:
+      - 'experience_bottle'
+      - 'enchanted_book'
+      - 'anvil'
+      - 'bookshelf'
+      - 'enchanting_table'
+
+  armor:
+    name: armor
+    selected-name: '&r  &6✔ Броня'
+    unselected-name: '&r&7⏺ Броня'
+    priority: 10
+    tags:
+      - 'is_armor'
+
+  unique_items:
+    name: unique_items
+    selected-name: '&r  &6✔ Уникальные предметы'
+    unselected-name: '&r&7⏺ Уникальные предметы'
+    priority: 11
+    tags:
+      - 'is_spawn_agg'
+      - 'spawner'
+
+  donat_items:
+    name: donat_items
+    selected-name: '&r  &6✔ Донатные предметы'
+    unselected-name: '&r&7⏺ Донатные предметы'
+    priority: 12
+    tags:
+      - 'is_spawn_agg'
+      - 'spawner'
+
+  jewelry:
+    name: jewelry
+    selected-name: '&r  &6✔ Драгоценности'
+    unselected-name: '&r&7⏺ Драгоценности'
+    priority: 12
+    tags:
+      - 'totem_of_undying'
+      - 'iron_ingot'
+      - 'ancient_debris'
+      - 'netherite_block'
+      - 'emerald_ore'
+      - 'enchanted_golden_apple'
+      - 'netherite_ignot'
+      - 'diamond'
+      - 'gold_block'
+      - 'gold_ore'
+      - 'netherite_scrap'
+      - 'end_crystal'
+      - 'lapis_lazuli'
+      - 'iron_block'
+      - 'diamond_block'
+      - 'iron_ore'

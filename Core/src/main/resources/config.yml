@@ -1,0 +1,55 @@
+boosts:
+  name: donat-1
+  permission: 'auc.boost.donat1'
+  external-slots: 2
+  external-sell-time: '1d'
+
+
+# Время жизни офера по умолчанию. Для указания времени можно использовать: 1s1m1h1d1w1mo1y
+# Также можно изменить время жизни офера для определённого игрока с помощью команды: /ah offerTime <время>
+default-offer-time: '2d'
+
+# Когда продаваемый предмет один
+selling-item-one:
+  lore:
+    - '&r '
+    - '&#5AD9FB&n▌&r &fПродавец: &#5AD9FB{seller_name}'
+    - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price}'
+    - '&#5AD9FB▌&r &fИстекает: &#5AD9FB{expires}'
+    - '&r '
+  left_click_commands:
+    - '[BUY_ITEM_FULL] {id}'
+  right_click_commands:
+    - '[BUY_ITEM_FULL] {id}'
+
+# Когда продаваемый предмет не один и его можно купить поштучно
+selling-item:
+  lore:
+    - '&r '
+    - '&#5AD9FB&n▌&r &fПродавец: &#5AD9FB{seller_name}'
+    - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price}'
+    - '&#5AD9FB&n▌&r &fЦена за штуку &#5AD9FB{price_for_one}'
+    - '&#5AD9FB▌&r &fИстекает: &#5AD9FB{expires}'
+    - '&r '
+    - '&#5AD9FB&n▌&r &fЧтобы купить всё нажмите &#5AD9FBлкм'
+    - '&#5AD9FB▌&r &fДля покупки поштучно нажмите &#5AD9FBпкм'
+  left_click_commands:
+    - '[BUY_ITEM_FULL] {id}'
+  right_click_commands:
+    - '[BUY_ITEM_AMOUNT] {id}'
+
+# Когда продаваемый предмет не один и его нельзя купить поштучно
+selling-item-only-full:
+  lore:
+    - '&r '
+    - '&#5AD9FB&n▌&r &fПродавец: &#5AD9FB{seller_name}'
+    - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price}'
+    - '&#5AD9FB▌&r &fИстекает: &#5AD9FB{expires}'
+    - '&r '
+    - '&#5AD9FB&n▌&r &fПродавец &#ABF0FAограничил &fуказание'
+    - '&#5AD9FB&n▌&r &fколичества товара при покупке.'
+    - '&#5AD9FB▌&r &#ABF0FAКупить можно только полностью'
+  left_click_commands:
+    - '[BUY_ITEM_FULL] {id}'
+  right_click_commands:
+    - '[BUY_ITEM_FULL] {id}'
