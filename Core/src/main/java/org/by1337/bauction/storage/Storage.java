@@ -1,10 +1,17 @@
 package org.by1337.bauction.storage;
 
 import com.google.gson.Gson;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.scheduler.BukkitTask;
 import org.by1337.api.util.NameKey;
 import org.by1337.bauction.*;
 import org.by1337.bauction.storage.event.SellItemEvent;
+import org.by1337.bauction.storage.event.TakeItemEvent;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.Sorting;
 import org.by1337.bauction.util.TagUtil;
@@ -21,7 +28,7 @@ public class Storage {
 
     private final List<SellItem> sellItems = new ArrayList<>();
     private final Map<UUID, UserImpl> users = new HashMap<>();
-  //  private final Map<UUID, MemoryUser> memoryUserMap = new HashMap<>();
+    //  private final Map<UUID, MemoryUser> memoryUserMap = new HashMap<>();
 
     private final Map<NameKey, List<SortingItems>> map = new HashMap<>();
 
@@ -29,6 +36,8 @@ public class Storage {
 
     private final Map<NameKey, Category> categoryMap;
     private final Map<NameKey, Sorting> sortingMap;
+
+    private BukkitTask updateTask;
 
     public Storage(Map<NameKey, Category> categoryMap, Map<NameKey, Sorting> sortingMap) {
         this.categoryMap = categoryMap;
@@ -41,16 +50,59 @@ public class Storage {
             }
             map.put(category.nameKey(), list);
         }
+        updateTask = Bukkit.getScheduler().runTaskTimerAsynchronously(Main.getInstance(), this::updateTask, 0, 60 * 20);
 
+        Bukkit.getPluginManager().registerEvents(new Listener() {
+            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+            public void listen(PlayerJoinEvent event) {
+                if (hasUser(event.getPlayer().getUniqueId())) {
+                    Main.getCfg().getBoostManager().userUpdate(getUser(event.getPlayer().getUniqueId()));
+                }
+            }
+        }, Main.getInstance());
     }
 
-    public void validateAndAddItem(SellItemEvent event){
+    private void updateTask() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (hasUser(player.getUniqueId()))
+                Main.getCfg().getBoostManager().userUpdate(getUser(player.getUniqueId()));
+        }
+    }
+
+    public void validateAndRemoveItem(TakeItemEvent event) {
         lock.lock();
         try {
-            UserImpl user = (UserImpl) event.getUser();
+            UserImpl user = (UserImpl) getUser(event.getUser().getUuid());
             SellItem sellItem = event.getSellItem();
 
-            if (Main.getCfg().getMaxSlots() <= (user.getItemForSale().size() - user.getExternalSlots())){
+            if (!user.getUuid().equals(sellItem.getSellerUuid())) {
+                event.setValid(false);
+                event.setReason("&cВы не владелец предмета!");
+                return;
+            } else if (!user.getItemForSale().contains(sellItem.getUuid())) {
+                event.setValid(false);
+                event.setReason("&cПроизошла ошибка!");
+                Throwable throwable = new Throwable("lost item");
+                Main.getMessage().error(throwable);
+                return;
+            }
+            event.setValid(true);
+            sellItems.removeIf(i -> i.getUuid().equals(sellItem.getUuid()));
+            removeIf(i -> i.getUuid().equals(sellItem.getUuid()));
+        } catch (Exception e) {
+            Main.getMessage().error(e);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void validateAndAddItem(SellItemEvent event) {
+        lock.lock();
+        try {
+            UserImpl user = (UserImpl) getUser(event.getUser().getUuid());
+            SellItem sellItem = event.getSellItem();
+
+            if (Main.getCfg().getMaxSlots() <= (user.getItemForSale().size() - user.getExternalSlots())) {
                 event.setValid(false);
                 event.setReason("&cВы достигли лимита по количеству предметов на аукционе!");
                 return;
@@ -69,13 +121,13 @@ public class Storage {
         lock.lock();
         try {
             sellItems.add(sellItem);
-           UserImpl user;
-           if (users.containsKey(owner.getUuid())){
-               user = users.get(owner.getUuid());
-           }else {
-               user = (UserImpl) owner;
-               users.put(user.getUuid(), user);
-           }
+            UserImpl user;
+            if (users.containsKey(owner.getUuid())) {
+                user = users.get(owner.getUuid());
+            } else {
+                user = (UserImpl) owner;
+                users.put(user.getUuid(), user);
+            }
             user.addSellItem(sellItem.getUuid());
 
             for (Category value : categoryMap.values()) {
@@ -124,7 +176,7 @@ public class Storage {
         }
     }
 
-    public void editUser(EditSession<EditableUser> session, UUID uuid){
+    public void editUser(EditSession<EditableUser> session, UUID uuid) {
         lock.lock();
         try {
             EditableUserImpl editableUser = new EditableUserImpl((UserImpl) getUser(uuid));
@@ -135,10 +187,10 @@ public class Storage {
         }
     }
 
-    public User getUser(UUID uuid){
+    public User getUser(UUID uuid) {
         lock.lock();
         try {
-            if (!users.containsKey(uuid)){
+            if (!users.containsKey(uuid)) {
                 throw new IllegalStateException("unknown user!");
             }
             return users.get(uuid);
@@ -146,11 +198,23 @@ public class Storage {
             lock.unlock();
         }
     }
-    public User getUserOrCreate(Player player){
+
+    public boolean hasUser(UUID uuid) {
         lock.lock();
         try {
-            if (!users.containsKey(player.getUniqueId())){
-                return createUserAsync(player);
+            return users.containsKey(uuid);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public User getUserOrCreate(Player player) {
+        lock.lock();
+        try {
+            if (!users.containsKey(player.getUniqueId())) {
+                User user = createUserAsync(player);
+                users.put(user.getUuid(), (UserImpl) user);
+                return user;
             }
             return users.get(player.getUniqueId());
         } finally {
@@ -158,12 +222,12 @@ public class Storage {
         }
     }
 
-    public void updateUser(UUID uuid){
+    public void updateUser(UUID uuid) {
         lock.lock();
         try {
-           User user = getUser(uuid);
-           Main.getCfg().getBoostManager().userUpdate(user);
-           users.put(user.getUuid(), (UserImpl) user);
+            User user = getUser(uuid);
+            Main.getCfg().getBoostManager().userUpdate(user);
+            users.put(user.getUuid(), (UserImpl) user);
         } finally {
             lock.unlock();
         }
@@ -178,7 +242,7 @@ public class Storage {
         }
     }
 
-    public User createUserAsync(Player player){
+    public User createUserAsync(Player player) {
         return new UserImpl(player.getName(), player.getUniqueId());
     }
 
@@ -195,7 +259,13 @@ public class Storage {
         }
     }
 
-    public void save() {
+    public void end() {
+        save();
+        updateTask.cancel();
+    }
+
+
+    private void save() {
         lock.lock();
         try {
             for (File file : Main.getCfg().getItemsDataFolder().listFiles()) {

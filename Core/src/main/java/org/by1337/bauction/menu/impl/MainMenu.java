@@ -1,8 +1,11 @@
 package org.by1337.bauction.menu.impl;
 
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
+import org.by1337.api.command.argument.ArgumentString;
 import org.by1337.api.util.CyclicList;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.SellItem;
@@ -10,12 +13,11 @@ import org.by1337.bauction.User;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.MenuFactory;
+import org.by1337.bauction.storage.event.TakeItemEvent;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.Sorting;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class MainMenu extends Menu {
 
@@ -97,6 +99,51 @@ public class MainMenu extends Menu {
                             System.out.println("todo"); // todo
                         }))
                 )
+                .addSubCommand(new Command("[TAKE_ITEM]")
+                        .argument(new ArgumentString("uuid"))
+                        .executor(((sender, args) -> {
+                           String uuidS = (String) args.getOrThrow("uuid");
+
+                            UUID uuid = UUID.fromString(uuidS);
+
+                            SellItem item = sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
+
+                            if (item == null) {
+                                generate0();
+                                return;
+                            }
+
+
+                            CallBack<Optional<ConfirmMenu.Result>> callBack = result -> {
+                                if (result.isPresent()){
+                                    if (result.get() == ConfirmMenu.Result.ACCEPT) {
+                                        TakeItemEvent event = new TakeItemEvent(user, item);
+                                        Main.getStorage().validateAndRemoveItem(event);
+
+                                        if (event.isValid()){
+                                            Main.getMessage().sendMsg(bukkitPlayer, "&aВы успешно забрали свой предмет!");
+                                            Menu.giveItems(bukkitPlayer, item.getItemStack());
+                                        }else {
+                                            Main.getMessage().sendMsg(bukkitPlayer, String.valueOf(event.getReason()));
+                                        }
+                                    }
+                                }
+                                MainMenu menu = new MainMenu(user);
+                                menu.setBukkitPlayer(bukkitPlayer);
+                                menu.setCategories(categories);
+                                menu.setSortings(sortings);
+                                menu.setCurrentPage(currentPage);
+                                menu.open();
+                            };
+
+                            ConfirmMenu confirmMenu = new ConfirmMenu(callBack, item.getItemStack());
+                            confirmMenu.setBukkitPlayer(bukkitPlayer);
+                            confirmMenu.addCustomPlaceHolders(user);
+                            confirmMenu.addCustomPlaceHolders(item);
+                            confirmMenu.open();
+
+                        }))
+                )
         ;
     }
 
@@ -147,6 +194,7 @@ public class MainMenu extends Menu {
                     customItemStack.registerPlaceholder(item);
                     customPlaceHolders.forEach(customItemStack::registerPlaceholder);
                     customItemStacks.add(customItemStack);
+
                 }
             }
         }
@@ -155,7 +203,9 @@ public class MainMenu extends Menu {
     @Override
     public void runCommand(Placeholderable holder, String... commands) {
         try {
-            command.process(null, commands);
+            for (String cmd : commands) {
+                command.process(null, holder.replace(cmd).split(" "));
+            }
         } catch (CommandException e) {
             Main.getMessage().error(e);
         }
@@ -216,5 +266,29 @@ public class MainMenu extends Menu {
             }
         }
         return sb.toString();
+    }
+
+    public void setLastCategory(Category lastCategory) {
+        this.lastCategory = lastCategory;
+    }
+
+    public void setLastSorting(Sorting lastSorting) {
+        this.lastSorting = lastSorting;
+    }
+
+    public void setLastPage(int lastPage) {
+        this.lastPage = lastPage;
+    }
+
+    public void setSortings(CyclicList<Sorting> sortings) {
+        this.sortings = sortings;
+    }
+
+    public void setCategories(CyclicList<Category> categories) {
+        this.categories = categories;
+    }
+
+    public void setCurrentPage(int currentPage) {
+        this.currentPage = currentPage;
     }
 }

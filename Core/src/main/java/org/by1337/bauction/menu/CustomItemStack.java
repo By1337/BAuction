@@ -46,6 +46,7 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
     private boolean unbreakable = false;
     private final int id;
     private final List<Placeholderable> holders = new ArrayList<>();
+    private final Map<String, Object> meta = new HashMap<>();
 
     private ItemStack itemStack = null;
 
@@ -172,6 +173,18 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
     @Override
     public int compareTo(@NotNull CustomItemStack o) {
         return Integer.compare(priority, o.getPriority());
+    }
+
+    public void setMeta(String key, Object value) {
+        meta.put(key, value);
+    }
+
+    public Object getMeta(String key) {
+        return meta.get(key);
+    }
+
+    public boolean hasMeta(String key) {
+        return meta.containsKey(key);
     }
 
     public int[] getSlots() {

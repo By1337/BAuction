@@ -10,6 +10,7 @@ import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
 import org.by1337.api.command.argument.ArgumentInteger;
 import org.by1337.api.command.argument.ArgumentIntegerAllowedMatch;
+import org.by1337.api.command.argument.ArgumentPlayer;
 import org.by1337.api.command.argument.ArgumentSetList;
 import org.by1337.api.command.requires.RequiresPermission;
 import org.by1337.api.configuration.adapter.AdapterRegistry;
@@ -63,6 +64,16 @@ public final class Main extends JavaPlugin {
                 .requires(new RequiresPermission("bauc.use"))
                 .addSubCommand(new Command("admin")
                         .requires(new RequiresPermission("bauc.admin"))
+                        .addSubCommand(new Command("update")
+                                .requires(new RequiresPermission("bauc.admin.update"))
+                                .argument(new ArgumentPlayer("player"))
+                                .executor((sender, args) -> {
+                                    Player player = (Player) args.getOrThrow("player", "Вы должны указать игрока!");
+                                    storage.updateUser(storage.getUserOrCreate(player).getUuid());
+                                    message.sendMsg(sender, "&aИнформация о игроке успешно обновлена!");
+                                })
+                        )
+
                         .addSubCommand(new Command("push")
                                 .requires(new RequiresPermission("bauc.admin.push"))
                                 .argument(new ArgumentIntegerAllowedMatch("price", List.of("[цена]")))
@@ -151,7 +162,7 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        storage.save();
+        storage.end();
     }
 
     public static Message getMessage() {

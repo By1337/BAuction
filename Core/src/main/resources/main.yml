@@ -1,6 +1,5 @@
 menu_title: "&7Аукцион ({current_page}/{max_page})"
 size: 54
-menu-id: 'main-menu'
 
 items-slots:
   - 0-44

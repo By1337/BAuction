@@ -29,6 +29,9 @@ public class Config {
     private FileConfiguration menu;
     private File fileMenu;
 
+    private FileConfiguration menuConfirm;
+    private File filemenuConfirm;
+
     private File itemsDataFolder;
 
     private Map<NameKey, Sorting> sortingMap;
@@ -55,7 +58,6 @@ public class Config {
         }
         sorting = YamlConfiguration.loadConfiguration(sortingFile);
 
-
         configFile = new File(basedir + "/config.yml");
         if (!configFile.exists()) {
             plugin.saveResource("config.yml", true);
@@ -67,6 +69,12 @@ public class Config {
             plugin.saveResource("main.yml", true);
         }
         menu = YamlConfiguration.loadConfiguration(fileMenu);
+
+        filemenuConfirm = new File(basedir + "/confirm.yml");
+        if (!filemenuConfirm.exists()) {
+            plugin.saveResource("confirm.yml", true);
+        }
+        menuConfirm = YamlConfiguration.loadConfiguration(filemenuConfirm);
 
         itemsDataFolder = new File(basedir + "/items");
         if (!itemsDataFolder.exists()) {
@@ -129,5 +137,9 @@ public class Config {
 
     public BoostManager getBoostManager() {
         return boostManager;
+    }
+
+    public FileConfiguration getMenuConfirm() {
+        return menuConfirm;
     }
 }
