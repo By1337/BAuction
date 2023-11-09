@@ -6,7 +6,9 @@ import org.bukkit.plugin.Plugin;
 import org.by1337.api.configuration.YamlContext;
 import org.by1337.api.util.NameKey;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.booost.BoostManager;
 import org.by1337.bauction.util.Category;
+import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.Sorting;
 
 import java.io.File;
@@ -33,6 +35,9 @@ public class Config {
     private Map<NameKey, Category> categoryMap;
 
     private int maxSlots;
+    private long defaultSellTime;
+
+    private BoostManager boostManager;
 
 
     public Config(Plugin plugin) {
@@ -77,6 +82,9 @@ public class Config {
 
         YamlContext cfg = new YamlContext(config);
         maxSlots = cfg.getAsInteger("max-slots");
+        defaultSellTime = NumberUtil.getTime(cfg.getAsString("default-offer-time"));
+
+        boostManager = new BoostManager(cfg);
     }
 
     public FileConfiguration getMessage() {
@@ -113,5 +121,13 @@ public class Config {
 
     public int getMaxSlots() {
         return maxSlots;
+    }
+
+    public long getDefaultSellTime() {
+        return defaultSellTime;
+    }
+
+    public BoostManager getBoostManager() {
+        return boostManager;
     }
 }

@@ -90,6 +90,10 @@ public class SellItem implements Placeholderable {
                 sb.replace(sb.indexOf("{sale_by_the_piece}"), sb.indexOf("{sale_by_the_piece}") + "{sale_by_the_piece}".length(), String.valueOf(saleByThePiece));
                 continue;
             }
+            if (sb.indexOf("{sale_by_the_piece_format}") != -1) {
+                sb.replace(sb.indexOf("{sale_by_the_piece_format}"), sb.indexOf("{sale_by_the_piece_format}") + "{sale_by_the_piece_format}".length(), saleByThePiece ? "включена" : "отключена");
+                continue;
+            }
             if (sb.indexOf("{expires}") != -1) {
                 sb.replace(sb.indexOf("{expires}"), sb.indexOf("{expires}") + "{expires}".length(), TimeUtil.getFormat(removalDate));
                 continue;

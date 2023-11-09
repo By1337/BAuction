@@ -158,6 +158,17 @@ public class Storage {
         }
     }
 
+    public void updateUser(UUID uuid){
+        lock.lock();
+        try {
+           User user = getUser(uuid);
+           Main.getCfg().getBoostManager().userUpdate(user);
+           users.put(user.getUuid(), (UserImpl) user);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public List<SellItem> getAllItems() {
         lock.lock();
         try {

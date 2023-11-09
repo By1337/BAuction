@@ -1,4 +1,38 @@
 package org.by1337.bauction.booost;
 
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.by1337.api.configuration.YamlContext;
+import org.by1337.bauction.Main;
+import org.by1337.bauction.User;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class BoostManager {
+    private List<Boost> boosts;
+
+    public BoostManager(YamlContext context) {
+        boosts = context.getList("boosts", Boost.class);
+    }
+
+    public void userUpdate(User user){
+        Player player = Bukkit.getPlayer(user.getUuid());
+        if (player == null) return; // ignore offline players
+        int slots = 0;
+        long sellTime = 0L;
+        for (Boost boost : boosts) {
+            if (player.hasPermission(boost.getPermission())){
+                slots += boost.getExternalSlots();
+                sellTime += boost.getExternalSellTime();
+            }
+        }
+        int finalSlots = slots;
+        long finalSellTime = sellTime;
+        Main.getStorage().editUser((edit) -> {
+            edit.setExternalSlots(finalSlots);
+            edit.setExternalSellTime(finalSellTime);
+        }, user.getUuid());
+    }
+
 }

@@ -3,7 +3,7 @@ package org.by1337.bauction;
 import java.util.List;
 import java.util.UUID;
 
-public class EditableUserImpl implements EditableUser{
+public class EditableUserImpl implements EditableUser {
     private UserImpl handle;
 
     public EditableUserImpl(UserImpl handle) {
@@ -93,6 +93,16 @@ public class EditableUserImpl implements EditableUser{
     @Override
     public String replace(String s) {
         return handle.replace(s);
+    }
+
+    @Override
+    public void setExternalSlots(int externalSlots) {
+        handle.setExternalSlots(externalSlots);
+    }
+
+    @Override
+    public void setExternalSellTime(long externalSellTime) {
+        handle.setExternalSellTime(externalSellTime);
     }
 
     public void setHandle(UserImpl handle) {

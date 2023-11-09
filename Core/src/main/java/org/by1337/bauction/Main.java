@@ -14,7 +14,9 @@ import org.by1337.api.command.argument.ArgumentSetList;
 import org.by1337.api.command.requires.RequiresPermission;
 import org.by1337.api.configuration.adapter.AdapterRegistry;
 import org.by1337.api.configuration.adapter.impl.primitive.AdapterEnum;
+import org.by1337.bauction.booost.Boost;
 import org.by1337.bauction.config.Config;
+import org.by1337.bauction.config.adapter.AdapterBoost;
 import org.by1337.bauction.config.adapter.AdapterCategory;
 import org.by1337.bauction.config.adapter.AdapterSortingType;
 import org.by1337.bauction.menu.impl.MainMenu;
@@ -44,6 +46,7 @@ public final class Main extends JavaPlugin {
         AdapterRegistry.registerPrimitiveAdapter(Sorting.SortingType.class, new AdapterEnum<>(Sorting.SortingType.class));
         AdapterRegistry.registerAdapter(Sorting.class, new AdapterSortingType());
         AdapterRegistry.registerAdapter(Category.class, new AdapterCategory());
+        AdapterRegistry.registerAdapter(Boost.class, new AdapterBoost());
     }
 
     @Override
@@ -80,7 +83,7 @@ public final class Main extends JavaPlugin {
 
                                     User user = storage.getUserOrCreate(player);
                                     for (int i = 0; i < amount; i++) {
-                                        SellItem sellItem = new SellItem(player, itemStack, price + random.nextInt(price / 2), 99999999L);
+                                        SellItem sellItem = new SellItem(player, itemStack, price + random.nextInt(price / 2), cfg.getDefaultSellTime() + user.getExternalSellTime());
                                         SellItemEvent event = new SellItemEvent(user, sellItem);
                                         storage.validateAndAddItem(event);
                                         if (!event.isValid()){
@@ -112,7 +115,7 @@ public final class Main extends JavaPlugin {
 
                             User user = storage.getUserOrCreate(player);
 
-                            SellItem sellItem = new SellItem(player, itemStack, price, 99999999L, full);
+                            SellItem sellItem = new SellItem(player, itemStack, price, cfg.getDefaultSellTime() + user.getExternalSellTime(), full);
                             SellItemEvent event = new SellItemEvent(user, sellItem);
                             storage.validateAndAddItem(event);
                             if (event.isValid()){

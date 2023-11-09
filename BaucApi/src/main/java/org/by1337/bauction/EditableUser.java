@@ -38,4 +38,8 @@ public interface EditableUser
     int getDealCount();
 
     int getDealSum();
+
+     void setExternalSlots(int externalSlots);
+
+     void setExternalSellTime(long externalSellTime);
 }

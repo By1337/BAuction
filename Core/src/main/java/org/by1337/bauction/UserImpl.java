@@ -92,6 +92,13 @@ public class UserImpl implements User {
         dealSum -= count;
     }
 
+    public void setExternalSlots(int externalSlots) {
+        this.externalSlots = externalSlots;
+    }
+
+    public void setExternalSellTime(long externalSellTime) {
+        this.externalSellTime = externalSellTime;
+    }
 
     @Override
     public String replace(String s) {

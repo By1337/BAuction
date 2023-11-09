@@ -1,8 +1,8 @@
-boosts:
-  name: donat-1
-  permission: 'auc.boost.donat1'
-  external-slots: 2
-  external-sell-time: '1d'
+boosts: # it's list
+  - name: donat-1
+    permission: 'auc.boost.donat1'
+    external-slots: 2
+    external-sell-time: '1d'
 
 max-slots: 10
 
@@ -31,6 +31,7 @@ take-item:
     - '&#5AD9FB&n▌&r &fПродавец: &#5AD9FB{seller_name}'
     - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price}'
     - '&#5AD9FB▌&r &fИстекает: &#5AD9FB{expires}'
+    - '&#5AD9FB▌&r &fПродажа по штучно: &#5AD9FB{sale_by_the_piece_format}'
     - '&r '
     - '&#5AD9FB&n▌&r &fЧтобы снять с продажи нажмите &#5AD9FBлкм'
   left_click_commands:
