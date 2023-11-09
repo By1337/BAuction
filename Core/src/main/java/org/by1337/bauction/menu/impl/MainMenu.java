@@ -1,12 +1,12 @@
 package org.by1337.bauction.menu.impl;
 
-import org.bukkit.scheduler.BukkitRunnable;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
 import org.by1337.api.util.CyclicList;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.SellItem;
+import org.by1337.bauction.User;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.MenuFactory;
@@ -16,7 +16,6 @@ import org.by1337.bauction.util.Sorting;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class MainMenu extends Menu {
 
@@ -29,9 +28,12 @@ public class MainMenu extends Menu {
     private List<Integer> slots;
 
     private final Command command;
+    private final User user;
 
-    public MainMenu() {
+    public MainMenu(User user) {
         super(MenuFactory.create(Main.getCfg().getMenu()));
+        this.user = user;
+        addCustomPlaceHolders(user);
         sortings.addAll(Main.getCfg().getSortingMap().values());
 
         categories.addAll(Main.getCfg().getCategoryMap().values());
@@ -105,7 +107,7 @@ public class MainMenu extends Menu {
 
     @Override
     protected void generate() {
-        if (lastPage != currentPage|| sellItems == null || lastCategory == null || lastSorting == null || !lastCategory.equals(categories.getCurrent()) || !lastSorting.equals(sortings.getCurrent())) {
+        if (lastPage != currentPage || sellItems == null || lastCategory == null || lastSorting == null || !lastCategory.equals(categories.getCurrent()) || !lastSorting.equals(sortings.getCurrent())) {
             lastCategory = categories.getCurrent();
             lastSorting = sortings.getCurrent();
             lastPage = currentPage;
@@ -131,7 +133,9 @@ public class MainMenu extends Menu {
                 if (slotsIterator.hasNext()) {
                     int slot = slotsIterator.next();
                     CustomItemStack customItemStack;
-                    if (item.getAmount() == 1) {
+                    if (item.getSellerUuid().equals(user.getUuid())) {
+                        customItemStack = MenuFactory.menuItemBuilder(Main.getCfg().getConfig().getConfigurationSection("take-item").getValues(false));
+                    } else if (item.getAmount() == 1) {
                         customItemStack = MenuFactory.menuItemBuilder(Main.getCfg().getConfig().getConfigurationSection("selling-item-one").getValues(false));
                     } else if (item.isSaleByThePiece()) {
                         customItemStack = MenuFactory.menuItemBuilder(Main.getCfg().getConfig().getConfigurationSection("selling-item").getValues(false));

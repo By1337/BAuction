@@ -48,11 +48,14 @@ public class SellItem implements Placeholderable {
     }
 
     public SellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration) {
+        this(seller, itemStack, price, saleDuration, true);
+    }
+    public SellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
         item = BLib.getApi().getItemStackSerialize().serialize(itemStack);
         sellerName = seller.getName();
         sellerUuid = seller.getUniqueId();
         this.price = price;
-        saleByThePiece = false;
+        this.saleByThePiece = saleByThePiece;
         tags = TagUtil.getTags(itemStack);
         timeListedForSale = System.currentTimeMillis();
         this.removalDate = System.currentTimeMillis() + saleDuration;

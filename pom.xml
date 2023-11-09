@@ -8,5 +8,6 @@
   <name>PomRoot</name>
   <modules>
     <module>Core</module>
+    <module>BaucApi</module>
   </modules>
 </project>

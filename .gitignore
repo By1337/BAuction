@@ -3,6 +3,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+Core/lib/BAirDrop.zip
+BaucApi/lib/BAirDrop.zip
 ### IntelliJ IDEA ###
 .idea/
 .idea/modules.xml

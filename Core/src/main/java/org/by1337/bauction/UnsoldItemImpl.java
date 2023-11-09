@@ -3,20 +3,19 @@ package org.by1337.bauction;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.api.BLib;
 import org.by1337.api.chat.Placeholderable;
-import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.TimeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public class UnsoldItem implements Placeholderable {
+public class UnsoldItemImpl implements Placeholderable {
     private final String item;
     private final long expired;
     private final UUID owner;
     private final long deleteVia;
     private transient ItemStack itemStack;
 
-    public UnsoldItem(@NotNull String item, @NotNull UUID owner, long expired, long deleteVia) {
+    public UnsoldItemImpl(@NotNull String item, @NotNull UUID owner, long expired, long deleteVia) {
         this.item = item;
         this.expired = expired;
         this.owner = owner;
@@ -36,6 +35,7 @@ public class UnsoldItem implements Placeholderable {
         return deleteVia;
     }
 
+    @NotNull
     public UUID getOwner() {
         return owner;
     }
