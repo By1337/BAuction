@@ -10,11 +10,13 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scheduler.BukkitTask;
 import org.by1337.api.util.NameKey;
 import org.by1337.bauction.*;
+import org.by1337.bauction.storage.event.BuyItemEvent;
 import org.by1337.bauction.storage.event.SellItemEvent;
 import org.by1337.bauction.storage.event.TakeItemEvent;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.Sorting;
 import org.by1337.bauction.util.TagUtil;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -69,21 +71,88 @@ public class Storage {
         }
     }
 
+    @Nullable
+    public User update(User user) {
+        lock.lock();
+        try {
+            return users.values().stream().filter(sellItem1 -> user.getUuid().equals(sellItem1.getUuid())).findFirst().orElse(null);
+        } catch (Exception e) {
+            Main.getMessage().error(e);
+            return null;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Nullable
+    public SellItem update(SellItem item) {
+        lock.lock();
+        try {
+            return sellItems.stream().filter(sellItem1 -> item.getUuid().equals(sellItem1.getUuid())).findFirst().orElse(null);
+        } catch (Exception e) {
+            Main.getMessage().error(e);
+            return null;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void validateAndRemoveItem(BuyItemEvent event) {
+        lock.lock();
+        try {
+            UserImpl seller = (UserImpl) getUser(event.getSellItem().getSellerUuid());
+            UserImpl user = (UserImpl) getUser(event.getUser().getUuid());
+            SellItem item = event.getSellItem();
+
+            SellItem sellItem = sellItems.stream().filter(sellItem1 -> item.getUuid().equals(sellItem1.getUuid())).findFirst().orElse(null);
+
+            if (sellItem == null) {
+                event.setValid(false);
+                event.setReason("&cПредмет уже продан или снят с продажи!");
+                return;
+            } else if (user.getUuid().equals(sellItem.getSellerUuid())) {
+                event.setValid(false);
+                event.setReason("&cВы владелец предмета!");
+                return;
+            } else if (!seller.getItemForSale().contains(sellItem.getUuid())) {
+                event.setValid(false);
+                event.setReason("&cПроизошла ошибка!");
+                Main.getMessage().error(new Throwable("lost item"));
+                return;
+            }
+
+            event.setValid(true);
+            sellItems.removeIf(i -> i.getUuid().equals(sellItem.getUuid()));
+            removeIf(i -> i.getUuid().equals(sellItem.getUuid()));
+            seller.addDealCount(1);
+            seller.addDealSum((int) item.getPrice());
+        } catch (Exception e) {
+            Main.getMessage().error(e);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public void validateAndRemoveItem(TakeItemEvent event) {
         lock.lock();
         try {
             UserImpl user = (UserImpl) getUser(event.getUser().getUuid());
-            SellItem sellItem = event.getSellItem();
+            SellItem item = event.getSellItem();
 
-            if (!user.getUuid().equals(sellItem.getSellerUuid())) {
+            SellItem sellItem = sellItems.stream().filter(sellItem1 -> item.getUuid().equals(sellItem1.getUuid())).findFirst().orElse(null);
+
+            if (sellItem == null) {
+                event.setValid(false);
+                event.setReason("&cПредмет уже продан или снят с продажи!");
+                return;
+            } else if (!user.getUuid().equals(sellItem.getSellerUuid())) {
                 event.setValid(false);
                 event.setReason("&cВы не владелец предмета!");
                 return;
             } else if (!user.getItemForSale().contains(sellItem.getUuid())) {
                 event.setValid(false);
                 event.setReason("&cПроизошла ошибка!");
-                Throwable throwable = new Throwable("lost item");
-                Main.getMessage().error(throwable);
+                Main.getMessage().error(new Throwable("lost item"));
                 return;
             }
             event.setValid(true);

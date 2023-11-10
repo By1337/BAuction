@@ -1,9 +1,11 @@
 package org.by1337.bauction;
 
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.by1337.api.chat.util.Message;
 import org.by1337.api.command.Command;
@@ -38,6 +40,7 @@ public final class Main extends JavaPlugin {
     private static Config cfg;
     private static Storage storage;
     private Command command;
+    private static Economy econ;
 
     @Override
     public void onLoad() {
@@ -48,6 +51,9 @@ public final class Main extends JavaPlugin {
         AdapterRegistry.registerAdapter(Sorting.class, new AdapterSortingType());
         AdapterRegistry.registerAdapter(Category.class, new AdapterCategory());
         AdapterRegistry.registerAdapter(Boost.class, new AdapterBoost());
+
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        econ = rsp.getProvider();
     }
 
     @Override
@@ -57,6 +63,7 @@ public final class Main extends JavaPlugin {
         initCommand();
         getCommand("bauc").setTabCompleter(this);
         getCommand("bauc").setExecutor(this);
+        Main.getMessage().error(new Throwable("test"));
     }
 
     private void initCommand() {
@@ -69,6 +76,7 @@ public final class Main extends JavaPlugin {
                                 .argument(new ArgumentPlayer("player"))
                                 .executor((sender, args) -> {
                                     Player player = (Player) args.getOrThrow("player", "Вы должны указать игрока!");
+                                    player.sendMessage("message1\nmessage2\n123\n123");
                                     storage.updateUser(storage.getUserOrCreate(player).getUuid());
                                     message.sendMsg(sender, "&aИнформация о игроке успешно обновлена!");
                                 })
@@ -179,6 +187,10 @@ public final class Main extends JavaPlugin {
 
     public static Storage getStorage() {
         return storage;
+    }
+
+    public static Economy getEcon() {
+        return econ;
     }
 
     @Override

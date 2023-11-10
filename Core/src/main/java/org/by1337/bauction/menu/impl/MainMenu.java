@@ -10,9 +10,11 @@ import org.by1337.api.util.CyclicList;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.SellItem;
 import org.by1337.bauction.User;
+import org.by1337.bauction.action.BuyItemProcess;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.MenuFactory;
+import org.by1337.bauction.storage.event.BuyItemEvent;
 import org.by1337.bauction.storage.event.TakeItemEvent;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.Sorting;
@@ -90,8 +92,21 @@ public class MainMenu extends Menu {
                         }))
                 )
                 .addSubCommand(new Command("[BUY_ITEM_FULL]")
+                        .argument(new ArgumentString("uuid"))
                         .executor(((sender, args) -> {
-                            System.out.println("todo"); // todo
+                            String uuidS = (String) args.getOrThrow("uuid");
+
+                            UUID uuid = UUID.fromString(uuidS);
+
+                            SellItem item = sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
+
+                            if (item == null) {
+                                generate0();
+                                return;
+                            }
+                            bukkitPlayer.closeInventory();
+                            new BuyItemProcess(item, user, categories, sortings, currentPage).process();
+
                         }))
                 )
                 .addSubCommand(new Command("[BUY_ITEM_AMOUNT]")
@@ -122,7 +137,7 @@ public class MainMenu extends Menu {
 
                                         if (event.isValid()){
                                             Main.getMessage().sendMsg(bukkitPlayer, "&aВы успешно забрали свой предмет!");
-                                            Menu.giveItems(bukkitPlayer, item.getItemStack());
+                                            Menu.giveItems(bukkitPlayer, item.getItemStack()).forEach(i -> bukkitPlayer.getLocation().getWorld().dropItem(bukkitPlayer.getLocation(), i));
                                         }else {
                                             Main.getMessage().sendMsg(bukkitPlayer, String.valueOf(event.getReason()));
                                         }
