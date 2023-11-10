@@ -46,7 +46,7 @@ public class EditableUserImpl implements EditableUser {
     }
 
     @Override
-    public void addDealSum(int count) {
+    public void addDealSum(double count) {
         handle.addDealSum(count);
     }
 
@@ -56,7 +56,7 @@ public class EditableUserImpl implements EditableUser {
     }
 
     @Override
-    public void takeDealSum(int count) {
+    public void takeDealSum(double count) {
         handle.takeDealSum(count);
     }
 
@@ -86,7 +86,7 @@ public class EditableUserImpl implements EditableUser {
     }
 
     @Override
-    public int getDealSum() {
+    public double getDealSum() {
         return handle.getDealSum();
     }
 

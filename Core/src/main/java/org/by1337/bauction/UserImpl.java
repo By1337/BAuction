@@ -15,7 +15,7 @@ public class UserImpl implements User {
     private transient long externalSellTime = 0L;
     private List<UUID> itemForSale = new ArrayList<>();
     private int dealCount;
-    private int dealSum;
+    private double dealSum;
 
 
     public UserImpl(@NotNull String nickName, @NotNull UUID uuid) {
@@ -72,7 +72,7 @@ public class UserImpl implements User {
         return dealCount;
     }
 
-    public int getDealSum() {
+    public double getDealSum() {
         return dealSum;
     }
 
@@ -80,7 +80,7 @@ public class UserImpl implements User {
         dealCount += count;
     }
 
-    public void addDealSum(int count) {
+    public void addDealSum(double count) {
         dealSum += count;
     }
 
@@ -88,8 +88,16 @@ public class UserImpl implements User {
         dealCount -= count;
     }
 
-    public void takeDealSum(int count) {
+    public void takeDealSum(double count) {
         dealSum -= count;
+    }
+
+    public void setDealCount(int dealCount) {
+        this.dealCount = dealCount;
+    }
+
+    public void setDealSum(double dealSum) {
+        this.dealSum = dealSum;
     }
 
     public void setExternalSlots(int externalSlots) {
@@ -122,6 +130,10 @@ public class UserImpl implements User {
             }
             if (sb.indexOf("{external_slots}") != -1) {
                 sb.replace(sb.indexOf("{external_slots}"), sb.indexOf("{external_slots}") + "{external_slots}".length(), String.valueOf(externalSlots));
+                continue;
+            }
+            if (sb.indexOf("{slots_count}") != -1) {
+                sb.replace(sb.indexOf("{slots_count}"), sb.indexOf("{slots_count}") + "{slots_count}".length(), String.valueOf(Main.getCfg().getMaxSlots() + externalSlots));
                 continue;
             }
             break;

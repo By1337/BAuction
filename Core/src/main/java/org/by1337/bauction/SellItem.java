@@ -10,10 +10,7 @@ import org.by1337.bauction.util.TagUtil;
 import org.by1337.bauction.util.TimeUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class SellItem implements Placeholderable {
@@ -22,23 +19,39 @@ public class SellItem implements Placeholderable {
     private final UUID sellerUuid;
     private final double price;
     private final boolean saleByThePiece;
-    private final HashSet<String> tags;
+    private final Set<String> tags;
     private final long timeListedForSale;
     private final long removalDate;
     private final UUID uuid;
     private final Material material;
     private final int amount;
     private final double priceForOne;
-    private final List<String> sellFor = new ArrayList<>();
+    private final Set<String> sellFor = Collections.unmodifiableSet(new HashSet<>());
     private transient ItemStack itemStack;
 
-    public SellItem(@NotNull String item, @NotNull String sellerName, @NotNull UUID sellerUuid, double price, boolean saleByThePiece, @NotNull HashSet<String> tags, long saleDuration, @NotNull Material material, int amount) {
+    public SellItem(String item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, UUID uuid, Material material, int amount, double priceForOne, ItemStack itemStack) {
         this.item = item;
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
         this.price = price;
         this.saleByThePiece = saleByThePiece;
         this.tags = tags;
+        this.timeListedForSale = timeListedForSale;
+        this.removalDate = removalDate;
+        this.uuid = uuid;
+        this.material = material;
+        this.amount = amount;
+        this.priceForOne = priceForOne;
+        this.itemStack = itemStack;
+    }
+
+    public SellItem(@NotNull String item, @NotNull String sellerName, @NotNull UUID sellerUuid, double price, boolean saleByThePiece, @NotNull Set<String> tags, long saleDuration, @NotNull Material material, int amount) {
+        this.item = item;
+        this.sellerName = sellerName;
+        this.sellerUuid = sellerUuid;
+        this.price = price;
+        this.saleByThePiece = saleByThePiece;
+        this.tags = Collections.unmodifiableSet(tags);
         this.timeListedForSale = System.currentTimeMillis();
         this.removalDate = System.currentTimeMillis() + saleDuration;
         this.uuid = UUID.randomUUID();
@@ -50,19 +63,20 @@ public class SellItem implements Placeholderable {
     public SellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration) {
         this(seller, itemStack, price, saleDuration, true);
     }
+
     public SellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
         item = BLib.getApi().getItemStackSerialize().serialize(itemStack);
         sellerName = seller.getName();
         sellerUuid = seller.getUniqueId();
         this.price = price;
         this.saleByThePiece = saleByThePiece;
-        tags = TagUtil.getTags(itemStack);
+        tags = Collections.unmodifiableSet(TagUtil.getTags(itemStack));
         timeListedForSale = System.currentTimeMillis();
         this.removalDate = System.currentTimeMillis() + saleDuration;
         this.uuid = UUID.randomUUID();
         material = itemStack.getType();
         amount = itemStack.getAmount();
-        priceForOne = price;
+        priceForOne = saleByThePiece ? price / amount : price;
         this.itemStack = itemStack;
     }
 
@@ -139,7 +153,7 @@ public class SellItem implements Placeholderable {
         return saleByThePiece;
     }
 
-    public HashSet<String> getTags() {
+    public Set<String> getTags() {
         return tags;
     }
 
@@ -167,9 +181,6 @@ public class SellItem implements Placeholderable {
         return priceForOne;
     }
 
-    public List<String> getSellFor() {
-        return sellFor;
-    }
 
     @Override
     public String toString() {

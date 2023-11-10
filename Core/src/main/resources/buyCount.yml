@@ -1,0 +1,107 @@
+menu_title: "&7Покупка"
+size: 27
+item:
+  slot: 13
+  lore:
+    - '&r '
+    - '&#5AD9FB&n▌&r &fКоличество: &#5AD9FB{count}'
+    - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price}'
+    - '&r '
+    - '&#5AD9FB&n▌&r &fЧтобы купить нажмите &#5AD9FBлкм'
+  click_commands:
+    - '[BUY]'
+items:
+  add1:
+    material: LIME_STAINED_GLASS_PANE
+    slots:
+      - 3
+      - 12
+      - 21
+    display_name: "&aДобавить 1"
+    lore: []
+    click_commands:
+      - '[ADD] 1'
+  add10:
+    material: LIME_STAINED_GLASS_PANE
+    slots:
+      - 2
+      - 11
+      - 20
+    display_name: "&aДобавить 10"
+    lore: []
+    click_commands:
+      - '[ADD] 10'
+  add32:
+    material: LIME_STAINED_GLASS_PANE
+    slots:
+      - 1
+      - 10
+      - 19
+    display_name: "&aДобавить 32"
+    lore: []
+    click_commands:
+      - '[ADD] 32'
+  addAll:
+    material: LIME_STAINED_GLASS_PANE
+    slots:
+      - 0
+      - 9
+      - 18
+    display_name: "&aМаксимум"
+    lore: []
+    click_commands:
+      - '[ADD] 99'
+
+  remove1:
+    material: RED_STAINED_GLASS_PANE
+    slots:
+      - 5
+      - 14
+      - 23
+    display_name: "&cУбрать 1"
+    lore: []
+    click_commands:
+      - '[REMOVE] 1'
+
+  remove10:
+    material: RED_STAINED_GLASS_PANE
+    slots:
+      - 6
+      - 15
+      - 24
+    display_name: "&cУбрать 10"
+    lore: []
+    click_commands:
+      - '[REMOVE] 10'
+
+  remove32:
+    material: RED_STAINED_GLASS_PANE
+    slots:
+      - 7
+      - 16
+      - 25
+    display_name: "&cУбрать 32"
+    lore: []
+    click_commands:
+      - '[REMOVE] 32'
+
+  removeAll:
+    material: RED_STAINED_GLASS_PANE
+    slots:
+      - 8
+      - 17
+      - 26
+    display_name: "&cУбрать все"
+    lore: []
+    click_commands:
+      - '[REMOVE] 99'
+
+  cancel:
+    material: BARRIER
+    slots:
+      - 4
+      - 22
+    display_name: "&cОтмена"
+    lore: []
+    click_commands:
+      - '[CANCEL]'

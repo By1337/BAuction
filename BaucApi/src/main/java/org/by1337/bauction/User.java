@@ -13,6 +13,6 @@ public interface User extends Placeholderable {
     int getExternalSlots();
     long getExternalSellTime();
     int getDealCount();
-    int getDealSum();
+    double getDealSum();
 
 }

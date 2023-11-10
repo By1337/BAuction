@@ -21,11 +21,11 @@ public interface EditableUser
 
     void addDealCount(int count);
 
-    void addDealSum(int count);
+    void addDealSum(double count);
 
     void takeDealCount(int count);
 
-    void takeDealSum(int count);
+    void takeDealSum(double count);
 
     String getNickName();
 
@@ -37,7 +37,7 @@ public interface EditableUser
 
     int getDealCount();
 
-    int getDealSum();
+    double getDealSum();
 
      void setExternalSlots(int externalSlots);
 

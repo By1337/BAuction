@@ -5,14 +5,12 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.by1337.api.configuration.YamlContext;
 import org.by1337.api.util.NameKey;
-import org.by1337.bauction.Main;
 import org.by1337.bauction.booost.BoostManager;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.Sorting;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -30,7 +28,10 @@ public class Config {
     private File fileMenu;
 
     private FileConfiguration menuConfirm;
-    private File filemenuConfirm;
+    private File fileMenuConfirm;
+
+    private FileConfiguration menuBuyCount;
+    private File fileMenuBuyCount;
 
     private File itemsDataFolder;
 
@@ -70,11 +71,17 @@ public class Config {
         }
         menu = YamlConfiguration.loadConfiguration(fileMenu);
 
-        filemenuConfirm = new File(basedir + "/confirm.yml");
-        if (!filemenuConfirm.exists()) {
+        fileMenuConfirm = new File(basedir + "/confirm.yml");
+        if (!fileMenuConfirm.exists()) {
             plugin.saveResource("confirm.yml", true);
         }
-        menuConfirm = YamlConfiguration.loadConfiguration(filemenuConfirm);
+        menuConfirm = YamlConfiguration.loadConfiguration(fileMenuConfirm);
+
+        fileMenuBuyCount = new File(basedir + "/buyCount.yml");
+        if (!fileMenuBuyCount.exists()) {
+            plugin.saveResource("buyCount.yml", true);
+        }
+        menuBuyCount = YamlConfiguration.loadConfiguration(fileMenuBuyCount);
 
         itemsDataFolder = new File(basedir + "/items");
         if (!itemsDataFolder.exists()) {
@@ -141,5 +148,9 @@ public class Config {
 
     public FileConfiguration getMenuConfirm() {
         return menuConfirm;
+    }
+
+    public FileConfiguration getMenuBuyCount() {
+        return menuBuyCount;
     }
 }
