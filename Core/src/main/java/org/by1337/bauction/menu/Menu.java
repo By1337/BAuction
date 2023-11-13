@@ -54,7 +54,7 @@ public abstract class Menu implements Listener, Iterable<CustomItemStack>, Place
         this.title = title;
         this.size = size;
         this.updateInterval = updateInterval;
-        inventory = Bukkit.createInventory(null, size, Main.getMessage().messageBuilder(replacePlaceholders(title)));
+        inventory = Bukkit.createInventory(null, size, replace(title));
         Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
 
         if (updateInterval != -1) {
@@ -74,7 +74,7 @@ public abstract class Menu implements Listener, Iterable<CustomItemStack>, Place
     public void open() {
         Menu menu = this;
         if (openRequirements != null) {
-            if (openRequirements.check(menu::replacePlaceholders, menu)) {
+            if (openRequirements.check(this, menu)) {
                 if (bukkitPlayer == null) {
                     throw new IllegalArgumentException("Player is null!");
                 } else {
@@ -82,7 +82,7 @@ public abstract class Menu implements Listener, Iterable<CustomItemStack>, Place
                     generate0();
                 }
             } else {
-                openRequirements.runDenyCommands(menu, menu::replacePlaceholders);
+                openRequirements.runDenyCommands(menu, this);
             }
         } else {
             if (bukkitPlayer == null) {
@@ -104,23 +104,18 @@ public abstract class Menu implements Listener, Iterable<CustomItemStack>, Place
         list.addAll(items);
         list.addAll(customItemStacks);
         for (CustomItemStack customItemStack : list) {
-            if (customItemStack.getViewRequirement() == null || customItemStack.getViewRequirement().check(this::replacePlaceholders, this)) {
+            if (customItemStack.getViewRequirement() == null || customItemStack.getViewRequirement().check(this, this)) {
                 for (int slot : customItemStack.getSlots()) {
-                    customPlaceHolders.forEach(customItemStack::registerPlaceholder);
-                    ItemStack item = customItemStack.getItem(this::replacePlaceholders, this);
+                    ItemStack item = customItemStack.getItem(this, this);
                     inventory.setItem(slot, item);
                 }
             }
         }
-        BLib.getApi().getFakeTitleFactory().get().send(inventory, Main.getMessage().messageBuilder(replacePlaceholders(title)));
+        BLib.getApi().getFakeTitleFactory().get().send(inventory, Main.getMessage().messageBuilder(replace(title)));
     }
 
     public abstract void runCommand(Placeholderable holder, String... commands);
 
-    public String replacePlaceholders(String input) {
-        input = replace(input);
-        return Main.getMessage().messageBuilder(input, bukkitPlayer);
-    }
 
     private long cd = 0;
 
@@ -287,11 +282,9 @@ public abstract class Menu implements Listener, Iterable<CustomItemStack>, Place
     public void setCustomPlaceHolders(List<Placeholderable> customPlaceHolders) {
         this.customPlaceHolders = customPlaceHolders;
     }
-
     public LinkedList<CustomItemStack> getCustomItemStacks() {
         return customItemStacks;
     }
-
     public void setCustomItemStacks(LinkedList<CustomItemStack> customItemStacks) {
         this.customItemStacks = customItemStacks;
     }

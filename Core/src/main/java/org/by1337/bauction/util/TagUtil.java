@@ -7,7 +7,7 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
-import org.by1337.bauction.SellItem;
+import org.by1337.bauction.db.MemorySellItem;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -60,7 +60,7 @@ public class TagUtil {
         return list;
     }
 
-    public static boolean matchesCategory(Category category, SellItem sellItem) {
+    public static boolean matchesCategory(Category category, MemorySellItem sellItem) {
         if (category.tags().contains("any")) return true;
         for (String s : sellItem.getTags()) {
             if (category.tags().contains(s))

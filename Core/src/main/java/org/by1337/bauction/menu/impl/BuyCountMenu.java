@@ -6,7 +6,7 @@ import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
 import org.by1337.api.command.argument.ArgumentInteger;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.SellItem;
+import org.by1337.bauction.db.json.SellItem;
 import org.by1337.bauction.User;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
@@ -45,6 +45,7 @@ public class BuyCountMenu extends Menu {
                             if (count > item.getAmount()) {
                                 count = item.getAmount();
                             }
+                            customItemStack.setAmount(count);
                             generate0();
                         })
                 )
@@ -56,13 +57,18 @@ public class BuyCountMenu extends Menu {
                             if (count < 1) {
                                 count = 1;
                             }
+                            customItemStack.setAmount(count);
                             generate0();
                         })
                 )
                 .addSubCommand(new Command("[BUY]")
                         .executor((sender, args) -> {
+                            if (Main.getEcon().getBalance(bukkitPlayer) < (item.getPriceForOne() * count)) {
+                                Main.getMessage().sendMsg(bukkitPlayer, "&cУ Вас не хватает баланса для покупки предмета!");
+                                generate0();
+                                return;
+                            }
                             callBack.result(Optional.of(count));
-                            generate0();
                         })
                 )
                 .addSubCommand(new Command("[CANCEL]")
@@ -92,19 +98,23 @@ public class BuyCountMenu extends Menu {
 
     @Override
     public String replace(String s) {
-        StringBuilder sb = new StringBuilder(s);
+        StringBuilder sb = new StringBuilder(Main.getMessage().messageBuilder(s, bukkitPlayer));
         while (true) {
             if (sb.indexOf("{count}") != -1) {
                 sb.replace(sb.indexOf("{count}"), sb.indexOf("{count}") + "{count}".length(), String.valueOf(count));
                 continue;
             }
-            if (sb.indexOf("{price}") != -1) {
-                sb.replace(sb.indexOf("{price}"), sb.indexOf("{price}") + "{price}".length(), NumberUtil.format(item.getPriceForOne() * count));
+            if (sb.indexOf("{price_count}") != -1) {
+                sb.replace(sb.indexOf("{price_count}"), sb.indexOf("{price_count}") + "{price_count}".length(), NumberUtil.format(item.getPriceForOne() * count));
                 continue;
             }
 
             break;
         }
-        return sb.toString();
+        String str = sb.toString();
+        for (Placeholderable val : customPlaceHolders) {
+            str = val.replace(str);
+        }
+        return str;
     }
 }

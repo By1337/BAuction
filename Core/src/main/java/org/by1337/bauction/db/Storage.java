@@ -1,4 +1,4 @@
-package org.by1337.bauction.storage;
+package org.by1337.bauction.db;
 
 import com.google.gson.Gson;
 import org.bukkit.Bukkit;
@@ -12,10 +12,12 @@ import org.bukkit.scheduler.BukkitTask;
 import org.by1337.api.BLib;
 import org.by1337.api.util.NameKey;
 import org.by1337.bauction.*;
-import org.by1337.bauction.storage.event.BuyItemCountEvent;
-import org.by1337.bauction.storage.event.BuyItemEvent;
-import org.by1337.bauction.storage.event.SellItemEvent;
-import org.by1337.bauction.storage.event.TakeItemEvent;
+import org.by1337.bauction.db.event.BuyItemCountEvent;
+import org.by1337.bauction.db.event.BuyItemEvent;
+import org.by1337.bauction.db.event.SellItemEvent;
+import org.by1337.bauction.db.event.TakeItemEvent;
+import org.by1337.bauction.db.json.SellItem;
+import org.by1337.bauction.db.json.User;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.Sorting;
 import org.by1337.bauction.util.TagUtil;
@@ -25,16 +27,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 
 public class Storage {
 
     private final List<SellItem> sellItems = new ArrayList<>();
-    private final Map<UUID, UserImpl> users = new HashMap<>();
+    private final Map<UUID, User> users = new HashMap<>();
     private final Map<NameKey, List<SortingItems>> map = new HashMap<>();
 
     //private final Lock lock = new ReentrantLock();
@@ -122,8 +122,8 @@ public class Storage {
     }
 
     public void validateAndRemoveItem(BuyItemCountEvent event) {
-        UserImpl seller = (UserImpl) getUser(event.getSellItem().getSellerUuid());
-        UserImpl user = (UserImpl) update(event.getUser());
+        User seller = (User) getUser(event.getSellItem().getSellerUuid());
+        User user = (User) update(event.getUser());
         SellItem sellItem = update(event.getSellItem());
 
         if (seller == null) {
@@ -189,8 +189,8 @@ public class Storage {
 
     public void validateAndRemoveItem(BuyItemEvent event) {
         //   readLock(() -> {
-        UserImpl seller = (UserImpl) getUser(event.getSellItem().getSellerUuid());
-        UserImpl user = (UserImpl) update(event.getUser());
+        User seller = (User) getUser(event.getSellItem().getSellerUuid());
+        User user = (User) update(event.getUser());
         SellItem sellItem = update(event.getSellItem());
 
         if (seller == null) {
@@ -229,7 +229,7 @@ public class Storage {
 
     public void validateAndRemoveItem(TakeItemEvent event) {
         //    readLock(() -> {
-        UserImpl user = (UserImpl) getUser(event.getUser().getUuid());
+        User user = (User) getUser(event.getUser().getUuid());
         SellItem sellItem = update(event.getSellItem());
 
         if (user == null) {
@@ -260,7 +260,7 @@ public class Storage {
 
     public void validateAndAddItem(SellItemEvent event) {
         //     readLock(() -> {
-        UserImpl user = (UserImpl) update(event.getUser());
+        User user = (User) update(event.getUser());
         SellItem sellItem = event.getSellItem();
 
         if (user == null) {
@@ -283,11 +283,11 @@ public class Storage {
     public void addItem(SellItem sellItem, User owner) {
         writeLock(() -> {
             sellItems.add(sellItem);
-            UserImpl user;
+            User user;
             if (users.containsKey(owner.getUuid())) {
                 user = users.get(owner.getUuid());
             } else {
-                user = (UserImpl) owner;
+                user = (User) owner;
                 users.put(user.getUuid(), user);
             }
             user.addSellItem(sellItem.getUuid());
@@ -320,7 +320,7 @@ public class Storage {
 
     public void editUser(EditSession<EditableUser> session, UUID uuid) {
         writeLock(() -> {
-            EditableUserImpl editableUser = new EditableUserImpl((UserImpl) getUser(uuid));
+            EditableUserImpl editableUser = new EditableUserImpl((User) getUser(uuid));
             session.run(editableUser);
             editableUser.setHandle(null);
             return null;
@@ -336,7 +336,7 @@ public class Storage {
         if (readLock(() -> !users.containsKey(player.getUniqueId()))) {
             writeLock(() -> {
                 User user = createUserAsync(player);
-                users.put(user.getUuid(), (UserImpl) user);
+                users.put(user.getUuid(), (User) user);
                 return user;
             });
         }
@@ -348,7 +348,7 @@ public class Storage {
         writeLock(() -> {
             User user = getUser(uuid);
             Main.getCfg().getBoostManager().userUpdate(user);
-            users.put(user.getUuid(), (UserImpl) user);
+            users.put(user.getUuid(), (User) user);
             return null;
         });
     }
@@ -358,7 +358,7 @@ public class Storage {
     }
 
     public User createUserAsync(Player player) {
-        return new UserImpl(player.getName(), player.getUniqueId());
+        return new User(player.getName(), player.getUniqueId());
     }
 
     public List<SellItem> getItems(NameKey category, NameKey sorting) {

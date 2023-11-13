@@ -6,15 +6,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.api.util.CyclicList;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.SellItem;
+import org.by1337.bauction.db.json.SellItem;
 import org.by1337.bauction.User;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.impl.BuyCountMenu;
 import org.by1337.bauction.menu.impl.CallBack;
-import org.by1337.bauction.menu.impl.ConfirmMenu;
 import org.by1337.bauction.menu.impl.MainMenu;
-import org.by1337.bauction.storage.event.BuyItemCountEvent;
-import org.by1337.bauction.storage.event.BuyItemEvent;
+import org.by1337.bauction.db.event.BuyItemCountEvent;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.Sorting;
@@ -67,11 +65,6 @@ public class BuyItemCountProcess {
         }
 
 
-//        if (Main.getEcon().getBalance(bukkitPlayer) < item.getPrice()) {
-//            Main.getMessage().sendMsg(bukkitPlayer, "&cУ Вас не хватает баланса для покупки предмета!");
-//            createNewMenu(user, bukkitPlayer).open();
-//            return;
-//        }
         OfflinePlayer seller = Bukkit.getOfflinePlayer(item.getSellerUuid());
 
         CallBack<Optional<Integer>> callBack = result -> {

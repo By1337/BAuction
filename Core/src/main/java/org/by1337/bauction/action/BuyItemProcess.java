@@ -5,14 +5,14 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.by1337.api.util.CyclicList;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.SellItem;
+import org.by1337.bauction.db.MemorySellItem;
+import org.by1337.bauction.db.json.SellItem;
 import org.by1337.bauction.User;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.impl.CallBack;
 import org.by1337.bauction.menu.impl.ConfirmMenu;
 import org.by1337.bauction.menu.impl.MainMenu;
-import org.by1337.bauction.storage.event.BuyItemEvent;
-import org.by1337.bauction.storage.event.TakeItemEvent;
+import org.by1337.bauction.db.event.BuyItemEvent;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.Sorting;
@@ -22,13 +22,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 public class BuyItemProcess {
-    private final SellItem buyingItem;
+    private final MemorySellItem buyingItem;
     private final User buyer;
     private CyclicList<Category> categories;
     private CyclicList<Sorting> sortings;
     private int currentPage = -1;
 
-    public BuyItemProcess(@NotNull SellItem buyingItem, @NotNull User buyer) {
+    public BuyItemProcess(@NotNull MemorySellItem buyingItem, @NotNull User buyer) {
         this.buyingItem = buyingItem;
         this.buyer = buyer;
     }

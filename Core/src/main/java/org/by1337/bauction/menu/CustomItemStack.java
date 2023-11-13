@@ -12,6 +12,7 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.by1337.api.chat.Placeholderable;
+import org.by1337.bauction.Main;
 import org.by1337.bauction.menu.click.ClickType;
 import org.by1337.bauction.menu.click.IClick;
 import org.by1337.bauction.menu.requirement.Requirements;
@@ -47,6 +48,12 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
     private final int id;
     private final List<Placeholderable> holders = new ArrayList<>();
     private final Map<String, Object> meta = new HashMap<>();
+
+    public CustomItemStack(int[] slots, ItemStack itemStack) {
+        this.slots = slots;
+        this.itemStack = itemStack;
+        id = new Random().nextInt(Integer.MAX_VALUE);
+    }
 
     private ItemStack itemStack = null;
 
@@ -87,6 +94,12 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
         }
 
         ItemMeta im = itemStack.getItemMeta();
+
+        if (im == null){
+            Main.getMessage().error(new Throwable("ItemMeta is null! " + itemStack.getType()));
+            itemStack = new ItemStack(Material.JIGSAW);
+            im = itemStack.getItemMeta();
+        }
 
         im.getPersistentDataContainer().set(MENU_ITEM_KEY, PersistentDataType.INTEGER, id);
 
@@ -142,8 +155,7 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
             im.setUnbreakable(true);
         }
         itemStack.setItemMeta(im);
-        if (this.itemStack == null)
-            itemStack.setAmount(amount);
+        itemStack.setAmount(amount);
         return itemStack;
     }
 
@@ -152,7 +164,7 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
             for (Placeholderable customPlaceHolder : holders) {
                 s = customPlaceHolder.replace(s);
             }
-            return menu.replacePlaceholders(s);
+            return menu.replace(s);
         };
         ClickType clickType1 = ClickType.adapter(e);
         if (clickType1 == null) return;

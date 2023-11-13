@@ -48,7 +48,11 @@ public class ConfirmMenu extends Menu {
 
     @Override
     public String replace(String string) {
-        return string;
+        String str = Main.getMessage().messageBuilder(string, bukkitPlayer);
+        for (Placeholderable val : customPlaceHolders) {
+            str = val.replace(str);
+        }
+        return str;
     }
 
     public static enum Result {

@@ -1,22 +1,20 @@
-package org.by1337.bauction.storage.event;
+package org.by1337.bauction.db.event;
 
-import org.by1337.bauction.SellItem;
+import org.by1337.bauction.db.json.SellItem;
 import org.by1337.bauction.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BuyItemCountEvent implements Validatable {
+public class BuyItemEvent implements Validatable {
 
     private boolean valid;
     private String reason = null;
     private final User user;
     private final SellItem sellItem;
-    private final int count;
 
-    public BuyItemCountEvent(@NotNull User user, @NotNull SellItem sellItem, int count) {
+    public BuyItemEvent(@NotNull User user, @NotNull SellItem sellItem) {
         this.user = user;
         this.sellItem = sellItem;
-        this.count = count;
     }
 
     @Override
@@ -42,10 +40,6 @@ public class BuyItemCountEvent implements Validatable {
     @NotNull
     public User getUser() {
         return user;
-    }
-
-    public int getCount() {
-        return count;
     }
 
     @NotNull

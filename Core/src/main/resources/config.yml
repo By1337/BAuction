@@ -3,6 +3,14 @@ boosts: # it's list
     permission: 'auc.boost.donat1'
     external-slots: 2
     external-sell-time: '1d'
+  - name: unlimited-slots
+    permission: 'bauc.unlimited.slots'
+    external-slots: 999999
+    external-sell-time: '0'
+  - name: unlimited-sell-time
+    permission: 'bauc.unlimited.sell-time'
+    external-slots: 0
+    external-sell-time: '50y'
 
 max-slots: 10
 

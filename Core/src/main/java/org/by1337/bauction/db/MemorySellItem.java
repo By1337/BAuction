@@ -1,4 +1,4 @@
-package org.by1337.bauction;
+package org.by1337.bauction.db;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -10,11 +10,12 @@ import org.by1337.bauction.util.TagUtil;
 import org.by1337.bauction.util.TimeUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
-import java.util.function.Supplier;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
-public class SellItem implements Placeholderable {
-    private final String item;
+public class MemorySellItem implements Placeholderable {
     private final String sellerName;
     private final UUID sellerUuid;
     private final double price;
@@ -26,11 +27,11 @@ public class SellItem implements Placeholderable {
     private final Material material;
     private final int amount;
     private final double priceForOne;
-    private final Set<String> sellFor = Collections.unmodifiableSet(new HashSet<>());
-    private transient ItemStack itemStack;
+    private final Set<String> sellFor;
+    private final ItemStack itemStack;
 
-    public SellItem(String item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, UUID uuid, Material material, int amount, double priceForOne, ItemStack itemStack) {
-        this.item = item;
+
+    public MemorySellItem(String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, UUID uuid, Material material, int amount, double priceForOne, Set<String> sellFor, ItemStack itemStack) {
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
         this.price = price;
@@ -42,30 +43,15 @@ public class SellItem implements Placeholderable {
         this.material = material;
         this.amount = amount;
         this.priceForOne = priceForOne;
+        this.sellFor = sellFor;
         this.itemStack = itemStack;
     }
 
-    public SellItem(@NotNull String item, @NotNull String sellerName, @NotNull UUID sellerUuid, double price, boolean saleByThePiece, @NotNull Set<String> tags, long saleDuration, @NotNull Material material, int amount) {
-        this.item = item;
-        this.sellerName = sellerName;
-        this.sellerUuid = sellerUuid;
-        this.price = price;
-        this.saleByThePiece = saleByThePiece;
-        this.tags = Collections.unmodifiableSet(tags);
-        this.timeListedForSale = System.currentTimeMillis();
-        this.removalDate = System.currentTimeMillis() + saleDuration;
-        this.uuid = UUID.randomUUID();
-        this.material = material;
-        this.amount = amount;
-        priceForOne = price / amount;
-    }
-
-    public SellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration) {
+    public MemorySellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration) {
         this(seller, itemStack, price, saleDuration, true);
     }
 
-    public SellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
-        item = BLib.getApi().getItemStackSerialize().serialize(itemStack);
+    public MemorySellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
         sellerName = seller.getName();
         sellerUuid = seller.getUniqueId();
         this.price = price;
@@ -76,17 +62,15 @@ public class SellItem implements Placeholderable {
         this.uuid = UUID.randomUUID();
         material = itemStack.getType();
         amount = itemStack.getAmount();
-        priceForOne = saleByThePiece ? price / amount : price;
         this.itemStack = itemStack;
+        sellFor = new HashSet<>();
+        priceForOne = saleByThePiece ? price / amount : price;
     }
 
-    @NotNull
-    public ItemStack getItemStack() {
-        if (itemStack == null) {
-            itemStack = BLib.getApi().getItemStackSerialize().deserialize(item);
-        }
-        return itemStack.clone();
+    public static MemorySellItemBuilder builder() {
+        return new MemorySellItemBuilder();
     }
+
 
     @Override
     public String replace(String s) {
@@ -133,10 +117,6 @@ public class SellItem implements Placeholderable {
         return sb.toString();
     }
 
-    public String getItem() {
-        return item;
-    }
-
     public String getSellerName() {
         return sellerName;
     }
@@ -181,24 +161,99 @@ public class SellItem implements Placeholderable {
         return priceForOne;
     }
 
+    public Set<String> getSellFor() {
+        return sellFor;
+    }
 
-    @Override
-    public String toString() {
-        return "SellItem{" +
-                "item='" + item + '\'' +
-                ", sellerName='" + sellerName + '\'' +
-                ", sellerUuid=" + sellerUuid +
-                ", price=" + price +
-                ", saleByThePiece=" + saleByThePiece +
-                ", tags=" + tags +
-                ", timeListedForSale=" + timeListedForSale +
-                ", removalDate=" + removalDate +
-                ", uuid=" + uuid +
-                ", material=" + material +
-                ", amount=" + amount +
-                ", priceForOne=" + priceForOne +
-                ", sellFor=" + sellFor +
-                ", itemStack=" + itemStack +
-                '}';
+    public ItemStack getItemStack() {
+        return itemStack;
+    }
+
+    public static class MemorySellItemBuilder {
+        private String sellerName;
+        private UUID sellerUuid;
+        private double price;
+        private boolean saleByThePiece;
+        private Set<String> tags;
+        private long timeListedForSale;
+        private long removalDate;
+        private UUID uuid;
+        private Material material;
+        private int amount;
+        private double priceForOne;
+        private Set<String> sellFor;
+        private ItemStack itemStack;
+
+        MemorySellItemBuilder() {
+        }
+
+        public MemorySellItemBuilder sellerName(String sellerName) {
+            this.sellerName = sellerName;
+            return this;
+        }
+
+        public MemorySellItemBuilder sellerUuid(UUID sellerUuid) {
+            this.sellerUuid = sellerUuid;
+            return this;
+        }
+
+        public MemorySellItemBuilder price(double price) {
+            this.price = price;
+            return this;
+        }
+
+        public MemorySellItemBuilder saleByThePiece(boolean saleByThePiece) {
+            this.saleByThePiece = saleByThePiece;
+            return this;
+        }
+
+        public MemorySellItemBuilder tags(Set<String> tags) {
+            this.tags = tags;
+            return this;
+        }
+
+        public MemorySellItemBuilder timeListedForSale(long timeListedForSale) {
+            this.timeListedForSale = timeListedForSale;
+            return this;
+        }
+
+        public MemorySellItemBuilder removalDate(long removalDate) {
+            this.removalDate = removalDate;
+            return this;
+        }
+
+        public MemorySellItemBuilder uuid(UUID uuid) {
+            this.uuid = uuid;
+            return this;
+        }
+
+        public MemorySellItemBuilder material(Material material) {
+            this.material = material;
+            return this;
+        }
+
+        public MemorySellItemBuilder amount(int amount) {
+            this.amount = amount;
+            return this;
+        }
+
+        public MemorySellItemBuilder priceForOne(double priceForOne) {
+            this.priceForOne = priceForOne;
+            return this;
+        }
+
+        public MemorySellItemBuilder sellFor(Set<String> sellFor) {
+            this.sellFor = sellFor;
+            return this;
+        }
+
+        public MemorySellItemBuilder itemStack(ItemStack itemStack) {
+            this.itemStack = itemStack;
+            return this;
+        }
+
+        public MemorySellItem build() {
+            return new MemorySellItem(this.sellerName, this.sellerUuid, this.price, this.saleByThePiece, this.tags, this.timeListedForSale, this.removalDate, this.uuid, this.material, this.amount, this.priceForOne, this.sellFor, this.itemStack);
+        }
     }
 }

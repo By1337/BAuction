@@ -1,4 +1,4 @@
-package org.by1337.bauction.storage;
+package org.by1337.bauction.db;
 
 @FunctionalInterface
 public interface EditSession<T> {

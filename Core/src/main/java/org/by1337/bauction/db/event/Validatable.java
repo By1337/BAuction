@@ -1,4 +1,4 @@
-package org.by1337.bauction.storage.event;
+package org.by1337.bauction.db.event;
 
 import org.jetbrains.annotations.Nullable;
 

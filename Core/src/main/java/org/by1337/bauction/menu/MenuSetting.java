@@ -6,12 +6,12 @@ import org.by1337.bauction.menu.requirement.Requirements;
 import java.util.LinkedList;
 
 public class MenuSetting {
-    private LinkedList<CustomItemStack> items;
-    private String title;
-    private int size;
-    private int updateInterval;
-    private FileConfiguration menuFile;
-    private Requirements viewRequirement;
+    private final LinkedList<CustomItemStack> items;
+    private final String title;
+    private final int size;
+    private final int updateInterval;
+    private final FileConfiguration menuFile;
+    private final Requirements viewRequirement;
 
     public MenuSetting(LinkedList<CustomItemStack> items, String title, int size, int updateInterval, FileConfiguration menuFile, Requirements viewRequirement) {
         this.items = items;

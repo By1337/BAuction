@@ -1,23 +1,21 @@
 package org.by1337.bauction.menu.impl;
 
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
 import org.by1337.api.command.argument.ArgumentString;
 import org.by1337.api.util.CyclicList;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.SellItem;
+import org.by1337.bauction.db.MemorySellItem;
+import org.by1337.bauction.db.MemoryUser;
+import org.by1337.bauction.db.json.SellItem;
 import org.by1337.bauction.User;
 import org.by1337.bauction.action.BuyItemCountProcess;
 import org.by1337.bauction.action.BuyItemProcess;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.MenuFactory;
-import org.by1337.bauction.menu.MenuSetting;
-import org.by1337.bauction.storage.event.BuyItemEvent;
-import org.by1337.bauction.storage.event.TakeItemEvent;
+import org.by1337.bauction.db.event.TakeItemEvent;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.Sorting;
 
@@ -34,18 +32,10 @@ public class MainMenu extends Menu {
     private List<Integer> slots;
 
     private final Command command;
-    private final User user;
+    private final MemoryUser user;
 
-//    private static MenuSetting setting;
-//
-//    private static MenuSetting getSettings(){
-//        if (setting == null){
-//            setting = MenuFactory.create(Main.getCfg().getMenu());
-//        }
-//        return setting;
-//    }
 
-    public MainMenu(User user) {
+    public MainMenu(MemoryUser user) {
         super(MenuFactory.create(Main.getCfg().getMenu()));
         this.user = user;
         addCustomPlaceHolders(user);
@@ -109,7 +99,7 @@ public class MainMenu extends Menu {
 
                             UUID uuid = UUID.fromString(uuidS);
 
-                            SellItem item = sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
+                            MemorySellItem item = sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
 
                             if (item == null) {
                                 generate0();
@@ -133,7 +123,7 @@ public class MainMenu extends Menu {
 
                             UUID uuid = UUID.fromString(uuidS);
 
-                            SellItem item = sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
+                            MemorySellItem item = sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
 
                             if (item == null) {
                                 generate0();
@@ -152,11 +142,11 @@ public class MainMenu extends Menu {
                 .addSubCommand(new Command("[TAKE_ITEM]")
                         .argument(new ArgumentString("uuid"))
                         .executor(((sender, args) -> {
-                           String uuidS = (String) args.getOrThrow("uuid");
+                            String uuidS = (String) args.getOrThrow("uuid");
 
                             UUID uuid = UUID.fromString(uuidS);
 
-                            SellItem item = sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
+                            MemorySellItem item = sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
 
                             if (item == null) {
                                 generate0();
@@ -165,15 +155,15 @@ public class MainMenu extends Menu {
 
 
                             CallBack<Optional<ConfirmMenu.Result>> callBack = result -> {
-                                if (result.isPresent()){
+                                if (result.isPresent()) {
                                     if (result.get() == ConfirmMenu.Result.ACCEPT) {
                                         TakeItemEvent event = new TakeItemEvent(user, item);
                                         Main.getStorage().validateAndRemoveItem(event);
 
-                                        if (event.isValid()){
+                                        if (event.isValid()) {
                                             Main.getMessage().sendMsg(bukkitPlayer, "&aВы успешно забрали свой предмет!");
                                             Menu.giveItems(bukkitPlayer, item.getItemStack()).forEach(i -> bukkitPlayer.getLocation().getWorld().dropItem(bukkitPlayer.getLocation(), i));
-                                        }else {
+                                        } else {
                                             Main.getMessage().sendMsg(bukkitPlayer, String.valueOf(event.getReason()));
                                         }
                                     }
@@ -197,7 +187,7 @@ public class MainMenu extends Menu {
         ;
     }
 
-    private ArrayList<SellItem> sellItems = null;
+    private ArrayList<MemorySellItem> sellItems = null;
     private Category lastCategory = null;
     private Sorting lastSorting = null;
     private int lastPage = -1;
@@ -225,7 +215,7 @@ public class MainMenu extends Menu {
             Iterator<Integer> slotsIterator = slots.listIterator();
             customItemStacks.clear();
             for (int x = currentPage * slots.size(); x < sellItems.size(); x++) {
-                SellItem item = sellItems.get(x);
+                MemorySellItem item = sellItems.get(x);
 
                 if (slotsIterator.hasNext()) {
                     int slot = slotsIterator.next();
@@ -242,6 +232,7 @@ public class MainMenu extends Menu {
                     customItemStack.setItemStack(item.getItemStack());
                     customItemStack.setSlots(new int[]{slot});
                     customItemStack.registerPlaceholder(item);
+                    customItemStack.setAmount(item.getAmount());
                     customPlaceHolders.forEach(customItemStack::registerPlaceholder);
                     customItemStacks.add(customItemStack);
 
@@ -264,7 +255,7 @@ public class MainMenu extends Menu {
 
     @Override
     public String replace(String s) {
-        StringBuilder sb = new StringBuilder(s);
+        StringBuilder sb = new StringBuilder(Main.getMessage().messageBuilder(s, bukkitPlayer));
         while (true) {
             if (sb.indexOf("{max_page}") != -1) {
                 sb.replace(sb.indexOf("{max_page}"), sb.indexOf("{max_page}") + "{max_page}".length(), String.valueOf(maxPage == 0 ? 1 : maxPage));
@@ -288,7 +279,11 @@ public class MainMenu extends Menu {
             }
             break;
         }
-        return sb.toString();
+        String str = sb.toString();
+        for (Placeholderable val : customPlaceHolders) {
+            str = val.replace(str);
+        }
+        return str;
     }
 
 
@@ -297,9 +292,9 @@ public class MainMenu extends Menu {
         Category c = categories.getCurrent();
         for (Category category : categories) {
             if (c.equals(category)) {
-                sb.append(category.selectedName()).append("\n");
+                sb.append(replace(category.selectedName())).append("\n");
             } else {
-                sb.append(category.unselectedName()).append("\n");
+                sb.append(replace(category.unselectedName())).append("\n");
             }
         }
         return sb.toString();
@@ -310,9 +305,9 @@ public class MainMenu extends Menu {
         Sorting c = sortings.getCurrent();
         for (Sorting sorting : sortings) {
             if (c.equals(sorting)) {
-                sb.append(sorting.selectedName()).append("\n");
+                sb.append(replace(sorting.selectedName())).append("\n");
             } else {
-                sb.append(sorting.unselectedName()).append("\n");
+                sb.append(replace(sorting.unselectedName())).append("\n");
             }
         }
         return sb.toString();

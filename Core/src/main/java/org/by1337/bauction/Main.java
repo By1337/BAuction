@@ -22,9 +22,12 @@ import org.by1337.bauction.config.Config;
 import org.by1337.bauction.config.adapter.AdapterBoost;
 import org.by1337.bauction.config.adapter.AdapterCategory;
 import org.by1337.bauction.config.adapter.AdapterSortingType;
+import org.by1337.bauction.db.MemorySellItem;
+import org.by1337.bauction.db.MemoryUser;
+import org.by1337.bauction.db.json.JsonDB;
 import org.by1337.bauction.menu.impl.MainMenu;
-import org.by1337.bauction.storage.Storage;
-import org.by1337.bauction.storage.event.SellItemEvent;
+import org.by1337.bauction.db.Storage;
+import org.by1337.bauction.db.event.SellItemEvent;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.Sorting;
 import org.by1337.bauction.util.TagUtil;
@@ -38,7 +41,7 @@ public final class Main extends JavaPlugin {
     private static Message message;
     private static Plugin instance;
     private static Config cfg;
-    private static Storage storage;
+    private static JsonDB storage;
     private Command command;
     private static Economy econ;
 
@@ -59,7 +62,7 @@ public final class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         cfg = new Config(this);
-        storage = new Storage(cfg.getCategoryMap(), cfg.getSortingMap());
+        storage = new JsonDB(cfg.getCategoryMap(), cfg.getSortingMap());
         initCommand();
         getCommand("bauc").setTabCompleter(this);
         getCommand("bauc").setExecutor(this);
@@ -75,7 +78,7 @@ public final class Main extends JavaPlugin {
                                 .argument(new ArgumentPlayer("player"))
                                 .executor((sender, args) -> {
                                     Player player = (Player) args.getOrThrow("player", "Вы должны указать игрока!");
-                                    storage.updateUser(storage.getUserOrCreate(player).getUuid());
+                                  //  storage.updateUser(storage.getUserOrCreate(player).getUuid());
                                     message.sendMsg(sender, "&aИнформация о игроке успешно обновлена!");
                                 })
                         )
@@ -98,9 +101,9 @@ public final class Main extends JavaPlugin {
                                     long x = System.currentTimeMillis();
                                     Random random = new Random();
 
-                                    User user = storage.getUserOrCreate(player);
+                                    MemoryUser user = storage.getMemoryUserOrCreate(player);
                                     for (int i = 0; i < amount; i++) {
-                                        SellItem sellItem = new SellItem(player, itemStack, price + random.nextInt(price / 2), cfg.getDefaultSellTime() + user.getExternalSellTime());
+                                        MemorySellItem sellItem = new MemorySellItem(player, itemStack, price + random.nextInt(price / 2), cfg.getDefaultSellTime() + user.getExternalSellTime());
                                         SellItemEvent event = new SellItemEvent(user, sellItem);
                                         storage.validateAndAddItem(event);
                                         if (!event.isValid()){
@@ -128,9 +131,9 @@ public final class Main extends JavaPlugin {
                                 throw new CommandException("&cВы не можете торговать воздухом!");
                             }
 
-                            User user = storage.getUserOrCreate(player);
+                            MemoryUser user = storage.getMemoryUserOrCreate(player);
 
-                            SellItem sellItem = new SellItem(player, itemStack, price, cfg.getDefaultSellTime() + user.getExternalSellTime(), full);
+                            MemorySellItem sellItem = new MemorySellItem(player, itemStack, price, cfg.getDefaultSellTime() + user.getExternalSellTime(), full);
                             SellItemEvent event = new SellItemEvent(user, sellItem);
                             storage.validateAndAddItem(event);
                             if (event.isValid()){
@@ -155,7 +158,7 @@ public final class Main extends JavaPlugin {
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))
                         throw new CommandException("Вы должны быть игроком!");
-                    User user = storage.getUserOrCreate(player);
+                    MemoryUser user = storage.getMemoryUserOrCreate(player);
                     MainMenu menu = new MainMenu(user);
                     menu.setBukkitPlayer(player);
                     menu.open();
@@ -166,7 +169,7 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        storage.end();
+        //storage.end();
     }
 
     public static Message getMessage() {
@@ -181,7 +184,7 @@ public final class Main extends JavaPlugin {
         return cfg;
     }
 
-    public static Storage getStorage() {
+    public static JsonDB getStorage() {
         return storage;
     }
 

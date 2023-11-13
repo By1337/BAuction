@@ -1,12 +1,14 @@
 package org.by1337.bauction;
 
+import org.by1337.bauction.db.json.User;
+
 import java.util.List;
 import java.util.UUID;
 
 public class EditableUserImpl implements EditableUser {
-    private UserImpl handle;
+    private User handle;
 
-    public EditableUserImpl(UserImpl handle) {
+    public EditableUserImpl(User handle) {
         this.handle = handle;
     }
 
@@ -105,7 +107,7 @@ public class EditableUserImpl implements EditableUser {
         handle.setExternalSellTime(externalSellTime);
     }
 
-    public void setHandle(UserImpl handle) {
+    public void setHandle(User handle) {
         this.handle = handle;
     }
 }
