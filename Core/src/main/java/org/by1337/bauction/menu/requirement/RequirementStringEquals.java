@@ -6,12 +6,10 @@ import org.by1337.bauction.menu.Menu;
 public class RequirementStringEquals implements IRequirement {
     private final String input;
     private final String output;
-    private final String id;
 
-    public RequirementStringEquals(String input, String output, String id) {
+    public RequirementStringEquals(String input, String output) {
         this.input = input;
         this.output = output;
-        this.id = id;
     }
 
     @Override
@@ -19,7 +17,7 @@ public class RequirementStringEquals implements IRequirement {
         String replacesInput = holder.replace(input);
         String replacesOutput = holder.replace(output);
 
-        if ((replacesInput.equals("1") || replacesInput.equals("0")) && (replacesOutput.equals("true") || replacesOutput.equals("false"))){
+        if ((replacesInput.equals("1") || replacesInput.equals("0")) && (replacesOutput.equals("true") || replacesOutput.equals("false"))) {
             return parseBoolean(replacesInput) == parseBoolean(replacesOutput);
         }
         return replacesInput.equals(replacesOutput);
@@ -30,7 +28,7 @@ public class RequirementStringEquals implements IRequirement {
         return RequirementType.STRING_EQUALS;
     }
 
-    public static boolean parseBoolean(String s){
+    public static boolean parseBoolean(String s) {
         if (s.equals("1")) return true;
         return s.equals("true");
     }

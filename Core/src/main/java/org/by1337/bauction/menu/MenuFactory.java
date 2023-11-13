@@ -10,6 +10,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import org.by1337.api.configuration.YamlContext;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.menu.click.Click;
 import org.by1337.bauction.menu.click.ClickType;
@@ -23,28 +24,31 @@ import java.util.*;
 import java.util.List;
 
 public class MenuFactory {
+
     public static MenuSetting create(FileConfiguration menuFile) {
-        LinkedList<CustomItemStack> items = new LinkedList<>();
-        for (String key : menuFile.getConfigurationSection("items").getKeys(false)) {
-            Map<String, Object> map = menuFile.getConfigurationSection(String.format("items.%s", key)).getValues(false);
+        YamlContext context = new YamlContext(menuFile);
+        List<CustomItemStack> items = context.getMap("items", CustomItemStack.class).values().stream().toList();
+//        for (String key : menuFile.getConfigurationSection("items").getKeys(false)) {
+//            Map<String, Object> map = menuFile.getConfigurationSection(String.format("items.%s", key)).getValues(false);
+//
+//            items.add(menuItemBuilder(map));
+//        }
 
-            items.add(menuItemBuilder(map));
-        }
+        String title = context.getAsString("menu_title");//menuFile.getString("menu_title", "&7title");
+        int size = context.getAsInteger("size");// menuFile.getInt("size", 54);
 
-        String title = menuFile.getString("menu_title", "&7title");
-        int size = menuFile.getInt("size", 54);
+       // int updateInterval = menuFile.getInt("update_interval", -1);
 
-        int updateInterval = menuFile.getInt("update_interval", -1);
-
-        Requirements viewRequirement;
-        if (menuFile.getConfigurationSection("open_requirement") != null) {
-            viewRequirement = getRequirements(menuFile.getConfigurationSection("open_requirement").getValues(false));
-        } else {
-            viewRequirement = null;
-        }
-        return new MenuSetting(items, title, size, updateInterval, menuFile, viewRequirement);
+        Requirements viewRequirement = context.getAs("open_requirement", Requirements.class, null);
+//        if (menuFile.getConfigurationSection("open_requirement") != null) {
+//            viewRequirement = getRequirements(menuFile.getConfigurationSection("open_requirement").getValues(false));
+//        } else {
+//            viewRequirement = null;
+//        }
+        return new MenuSetting(items, title, size, -1, menuFile, viewRequirement);
     }
 
+    @Deprecated(forRemoval = true)
     public static CustomItemStack menuItemBuilder(Map<String, Object> map) {
         HashMap<ClickType, IClick> clicks = new HashMap<>();
 
@@ -106,10 +110,10 @@ public class MenuFactory {
             }
 
         }
-        if (map.containsKey("potion_effects")) {
+        if (map.containsKey("enchantments")) {
             List<EnchantmentBuilder> enchantments = new ArrayList<>();
             try {
-                for (Object o : (List<?>) map.get("potion_effects")) {
+                for (Object o : (List<?>) map.get("enchantments")) {
                     String[] args = o.toString().split(";");
                     if (args.length != 2) {
                         Main.getMessage().error("ожидался enchantmentid;level, а не " + o);

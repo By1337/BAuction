@@ -1,5 +1,6 @@
 package org.by1337.bauction.menu.impl;
 
+import org.bukkit.entity.Player;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
@@ -8,14 +9,14 @@ import org.by1337.api.util.CyclicList;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.MemorySellItem;
 import org.by1337.bauction.db.MemoryUser;
-import org.by1337.bauction.db.json.SellItem;
-import org.by1337.bauction.User;
+
 import org.by1337.bauction.action.BuyItemCountProcess;
 import org.by1337.bauction.action.BuyItemProcess;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.MenuFactory;
 import org.by1337.bauction.db.event.TakeItemEvent;
+import org.by1337.bauction.menu.MenuSetting;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.Sorting;
 
@@ -34,16 +35,25 @@ public class MainMenu extends Menu {
     private final Command command;
     private final MemoryUser user;
 
+    private static MenuSetting setting;
 
-    public MainMenu(MemoryUser user) {
-        super(MenuFactory.create(Main.getCfg().getMenu()));
+    private static MenuSetting getSetting(){
+        if (setting == null){
+            setting = MenuFactory.create(Main.getCfg().getMenu());
+        }
+        return setting;
+    }
+
+
+    public MainMenu(MemoryUser user, Player player) {
+        super(getSetting(), player);
         this.user = user;
-        addCustomPlaceHolders(user);
-        sortings.addAll(Main.getCfg().getSortingMap().values());
+        registerPlaceholderable(user);
 
+        sortings.addAll(Main.getCfg().getSortingMap().values());
         categories.addAll(Main.getCfg().getCategoryMap().values());
 
-        slots = MenuFactory.getSlots(menuFile, "items-slots");
+        slots = MenuFactory.getSlots(Main.getCfg().getMenu(), "items-slots");
 
         command = new Command("menu-commands")
                 .addSubCommand(new Command("[NEXT_PAGE]")
@@ -106,12 +116,12 @@ public class MainMenu extends Menu {
                                 return;
                             }
 
-                            if (Main.getEcon().getBalance(bukkitPlayer) < item.getPrice()) {
-                                Main.getMessage().sendMsg(bukkitPlayer, "&cУ Вас не хватает баланса для покупки предмета!");
+                            if (Main.getEcon().getBalance(getPlayer()) < item.getPrice()) {
+                                Main.getMessage().sendMsg(getPlayer(), "&cУ Вас не хватает баланса для покупки предмета!");
                                 return;
                             }
 
-                            bukkitPlayer.closeInventory();
+                            getPlayer().closeInventory();
                             new BuyItemProcess(item, user, categories, sortings, currentPage).process();
 
                         }))
@@ -129,12 +139,12 @@ public class MainMenu extends Menu {
                                 generate0();
                                 return;
                             }
-                            if (Main.getEcon().getBalance(bukkitPlayer) < item.getPriceForOne()) {
-                                Main.getMessage().sendMsg(bukkitPlayer, "&cУ Вас не хватает баланса для покупки хотя бы одного предмета!");
+                            if (Main.getEcon().getBalance(getPlayer()) < item.getPriceForOne()) {
+                                Main.getMessage().sendMsg(getPlayer(), "&cУ Вас не хватает баланса для покупки хотя бы одного предмета!");
                                 return;
                             }
 
-                            bukkitPlayer.closeInventory();
+                            getPlayer().closeInventory();
                             new BuyItemCountProcess(item, user, categories, sortings, currentPage).process();
 
                         }))
@@ -142,45 +152,45 @@ public class MainMenu extends Menu {
                 .addSubCommand(new Command("[TAKE_ITEM]")
                         .argument(new ArgumentString("uuid"))
                         .executor(((sender, args) -> {
-                            String uuidS = (String) args.getOrThrow("uuid");
-
-                            UUID uuid = UUID.fromString(uuidS);
-
-                            MemorySellItem item = sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
-
-                            if (item == null) {
-                                generate0();
-                                return;
-                            }
-
-
-                            CallBack<Optional<ConfirmMenu.Result>> callBack = result -> {
-                                if (result.isPresent()) {
-                                    if (result.get() == ConfirmMenu.Result.ACCEPT) {
-                                        TakeItemEvent event = new TakeItemEvent(user, item);
-                                        Main.getStorage().validateAndRemoveItem(event);
-
-                                        if (event.isValid()) {
-                                            Main.getMessage().sendMsg(bukkitPlayer, "&aВы успешно забрали свой предмет!");
-                                            Menu.giveItems(bukkitPlayer, item.getItemStack()).forEach(i -> bukkitPlayer.getLocation().getWorld().dropItem(bukkitPlayer.getLocation(), i));
-                                        } else {
-                                            Main.getMessage().sendMsg(bukkitPlayer, String.valueOf(event.getReason()));
-                                        }
-                                    }
-                                }
-                                MainMenu menu = new MainMenu(user);
-                                menu.setBukkitPlayer(bukkitPlayer);
-                                menu.setCategories(categories);
-                                menu.setSortings(sortings);
-                                menu.setCurrentPage(currentPage);
-                                menu.open();
-                            };
-
-                            ConfirmMenu confirmMenu = new ConfirmMenu(callBack, item.getItemStack());
-                            confirmMenu.setBukkitPlayer(bukkitPlayer);
-                            confirmMenu.addCustomPlaceHolders(user);
-                            confirmMenu.addCustomPlaceHolders(item);
-                            confirmMenu.open();
+//                            String uuidS = (String) args.getOrThrow("uuid");
+//
+//                            UUID uuid = UUID.fromString(uuidS);
+//
+//                            MemorySellItem item = sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
+//
+//                            if (item == null) {
+//                                generate0();
+//                                return;
+//                            }
+//
+//
+//                            CallBack<Optional<ConfirmMenu.Result>> callBack = result -> {
+//                                if (result.isPresent()) {
+//                                    if (result.get() == ConfirmMenu.Result.ACCEPT) {
+//                                        TakeItemEvent event = new TakeItemEvent(user, item);
+//                                        Main.getStorage().validateAndRemoveItem(event);
+//
+//                                        if (event.isValid()) {
+//                                            Main.getMessage().sendMsg(bukkitPlayer, "&aВы успешно забрали свой предмет!");
+//                                            Menu.giveItems(bukkitPlayer, item.getItemStack()).forEach(i -> bukkitPlayer.getLocation().getWorld().dropItem(bukkitPlayer.getLocation(), i));
+//                                        } else {
+//                                            Main.getMessage().sendMsg(bukkitPlayer, String.valueOf(event.getReason()));
+//                                        }
+//                                    }
+//                                }
+//                                MainMenu menu = new MainMenu(user);
+//                                menu.setBukkitPlayer(bukkitPlayer);
+//                                menu.setCategories(categories);
+//                                menu.setSortings(sortings);
+//                                menu.setCurrentPage(currentPage);
+//                                menu.open();
+//                            };
+//
+//                            ConfirmMenu confirmMenu = new ConfirmMenu(callBack, item.getItemStack());
+//                            confirmMenu.setBukkitPlayer(bukkitPlayer);
+//                            confirmMenu.registerPlaceholderable(user);
+//                            confirmMenu.registerPlaceholderable(item);
+//                            confirmMenu.open();
 
                         }))
                 )
@@ -221,19 +231,19 @@ public class MainMenu extends Menu {
                     int slot = slotsIterator.next();
                     CustomItemStack customItemStack;
                     if (item.getSellerUuid().equals(user.getUuid())) {
-                        customItemStack = MenuFactory.menuItemBuilder(Main.getCfg().getConfig().getConfigurationSection("take-item").getValues(false));
+                        customItemStack = Main.getCfg().getConfig().getAs("take-item", CustomItemStack.class);
                     } else if (item.getAmount() == 1) {
-                        customItemStack = MenuFactory.menuItemBuilder(Main.getCfg().getConfig().getConfigurationSection("selling-item-one").getValues(false));
+                        customItemStack = Main.getCfg().getConfig().getAs("selling-item-one", CustomItemStack.class);
                     } else if (item.isSaleByThePiece()) {
-                        customItemStack = MenuFactory.menuItemBuilder(Main.getCfg().getConfig().getConfigurationSection("selling-item").getValues(false));
+                        customItemStack = Main.getCfg().getConfig().getAs("selling-item", CustomItemStack.class);
                     } else {
-                        customItemStack = MenuFactory.menuItemBuilder(Main.getCfg().getConfig().getConfigurationSection("selling-item-only-full").getValues(false));
+                        customItemStack = Main.getCfg().getConfig().getAs("selling-item-only-full", CustomItemStack.class);
                     }
                     customItemStack.setItemStack(item.getItemStack());
                     customItemStack.setSlots(new int[]{slot});
                     customItemStack.registerPlaceholder(item);
                     customItemStack.setAmount(item.getAmount());
-                    customPlaceHolders.forEach(customItemStack::registerPlaceholder);
+                  //  customPlaceHolders.forEach(customItemStack::registerPlaceholder);
                     customItemStacks.add(customItemStack);
 
                 }
@@ -255,7 +265,7 @@ public class MainMenu extends Menu {
 
     @Override
     public String replace(String s) {
-        StringBuilder sb = new StringBuilder(Main.getMessage().messageBuilder(s, bukkitPlayer));
+        StringBuilder sb = new StringBuilder(Main.getMessage().messageBuilder(s, getPlayer()));
         while (true) {
             if (sb.indexOf("{max_page}") != -1) {
                 sb.replace(sb.indexOf("{max_page}"), sb.indexOf("{max_page}") + "{max_page}".length(), String.valueOf(maxPage == 0 ? 1 : maxPage));
@@ -312,28 +322,11 @@ public class MainMenu extends Menu {
         }
         return sb.toString();
     }
-
-    public void setLastCategory(Category lastCategory) {
-        this.lastCategory = lastCategory;
-    }
-
-    public void setLastSorting(Sorting lastSorting) {
-        this.lastSorting = lastSorting;
-    }
-
-    public void setLastPage(int lastPage) {
-        this.lastPage = lastPage;
-    }
-
-    public void setSortings(CyclicList<Sorting> sortings) {
-        this.sortings = sortings;
-    }
-
-    public void setCategories(CyclicList<Category> categories) {
-        this.categories = categories;
-    }
-
-    public void setCurrentPage(int currentPage) {
-        this.currentPage = currentPage;
+    public void reopen(){
+        if (getPlayer() == null || !getPlayer().isOnline()){
+            throw new IllegalArgumentException();
+        }
+        reRegister();
+        getPlayer().openInventory(getInventory());
     }
 }

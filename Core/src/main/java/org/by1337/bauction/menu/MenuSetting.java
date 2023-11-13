@@ -4,16 +4,17 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.by1337.bauction.menu.requirement.Requirements;
 
 import java.util.LinkedList;
+import java.util.List;
 
 public class MenuSetting {
-    private final LinkedList<CustomItemStack> items;
+    private final List<CustomItemStack> items;
     private final String title;
     private final int size;
     private final int updateInterval;
     private final FileConfiguration menuFile;
     private final Requirements viewRequirement;
 
-    public MenuSetting(LinkedList<CustomItemStack> items, String title, int size, int updateInterval, FileConfiguration menuFile, Requirements viewRequirement) {
+    public MenuSetting(List<CustomItemStack> items, String title, int size, int updateInterval, FileConfiguration menuFile, Requirements viewRequirement) {
         this.items = items;
         this.title = title;
         this.size = size;
@@ -22,7 +23,7 @@ public class MenuSetting {
         this.viewRequirement = viewRequirement;
     }
 
-    public LinkedList<CustomItemStack> getItems() {
+    public List<CustomItemStack> getItems() {
         return items;
     }
 

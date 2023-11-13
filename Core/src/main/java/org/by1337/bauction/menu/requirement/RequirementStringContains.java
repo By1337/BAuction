@@ -7,13 +7,11 @@ public class RequirementStringContains implements IRequirement {
     private final String input;
     private final String input2;
     private final String output;
-    private final String id;
 
-    public RequirementStringContains(String input,String input2, String output, String id) {
+    public RequirementStringContains(String input,String input2, String output) {
         this.input2 = input2;
         this.input = input;
         this.output = output;
-        this.id = id;
     }
 
     @Override

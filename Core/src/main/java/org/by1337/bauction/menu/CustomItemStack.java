@@ -29,8 +29,8 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
     public static final NamespacedKey MENU_ITEM_KEY = Objects.requireNonNull(NamespacedKey.fromString("bauc_menu_item"));
     private int[] slots;
     private List<String> lore;
-    private String name;
-    private HashMap<ClickType, IClick> clicks;
+    private final String name;
+    private Map<ClickType, IClick> clicks;
     private int amount;
     private String material;
     private Requirements viewRequirement = null;
@@ -53,11 +53,12 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
         this.slots = slots;
         this.itemStack = itemStack;
         id = new Random().nextInt(Integer.MAX_VALUE);
+        name = null;
     }
 
     private ItemStack itemStack = null;
 
-    public CustomItemStack(int[] slots, List<String> lore, @Nullable String name, HashMap<ClickType, IClick> clicks, int amount, String material) {
+    public CustomItemStack(int[] slots, List<String> lore, @Nullable String name, Map<ClickType, IClick> clicks, int amount, String material) {
         this.slots = slots;
         this.lore = lore;
         this.name = name;
@@ -65,8 +66,8 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
         this.amount = amount;
         this.material = material;
         id = new Random().nextInt(Integer.MAX_VALUE);
-
     }
+
 
     @Nullable
     public ItemStack getItem(Placeholderable holder, Menu menu) {
@@ -211,7 +212,7 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
         return this.name;
     }
 
-    public HashMap<ClickType, IClick> getClicks() {
+    public Map<ClickType, IClick> getClicks() {
         return this.clicks;
     }
 
@@ -287,9 +288,9 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
         this.lore = lore;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+//    public void setName(String name) {
+//        this.name = name;
+//    }
 
     public void setClicks(HashMap<ClickType, IClick> clicks) {
         this.clicks = clicks;
