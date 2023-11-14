@@ -4,20 +4,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.by1337.api.util.CyclicList;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.MemorySellItem;
 import org.by1337.bauction.db.MemoryUser;
+import org.by1337.bauction.db.event.BuyItemCountEvent;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.impl.BuyCountMenu;
 import org.by1337.bauction.menu.impl.CallBack;
-import org.by1337.bauction.menu.impl.MainMenu;
-import org.by1337.bauction.db.event.BuyItemCountEvent;
-import org.by1337.bauction.util.Category;
+import org.by1337.bauction.menu.impl.ConfirmMenu;
 import org.by1337.bauction.util.NumberUtil;
-import org.by1337.bauction.util.Sorting;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -25,89 +21,99 @@ public class BuyItemCountProcess {
 
     private final MemorySellItem buyingItem;
     private final MemoryUser buyer;
-    private CyclicList<Category> categories;
-    private CyclicList<Sorting> sortings;
-    private int currentPage = -1;
+    private final Player player;
+    private final Menu menu;
 
-    public BuyItemCountProcess(@NotNull MemorySellItem buyingItem, @NotNull MemoryUser buyer) {
+
+    public BuyItemCountProcess(@NotNull MemorySellItem buyingItem, @NotNull MemoryUser buyer, Player player, Menu menu) {
         this.buyingItem = buyingItem;
         this.buyer = buyer;
+        this.player = player;
+        this.menu = menu;
     }
 
-    public BuyItemCountProcess(@NotNull MemorySellItem buyingItem, @NotNull MemoryUser buyer, @Nullable CyclicList<Category> categories, @Nullable CyclicList<Sorting> sortings, int currentPage) {
-        this.buyingItem = buyingItem;
-        this.buyer = buyer;
-        this.categories = categories;
-        this.sortings = sortings;
-        this.currentPage = currentPage;
-    }
+    private CallBack<Optional<Integer>> callBack;
+    private BuyCountMenu buyCountMenu;
+    private int count = 0;
 
     public void process() {
-//
-//        Player bukkitPlayer = Bukkit.getPlayer(buyer.getUuid());
-//
-//        if (bukkitPlayer == null) {
-//            return;
-//        }
-//        MemorySellItem item = Main.getStorage().update(buyingItem);
-//        User user = Main.getStorage().update(buyer);
-//
-//        if (user == null) {
-//            Main.getMessage().sendMsg(bukkitPlayer, "&cЧто-то пошло не так!");
-//            Main.getMessage().error(new Throwable("lost user"));
-//            return;
-//        }
-//
-//        if (item == null) {
-//            Main.getMessage().sendMsg(bukkitPlayer, "&cПредмет уже продан или снят с продажи!");
-//            createNewMenu(user, bukkitPlayer).open();
-//            return;
-//        }
-//
-//
-//        OfflinePlayer seller = Bukkit.getOfflinePlayer(item.getSellerUuid());
-//
-//        CallBack<Optional<Integer>> callBack = result -> {
-//            if (result.isPresent()) {
-//                int count = result.get();
-//
-//                BuyItemCountEvent event = new BuyItemCountEvent(user, item, count);
-//                Main.getStorage().validateAndRemoveItem(event);
-//
-//                if (event.isValid()) {
-//                    double price = (item.getPriceForOne() * count);
-//                    Main.getEcon().withdrawPlayer(bukkitPlayer, price);
-//                    Main.getEcon().depositPlayer(seller, price);
-//                    if (seller.isOnline()) {
-//                        Main.getMessage().sendMsg(seller.getPlayer(), "&aИгрок %s купил у вас %s за %s!", bukkitPlayer.getName(), item.getMaterial(), NumberUtil.format(price));
-//                    }
-//                    Main.getMessage().sendMsg(bukkitPlayer, "&aВы успешно купили %s в количестве %s!", item.getMaterial(), item.getAmount());
-//                    ItemStack itemStack = item.getItemStack();
-//                    itemStack.setAmount(itemStack.getAmount() - count);
-//                    Menu.giveItems(bukkitPlayer, itemStack).forEach(i -> bukkitPlayer.getLocation().getWorld().dropItem(bukkitPlayer.getLocation(), i));
-//                } else {
-//                    Main.getMessage().sendMsg(bukkitPlayer, String.valueOf(event.getReason()));
-//                }
-//            }
-//            createNewMenu(user, bukkitPlayer).open();
-//        };
-//
-//        BuyCountMenu buyCountMenu = new BuyCountMenu(user, item, callBack);
-//        buyCountMenu.setBukkitPlayer(bukkitPlayer);
-//        buyCountMenu.registerPlaceholderable(user);
-//        buyCountMenu.registerPlaceholderable(item);
-//        buyCountMenu.open();
+        try {
+
+            CallBack<Optional<ConfirmMenu.Result>> callBack1 = result1 -> {
+                if (result1.isPresent()) {
+                    if (result1.get() == ConfirmMenu.Result.ACCEPT) {
+                        //count = result.get();
+                        BuyItemCountEvent event = new BuyItemCountEvent(buyer, buyingItem, count);
+                        Main.getStorage().validateAndRemoveItem(event);
+
+                        OfflinePlayer seller = Bukkit.getOfflinePlayer(buyingItem.getSellerUuid());
+
+                        if (event.isValid()) {
+                            double price = (buyingItem.getPriceForOne() * count);
+                            Main.getEcon().withdrawPlayer(player, price);
+                            Main.getEcon().depositPlayer(seller, price);
+                            if (seller.isOnline()) {
+                                Main.getMessage().sendMsg(seller.getPlayer(),
+                                        replace("&aИгрок {buyer_name} купил у вас {item_name}&r за {price}!"));
+                            }
+                            Main.getMessage().sendMsg(player, replace("&aВы успешно купили {item_name}&r в количестве {amount}!"));
+                            ItemStack itemStack = buyingItem.getItemStack();
+                            itemStack.setAmount(itemStack.getAmount() - count);
+                            Menu.giveItems(player, itemStack).forEach(i -> player.getLocation().getWorld().dropItem(player.getLocation(), i));
+                        } else {
+                            Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
+                        }
+                        menu.reopen();
+                        return;
+                    }
+                    buyCountMenu.reopen();
+                }
+            };
+
+            callBack = result -> {
+                if (result.isPresent()) {
+                    count = result.get();
+                    ItemStack itemStack = buyingItem.getItemStack();
+                    itemStack.setAmount(count);
+                    new ConfirmMenu(callBack1, itemStack, player).open();
+                }
+            };
+
+            buyCountMenu = new BuyCountMenu(buyer, buyingItem, callBack, player);
+            buyCountMenu.open();
+
+        } catch (Exception e) {
+            Main.getMessage().sendMsg(player, "&cЧто-то пошло не так!");
+            Main.getMessage().error(e);
+        }
     }
 
-//    private MainMenu createNewMenu(User user, Player bukkitPlayer) {
-//        MainMenu menu = new MainMenu(user);
-//        menu.setBukkitPlayer(bukkitPlayer);
-//        if (categories != null)
-//            menu.setCategories(categories);
-//        if (sortings != null)
-//            menu.setSortings(sortings);
-//        if (currentPage != -1)
-//            menu.setCurrentPage(currentPage);
-//        return menu;
-//    }
+    public String replace(String s) {
+        StringBuilder sb = new StringBuilder(s);
+        while (true) {
+            if (sb.indexOf("{amount}") != -1) {
+                sb.replace(sb.indexOf("{amount}"), sb.indexOf("{amount}") + "{amount}".length(), String.valueOf(count));
+                continue;
+            }
+            if (sb.indexOf("{buyer_name}") != -1) {
+                sb.replace(sb.indexOf("{buyer_name}"), sb.indexOf("{buyer_name}") + "{buyer_name}".length(), player.getName());
+                continue;
+            }
+            if (sb.indexOf("{price}") != -1) {
+                sb.replace(sb.indexOf("{price}"), sb.indexOf("{price}") + "{price}".length(), NumberUtil.format(buyingItem.getPriceForOne() * count));
+                continue;
+            }
+            if (sb.indexOf("{item_name}") != -1) {
+                sb.replace(sb.indexOf("{item_name}"), sb.indexOf("{item_name}") + "{item_name}".length(),
+                        buyingItem.getItemStack().getItemMeta() != null && buyingItem.getItemStack().getItemMeta().hasDisplayName() ?
+                                buyingItem.getItemStack().getItemMeta().getDisplayName() :
+                                buyingItem.getMaterial().name()
+                );
+                continue;
+            }
+            break;
+        }
+        return sb.toString();
+    }
+
 }

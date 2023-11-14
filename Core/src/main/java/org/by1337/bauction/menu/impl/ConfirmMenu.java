@@ -20,9 +20,9 @@ public class ConfirmMenu extends Menu {
     private final CustomItemStack itemStack;
     private int itemSlot;
 
-    public ConfirmMenu(@NotNull CallBack<Optional<Result>> callBack, ItemStack itemStack, Player player ) {
-        super(MenuFactory.create(Main.getCfg().getMenuConfirm()), player);
-        itemSlot = Main.getCfg().getMenuConfirm().getAsInteger("item-slot");
+    public ConfirmMenu(@NotNull CallBack<Optional<Result>> callBack, ItemStack itemStack, Player player) {
+        super(Main.getCfg().getMenuManger().getMenuConfirm(), player);
+        itemSlot = Main.getCfg().getMenuManger().getConfirmMenuItemSlot();
         this.callBack = callBack;
 
         this.itemStack = new CustomItemStack(new int[]{itemSlot}, new ArrayList<>(), null, new HashMap<>(), itemStack.getAmount(), itemStack.getType().name());
@@ -32,7 +32,6 @@ public class ConfirmMenu extends Menu {
 
     @Override
     protected void generate() {
-
     }
 
     @Override
@@ -45,6 +44,11 @@ public class ConfirmMenu extends Menu {
                 syncUtil(() -> callBack.result(Optional.of(Result.DENY)));
             }
         }
+    }
+
+    @Override
+    public void reopen() {
+        throw new IllegalStateException();
     }
 
     @Override

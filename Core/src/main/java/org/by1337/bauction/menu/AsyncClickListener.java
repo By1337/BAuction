@@ -27,7 +27,7 @@ public abstract class AsyncClickListener implements Listener {
     /**
      * Cooldown time between clicks to prevent rapid clicking.
      */
-    private long cd = 0;
+    private long lastClick = 0;
 
     /**
      * Constructor for the AsyncClickListener.
@@ -85,10 +85,10 @@ public abstract class AsyncClickListener implements Listener {
     public void onClick0(InventoryClickEvent e) {
         if (inventory.equals(e.getInventory())) {
             e.setCancelled(true);
-            if ((System.currentTimeMillis() - cd) < 50) {
+            if ((System.currentTimeMillis() - lastClick) < 50) {
                 return;
             } else {
-                cd = System.currentTimeMillis() + 50;
+                lastClick = System.currentTimeMillis() + 50;
             }
             new Thread(() -> onClick(e)).start();
         }
@@ -103,10 +103,10 @@ public abstract class AsyncClickListener implements Listener {
     public void onClick0(InventoryDragEvent e) {
         if (inventory.equals(e.getInventory())) {
             e.setCancelled(true);
-            if ((System.currentTimeMillis() - cd) < 50) {
+            if ((System.currentTimeMillis() - lastClick) < 50) {
                 return;
             } else {
-                cd = System.currentTimeMillis() + 50;
+                lastClick = System.currentTimeMillis() + 50;
             }
             new Thread(() -> onClick(e)).start();
         }

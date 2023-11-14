@@ -62,6 +62,11 @@ public abstract class DBCore {
         return readLock(() -> users.containsKey(uuid));
     }
 
+    protected boolean hasSellItem(UUID uuid) throws StorageException {
+        return readLock(() -> sellItems.containsKey(uuid));
+    }
+
+
     protected MemoryUser createNew(UUID uuid, String name) throws StorageException {
         return writeLock(() -> {
             User user = new User(name, uuid);
@@ -151,7 +156,7 @@ public abstract class DBCore {
 
 
     protected void logger(Action<?> action) {
-        //Main.getMessage().logger(gson.toJson(action));
+        Main.getMessage().logger(gson.toJson(action));
     }
 
     @FunctionalInterface

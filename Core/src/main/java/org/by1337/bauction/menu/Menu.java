@@ -20,15 +20,12 @@ import java.util.*;
 
 public abstract class Menu extends AsyncClickListener implements Placeholderable {
 
-    private List<CustomItemStack> items;
+    private final List<CustomItemStack> items;
     protected List<CustomItemStack> customItemStacks = new LinkedList<>();
     protected final String title;
     protected final int size;
     protected final int updateInterval;
-    protected Requirements openRequirements = null;
-    //protected final BukkitTask task;
-    // protected final FileConfiguration menuFile;
-
+    protected Requirements openRequirements;
     protected List<Placeholderable> customPlaceHolders = new ArrayList<>();
 
 
@@ -39,27 +36,10 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
     public Menu(List<CustomItemStack> items, String title, int size, int updateInterval, @Nullable Requirements viewRequirement, Player player) {
         super(player, size, title);
         openRequirements = viewRequirement;
-        // this.menuFile = menuFile;
-        //  Collections.sort(items);
         this.items = items;
         this.title = title;
         this.size = size;
         this.updateInterval = updateInterval;
-        //  inventory = Bukkit.createInventory(null, size, replace(title));
-        //    Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
-
-//        if (updateInterval != -1) {
-//            task = new BukkitRunnable() {
-//                @Override
-//                public void run() {
-//                    if (getBukkitPlayer() != null) {
-//                        generate0();
-//                    }
-//                }
-//            }.runTaskTimer(Main.getInstance(), 0, updateInterval);
-//        } else {
-//            task = null;
-//        }
     }
 
     public void open() {
@@ -178,4 +158,5 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
     public void registerPlaceholderable(Placeholderable customPlaceHolder) {
         customPlaceHolders.add(customPlaceHolder);
     }
+    abstract public void reopen();
 }

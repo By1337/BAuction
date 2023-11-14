@@ -27,7 +27,7 @@ public class BuyCountMenu extends Menu {
     private final CallBack<Optional<Integer>> callBack;
 
     public BuyCountMenu(MemoryUser user, MemorySellItem item, CallBack<Optional<Integer>> callBack, Player player) {
-        super(MenuFactory.create(Main.getCfg().getMenuBuyCount()), player);
+        super(Main.getCfg().getMenuManger().getMenuBuyCount(), player);
         this.user = user;
         this.item = item;
         this.callBack = callBack;
@@ -36,6 +36,8 @@ public class BuyCountMenu extends Menu {
         customItemStack.registerPlaceholder(item);
         customItemStack.registerPlaceholder(this);
         customItemStacks.add(customItemStack);
+        registerPlaceholderable(user);
+        registerPlaceholderable(item);
 
         command = new Command("")
                 .addSubCommand(new Command("[ADD]")
@@ -69,12 +71,12 @@ public class BuyCountMenu extends Menu {
                                 generate0();
                                 return;
                             }
-                            callBack.result(Optional.of(count));
+                            syncUtil(() -> callBack.result(Optional.of(count)));
                         })
                 )
                 .addSubCommand(new Command("[CANCEL]")
                         .executor((sender, args) -> {
-                            callBack.result(Optional.empty());
+                            syncUtil(() -> callBack.result(Optional.empty()));
                             generate0();
                         })
                 );
@@ -117,5 +119,14 @@ public class BuyCountMenu extends Menu {
             str = val.replace(str);
         }
         return str;
+    }
+    public void reopen() {
+        if (getPlayer() == null || !getPlayer().isOnline()) {
+            throw new IllegalArgumentException();
+        }
+        reRegister();
+        getPlayer().openInventory(getInventory());
+        sendFakeTitle(replace(title));
+        generate0();
     }
 }

@@ -166,7 +166,7 @@ public class MemorySellItem implements Placeholderable {
     }
 
     public ItemStack getItemStack() {
-        return itemStack;
+        return itemStack.clone();
     }
 
     public static class MemorySellItemBuilder {

@@ -34,6 +34,9 @@ public class Config {
     private YamlContext menuBuyCount;
     private File fileMenuBuyCount;
 
+    private YamlContext menuItemsForSale;
+    private File fileMenuItemsForSale;
+
     private File itemsDataFolder;
 
     private Map<NameKey, Sorting> sortingMap;
@@ -44,6 +47,7 @@ public class Config {
 
     private BoostManager boostManager;
 
+    private MenuManger menuManger;
 
     public Config(Plugin plugin) {
         String basedir = plugin.getDataFolder().getPath();
@@ -84,6 +88,12 @@ public class Config {
         }
         menuBuyCount = new YamlContext(YamlConfiguration.loadConfiguration(fileMenuBuyCount));
 
+        fileMenuItemsForSale = new File(basedir + "/itemsForSale.yml");
+        if (!fileMenuItemsForSale.exists()) {
+            plugin.saveResource("itemsForSale.yml", true);
+        }
+        menuItemsForSale = new YamlContext(YamlConfiguration.loadConfiguration(fileMenuItemsForSale));
+
         itemsDataFolder = new File(basedir + "/items");
         if (!itemsDataFolder.exists()) {
             itemsDataFolder.mkdir();
@@ -101,6 +111,16 @@ public class Config {
         defaultSellTime = NumberUtil.getTime(config.getAsString("default-offer-time"));
 
         boostManager = new BoostManager(config);
+
+        menuManger = new MenuManger(this);
+    }
+
+    public MenuManger getMenuManger() {
+        return menuManger;
+    }
+
+    public YamlContext getMenuItemsForSale() {
+        return menuItemsForSale;
     }
 
     public YamlContext getMessage() {

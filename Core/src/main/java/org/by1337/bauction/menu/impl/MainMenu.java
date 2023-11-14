@@ -7,6 +7,7 @@ import org.by1337.api.command.CommandException;
 import org.by1337.api.command.argument.ArgumentString;
 import org.by1337.api.util.CyclicList;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.action.TakeItemProcess;
 import org.by1337.bauction.db.MemorySellItem;
 import org.by1337.bauction.db.MemoryUser;
 
@@ -35,27 +36,29 @@ public class MainMenu extends Menu {
     private final Command command;
     private final MemoryUser user;
 
-    private static MenuSetting setting;
-
-    private static MenuSetting getSetting() {
-        if (setting == null) {
-            setting = MenuFactory.create(Main.getCfg().getMenu());
-        }
-        return setting;
-    }
-
-
     public MainMenu(MemoryUser user, Player player) {
-        super(getSetting(), player);
+        super(Main.getCfg().getMenuManger().getMainMenu(), player);
         this.user = user;
         registerPlaceholderable(user);
 
         sortings.addAll(Main.getCfg().getSortingMap().values());
         categories.addAll(Main.getCfg().getCategoryMap().values());
 
-        slots = MenuFactory.getSlots(Main.getCfg().getMenu().getList("items-slots", String.class));
+        slots = Main.getCfg().getMenuManger().getMainMenuItemSlots();
 
         command = new Command("menu-commands")
+                .addSubCommand(new Command("[OPEN_MENU]")
+                        .argument(new ArgumentString("menu"))
+                        .executor(((sender, args) -> {
+                            String menuId = (String) args.getOrThrow("menu");
+                            if (menuId.equals("selling-item-list")) {
+                                ItemsForSaleMenu items = new ItemsForSaleMenu(player, user, this);
+                                items.open();
+                                return;
+                            }
+                            throw new CommandException("unknown menu id: " + menuId);
+                        }))
+                )
                 .addSubCommand(new Command("[NEXT_PAGE]")
                         .executor(((sender, args) -> {
                             if (currentPage < maxPage - 1) {
@@ -74,7 +77,7 @@ public class MainMenu extends Menu {
                 )
                 .addSubCommand(new Command("[UPDATE]")
                         .executor(((sender, args) -> {
-                            sellItems.clear();
+                            sellItems = null;
                             generate0();
                         }))
                 )
@@ -109,20 +112,20 @@ public class MainMenu extends Menu {
 
                             UUID uuid = UUID.fromString(uuidS);
 
-                            MemorySellItem item = sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
-
-                            if (item == null) {
+                            if (!Main.getStorage().hasMemorySellItem(uuid)) {
+                                Main.getMessage().sendMsg(player, "&cПредмет уже продан или снят с продажи!");
+                                sellItems = null;
                                 generate0();
                                 return;
                             }
+                            MemorySellItem item = Main.getStorage().getMemorySellItem(uuid);
 
                             if (Main.getEcon().getBalance(getPlayer()) < item.getPrice()) {
                                 Main.getMessage().sendMsg(getPlayer(), "&cУ Вас не хватает баланса для покупки предмета!");
                                 return;
                             }
 
-                            getPlayer().closeInventory();
-                            new BuyItemProcess(item, user, categories, sortings, currentPage).process();
+                            new BuyItemProcess(item, user, this, getPlayer()).process();
 
                         }))
                 )
@@ -133,20 +136,20 @@ public class MainMenu extends Menu {
 
                             UUID uuid = UUID.fromString(uuidS);
 
-                            MemorySellItem item = sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
-
-                            if (item == null) {
+                            if (!Main.getStorage().hasMemorySellItem(uuid)) {
+                                Main.getMessage().sendMsg(player, "&cПредмет уже продан или снят с продажи!");
+                                sellItems = null;
                                 generate0();
                                 return;
                             }
+                            MemorySellItem item = Main.getStorage().getMemorySellItem(uuid);
+
                             if (Main.getEcon().getBalance(getPlayer()) < item.getPriceForOne()) {
                                 Main.getMessage().sendMsg(getPlayer(), "&cУ Вас не хватает баланса для покупки хотя бы одного предмета!");
                                 return;
                             }
 
-                            getPlayer().closeInventory();
-                            new BuyItemCountProcess(item, user, categories, sortings, currentPage).process();
-
+                            new BuyItemCountProcess(item, user, player, this).process();
                         }))
                 )
                 .addSubCommand(new Command("[TAKE_ITEM]")
@@ -155,33 +158,17 @@ public class MainMenu extends Menu {
                             String uuidS = (String) args.getOrThrow("uuid");
                             UUID uuid = UUID.fromString(uuidS);
 
-                            MemorySellItem item = Main.getStorage().getMemorySellItem(uuid);
-
-
-                            CallBack<Optional<ConfirmMenu.Result>> callBack = result -> {
-                                if (result.isPresent()) {
-                                    if (result.get() == ConfirmMenu.Result.ACCEPT) {
-                                        TakeItemEvent event = new TakeItemEvent(user, item);
-                                        Main.getStorage().validateAndRemoveItem(event);
-
-                                        if (event.isValid()) {
-                                            Main.getMessage().sendMsg(getPlayer(), "&aВы успешно забрали свой предмет!");
-                                            Menu.giveItems(getPlayer(), item.getItemStack()).forEach(i -> getPlayer().getLocation().getWorld().dropItem(getPlayer().getLocation(), i));
-                                        } else {
-                                            Main.getMessage().sendMsg(getPlayer(), String.valueOf(event.getReason()));
-                                        }
-                                    }
-                                }
+                            if (!Main.getStorage().hasMemorySellItem(uuid)) {
+                                Main.getMessage().sendMsg(player, "&cПредмет уже продан или снят с продажи!");
                                 sellItems = null;
-                                reopen();
-                            };
-                          //  getPlayer().closeInventory();
-                            ConfirmMenu confirmMenu = new ConfirmMenu(callBack, item.getItemStack(), getPlayer());
-                            confirmMenu.registerPlaceholderable(user);
-                            confirmMenu.registerPlaceholderable(item);
-                            confirmMenu.open();
+                                generate0();
+                                return;
+                            }
+                            MemorySellItem item = Main.getStorage().getMemorySellItem(uuid);
+                            new TakeItemProcess(item, user, this, player).process();
                         }))
-                );
+                )
+        ;
 
     }
 
@@ -318,6 +305,7 @@ public class MainMenu extends Menu {
         reRegister();
         getPlayer().openInventory(getInventory());
         sendFakeTitle(replace(title));
+        sellItems = null;
         generate0();
     }
 }

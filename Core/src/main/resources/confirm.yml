@@ -24,10 +24,10 @@ items:
     click_commands:
       - '[DENY]'
 
-  none:
+  decor:
     material: BLACK_STAINED_GLASS_PANE
     slots:
       - 4
       - 22
-    display_name: ""
+    display_name: " "
     lore: []

@@ -10,6 +10,8 @@ import org.by1337.api.util.NameKey;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.booost.BoostManager;
 import org.by1337.bauction.db.*;
+import org.by1337.bauction.db.event.BuyItemCountEvent;
+import org.by1337.bauction.db.event.BuyItemEvent;
 import org.by1337.bauction.db.event.SellItemEvent;
 import org.by1337.bauction.db.event.TakeItemEvent;
 import org.by1337.bauction.db.json.kernel.ActionType;
@@ -101,6 +103,15 @@ public class JsonDB extends DBCore {
         return readLock(() -> sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElseThrow(StorageException.NotFoundException::new));
     }
 
+    public boolean hasMemorySellItem(UUID uuid) {
+        try {
+            return hasSellItem(uuid);
+        } catch (Exception e) {
+            Main.getMessage().error(e);
+            return false;
+        }
+    }
+
     public void validateAndRemoveItem(TakeItemEvent event) {
         MemoryUser user = event.getUser();
         MemorySellItem sellItem = event.getSellItem();
@@ -113,6 +124,93 @@ public class JsonDB extends DBCore {
 
         try {
             tryRemoveItem(sellItem.getUuid());
+        } catch (StorageException e) {
+            Main.getMessage().error(e);
+            event.setValid(false);
+            event.setReason("&cПроизошла ошибка!");
+            return;
+        }
+        event.setValid(true);
+    }
+
+    public void validateAndRemoveItem(BuyItemEvent event) {
+        MemoryUser user = event.getUser();
+        MemorySellItem sellItem = event.getSellItem();
+
+        if (user.getUuid().equals(sellItem.getSellerUuid())) {
+            event.setValid(false);
+            event.setReason("&cВы владелец предмета!");
+            return;
+        }
+
+        try {
+            if (!hasSellItem(sellItem.getUuid())) {
+                event.setValid(false);
+                event.setReason("&cПредмет уже продан или снят с продажи!");
+                return;
+            }
+
+            tryRemoveItem(sellItem.getUuid());
+        } catch (StorageException e) {
+            Main.getMessage().error(e);
+            event.setValid(false);
+            event.setReason("&cПроизошла ошибка!");
+            return;
+        }
+        event.setValid(true);
+    }
+
+    public List<MemorySellItem> getAllItemByUser(UUID uuid) {
+        return readLock(() -> sellItems.stream().filter(i -> i.getSellerUuid().equals(uuid)).toList());
+    }
+
+    public void validateAndRemoveItem(BuyItemCountEvent event) {
+        MemoryUser buyer = event.getUser();
+        MemorySellItem sellItem = event.getSellItem();
+
+        if (buyer.getUuid().equals(sellItem.getSellerUuid())) {
+            event.setValid(false);
+            event.setReason("&cВы владелец предмета!");
+            return;
+        }
+
+        try {
+            if (!hasSellItem(sellItem.getUuid())) {
+                event.setValid(false);
+                event.setReason("&cПредмет уже продан или снят с продажи!");
+                return;
+            }
+            MemorySellItem updated = getMemorySellItem(sellItem.getUuid());
+
+            if (updated.getAmount() < event.getCount()) {
+                event.setValid(false);
+                event.setReason("&cКто-то выкупил часть товара и вы больше не можете купить этот предмет в таком количестве!");
+                return;
+            }
+            tryRemoveItem(sellItem.getUuid());
+
+            int newCount = updated.getAmount() - event.getCount();
+
+            if (newCount != 0) {
+                MemorySellItem newItem = MemorySellItem.builder()
+                        .sellerName(updated.getSellerName())
+                        .sellerUuid(updated.getSellerUuid())
+                        .price(updated.getPrice())
+                        .saleByThePiece(true)
+                        .tags(updated.getTags())
+                        .timeListedForSale(updated.getTimeListedForSale())
+                        .removalDate(updated.getRemovalDate())
+                        .uuid(updated.getUuid())
+                        .material(updated.getMaterial())
+                        .amount(newCount)
+                        .priceForOne(updated.getPrice() / newCount)
+                        .sellFor(updated.getSellFor())
+                        .itemStack(updated.getItemStack())
+                        .build();
+
+                addItem(newItem, buyer.getUuid());
+            }
+
         } catch (StorageException e) {
             Main.getMessage().error(e);
             event.setValid(false);
