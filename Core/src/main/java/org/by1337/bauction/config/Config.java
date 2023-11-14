@@ -37,6 +37,9 @@ public class Config {
     private YamlContext menuItemsForSale;
     private File fileMenuItemsForSale;
 
+    private YamlContext menuUnsoldItems;
+    private File fileMenuUnsoldItems;
+
     private File itemsDataFolder;
 
     private Map<NameKey, Sorting> sortingMap;
@@ -94,6 +97,12 @@ public class Config {
         }
         menuItemsForSale = new YamlContext(YamlConfiguration.loadConfiguration(fileMenuItemsForSale));
 
+        fileMenuUnsoldItems = new File(basedir + "/unsoldItemList.yml");
+        if (!fileMenuUnsoldItems.exists()) {
+            plugin.saveResource("unsoldItemList.yml", true);
+        }
+        menuUnsoldItems = new YamlContext(YamlConfiguration.loadConfiguration(fileMenuUnsoldItems));
+
         itemsDataFolder = new File(basedir + "/items");
         if (!itemsDataFolder.exists()) {
             itemsDataFolder.mkdir();
@@ -113,6 +122,10 @@ public class Config {
         boostManager = new BoostManager(config);
 
         menuManger = new MenuManger(this);
+    }
+
+    public YamlContext getMenuUnsoldItems() {
+        return menuUnsoldItems;
     }
 
     public MenuManger getMenuManger() {

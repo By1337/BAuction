@@ -8,6 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.by1337.api.BLib;
 import org.by1337.bauction.Main;
@@ -36,9 +37,13 @@ public abstract class AsyncClickListener implements Listener {
      * @param size   The size of the inventory.
      * @param title  The title of the inventory.
      */
-    public AsyncClickListener(Player viewer, int size, String title) {
+    public AsyncClickListener(Player viewer, int size, String title, InventoryType type) {
         this.viewer = viewer;
-        inventory = Bukkit.createInventory(null, size, title);
+        if (type == InventoryType.CHEST) {
+            inventory = Bukkit.createInventory(null, size, title);
+        } else {
+            inventory = Bukkit.createInventory(null, type, title);
+        }
         Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
     }
 

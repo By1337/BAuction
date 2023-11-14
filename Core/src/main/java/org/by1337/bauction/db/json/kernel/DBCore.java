@@ -1,6 +1,10 @@
 package org.by1337.bauction.db.json.kernel;
 
+import com.google.common.collect.Comparators;
 import com.google.gson.Gson;
+import org.bukkit.Bukkit;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.MemorySellItem;
 import org.by1337.bauction.db.MemoryUser;
@@ -14,16 +18,47 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @ThreadSafe
 public abstract class DBCore {
 
     private final StorageMap<UUID, User> users = new StorageMap<>();
-    private final StorageMap<UUID, SellItem> sellItems = new StorageMap<>();
+    private final ListMap<UUID, SellItem> sellItems = new ListMap<>(Comparator.comparingLong(i -> i.removalDate));
     protected final Gson gson = new Gson();
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
+
+    private BukkitTask task;
+    private Runnable runnable;
+    public DBCore() {
+        runnable = () -> {
+            long time = System.currentTimeMillis();
+            try {
+                Long sleep = readLock(() -> {
+                    for (SellItem sellItem : sellItems.getList()) {
+                        if (sellItem.removalDate < time) {
+                            new Thread(() -> { // new Thread иначе deadlock
+                                try {
+                                    expiredItem(sellItem);
+                                } catch (StorageException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }).start();
+                        } else {
+                            return Math.min(sellItem.removalDate - time, 50L * 100); // 100 ticks
+                        }
+                    }
+                    return 50L * 100; // 100 ticks
+                });
+                task = Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), runnable, sleep / 50);
+            } catch (Exception e) {
+                Main.getMessage().error(e);
+            }
+        };
+        task = Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), runnable, 0);
+    }
 
     private <T> T writeLock(Task<T> task) throws StorageException {
         lock.writeLock().lock();
@@ -48,8 +83,9 @@ public abstract class DBCore {
     }
 
     protected List<MemorySellItem> getAllSellItems() throws StorageException {
-        return readLock(() -> sellItems.values().stream().map(SellItem::toMemorySellItem).collect(Collectors.toList()));
+        return readLock(() -> sellItems.getList().stream().map(SellItem::toMemorySellItem).collect(Collectors.toList()));
     }
+
     protected List<MemoryUser> getAllUsers() throws StorageException {
         return readLock(() -> users.values().stream().map(User::toMemoryUser).collect(Collectors.toList()));
     }
@@ -76,6 +112,21 @@ public abstract class DBCore {
         });
     }
 
+    private void expiredItem(SellItem item) throws StorageException {
+
+        tryRemoveItem(item.uuid);
+
+        writeLock(() -> {
+            User user = users.getOrThrow(item.sellerUuid, () -> new StorageException.NotFoundException("unknown user: " + item.sellerUuid));
+            user.unsoldItems.add(new UnsoldItem(item.item, item.sellerUuid, item.removalDate, item.removalDate + 99999L));
+            Action<?> updateUser = generateUpdateUserLog(user);
+            logger(updateUser);
+            update(new Action<>(ActionType.UPDATE_MEMORY_USER, user.toMemoryUser()));
+            return null;
+        });
+
+    }
+
     protected void addItem(MemorySellItem memorySellItem, UUID owner) throws StorageException {
         writeLock(() -> {
             User user = users.getOrThrow(owner, () -> new StorageException.NotFoundException("unknown user: " + owner));
@@ -94,21 +145,33 @@ public abstract class DBCore {
     }
 
 
-    protected ActionResult tryRemoveUnsoldItem(UUID itemUuid, UUID owner) throws StorageException {
+    //    protected ActionResult tryRemoveUnsoldItem(UUID itemUuid, UUID owner) throws StorageException {
+//        return writeLock(() -> {
+//            User user = users.getOrThrow(owner, () -> new StorageException.NotFoundException("unknown user: " + owner));
+//            UnsoldItem unsoldItem = user.unsoldItems.stream().filter(item -> item.uuid.equals(itemUuid)).findFirst().orElseThrow(() -> new StorageException.NotFoundException("missing item: " + itemUuid + " owner: " + owner));
+//            user.unsoldItems.remove(unsoldItem);
+//            MemoryUser memoryUser = user.toMemoryUser();
+//            Action<?> updateUser = generateUpdateUserLog(user);
+//            logger(updateUser);
+//            update(new Action<>(ActionType.UPDATE_MEMORY_USER, memoryUser));
+//
+//            return ActionResult.OK;
+//        });
+//    }
+    protected ActionResult tryRemoveUnsoldItem(UUID owner, UUID item) throws StorageException {
         return writeLock(() -> {
-            User user = users.getOrThrow(owner, () -> new StorageException.NotFoundException("unknown user: " + owner));
-            UnsoldItem unsoldItem = user.unsoldItems.stream().filter(item -> item.uuid.equals(itemUuid)).findFirst().orElseThrow(() -> new StorageException.NotFoundException("missing item: " + itemUuid + " owner: " + owner));
-
-            user.unsoldItems.remove(unsoldItem);
-
-            MemoryUser memoryUser = user.toMemoryUser();
+            User user = users.getOrThrow(owner, () -> new StorageException.LostItemOwner(item.toString()));
+            if (user.unsoldItems.stream().noneMatch(i -> i.uuid.equals(item))) {
+                throw new StorageException.LostItemException(item.toString());
+            }
+            user.unsoldItems.removeIf(i -> i.uuid.equals(item));
             Action<?> updateUser = generateUpdateUserLog(user);
             logger(updateUser);
-            update(new Action<>(ActionType.UPDATE_MEMORY_USER, memoryUser));
-
+            update(new Action<>(ActionType.UPDATE_MEMORY_USER, user.toMemoryUser()));
             return ActionResult.OK;
         });
     }
+
     protected ActionResult tryRemoveItem(UUID itemUuid) throws StorageException {
         return writeLock(() -> {
             SellItem item = sellItems.getOrThrow(itemUuid, () -> new StorageException.NotFoundException("item: " + itemUuid));
@@ -122,19 +185,12 @@ public abstract class DBCore {
             sellItems.remove(item.uuid);
 
             MemoryUser memoryUser = user.toMemoryUser();
-//                if (val == null) return;
-//                if (val != ActionResult.OK) return;
             Action<?> removeItem = generateRemoveItemLog(itemUuid);
             Action<?> updateUser = generateUpdateUserLog(user);
             logger(removeItem);
             logger(updateUser);
             update(removeItem);
             update(new Action<>(ActionType.UPDATE_MEMORY_USER, memoryUser));
-//                setPostTask(val -> {
-//
-//
-//                });
-
             return ActionResult.OK;
         });
     }
@@ -154,7 +210,6 @@ public abstract class DBCore {
     }
 
 
-
     protected void logger(Action<?> action) {
         Main.getMessage().logger(gson.toJson(action));
     }
@@ -169,4 +224,57 @@ public abstract class DBCore {
         void run(@Nullable T val);
     }
 
+    protected class ListMap<K, V> {
+        private final Map<K, V> map = new HashMap<>();
+        private final ArrayList<V> list = new ArrayList<>();
+        private final Comparator<V> comparator;
+
+        public ListMap(Comparator<V> comparator) {
+            this.comparator = comparator;
+        }
+
+        public <X extends Throwable> V getOrThrow(K key, Supplier<? extends X> def) throws X {
+            V value = map.get(key);
+            if (value == null) {
+                throw def.get();
+            }
+            return value;
+        }
+
+        public V get(K key) {
+            return map.get(key);
+        }
+
+        public boolean containsKey(K key) {
+            return map.containsKey(key);
+        }
+
+        public <T extends V> void put(K key, T value) {
+            map.put(key, value);
+
+            int insertIndex = Collections.binarySearch(list, value, comparator);
+            if (insertIndex < 0) {
+                insertIndex = -insertIndex - 1;
+            }
+            list.add(insertIndex, value);
+        }
+
+        public void remove(K key) {
+            V val = map.get(key);
+            map.remove(key);
+            list.remove(val);
+        }
+
+        public Map<K, V> getMap() {
+            return map;
+        }
+
+        public ArrayList<V> getList() {
+            return list;
+        }
+
+        public Comparator<V> getComparator() {
+            return comparator;
+        }
+    }
 }

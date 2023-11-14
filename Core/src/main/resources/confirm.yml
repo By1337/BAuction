@@ -1,4 +1,5 @@
 menu_title: "&7Подтверждение"
+type: CHEST
 size: 27
 item-slot: 13
 items:

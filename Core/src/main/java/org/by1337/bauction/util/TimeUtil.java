@@ -37,11 +37,11 @@ public class TimeUtil {
 
     //%years% %months% %days% %hours% %minutes% %seconds%
     private static String formatTime(long years, long months, long days, long hours, long minutes, long seconds) {
-        StringBuilder sb = new StringBuilder();
-
         String str = getFormat(years, months, days, hours, minutes, seconds);
-        if (years != 0)
+        if (years != 0) {
+            if (years > 10) return Main.getCfg().getMessage().getAsString("never");
             str = str.replace("%years%", String.format("%s %s", years, getPluralForm(years, Main.getCfg().getMessage().getAsString("time-format.years.form-1", "?"), Main.getCfg().getMessage().getAsString("time-format.years.form-2", "?"), Main.getCfg().getMessage().getAsString("time-format.years.form-5", "?"))));
+        }
         else
             str = str.replace("%years%", "");
         if (months != 0)

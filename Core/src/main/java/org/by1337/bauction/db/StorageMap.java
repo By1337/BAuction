@@ -5,9 +5,10 @@ import java.util.function.Supplier;
 
 public class StorageMap<K, V> extends HashMap<K, V> {
     public <X extends Throwable> V getOrThrow(K key, Supplier<? extends X> def) throws X {
-        if (!containsKey(key)) {
+        V value = get(key);
+        if (value == null) {
             throw def.get();
         }
-        return get(key);
+        return value;
     }
 }

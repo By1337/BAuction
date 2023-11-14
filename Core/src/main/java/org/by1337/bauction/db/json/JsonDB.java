@@ -10,10 +10,7 @@ import org.by1337.api.util.NameKey;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.booost.BoostManager;
 import org.by1337.bauction.db.*;
-import org.by1337.bauction.db.event.BuyItemCountEvent;
-import org.by1337.bauction.db.event.BuyItemEvent;
-import org.by1337.bauction.db.event.SellItemEvent;
-import org.by1337.bauction.db.event.TakeItemEvent;
+import org.by1337.bauction.db.event.*;
 import org.by1337.bauction.db.json.kernel.ActionType;
 import org.by1337.bauction.db.json.kernel.DBCore;
 import org.by1337.bauction.util.Category;
@@ -133,6 +130,31 @@ public class JsonDB extends DBCore {
         event.setValid(true);
     }
 
+    public void validateAndRemoveItem(TakeUnsoldItemEvent event) {
+        try {
+            MemoryUser user = getUser(event.getUser().getUuid()); // обновляем на всякий случай
+            MemoryUnsoldItem unsoldItem = event.getUnsoldItem();
+
+            if (!user.getUuid().equals(unsoldItem.getOwner())) {
+                event.setValid(false);
+                event.setReason("&cВы не владелец предмета!");
+                return;
+            } else if (user.getUnsoldItems().stream().noneMatch(i -> i.getUuid().equals(unsoldItem.getUuid()))) {
+                event.setValid(false);
+                event.setReason("&cКажется такого предмета нет!");
+                return;
+            }
+
+            tryRemoveUnsoldItem(user.getUuid(), unsoldItem.getUuid());
+
+            event.setValid(true);
+        } catch (Exception e) {
+            Main.getMessage().error(e);
+            event.setValid(false);
+            event.setReason("&cПроизошла ошибка!");
+        }
+    }
+
     public void validateAndRemoveItem(BuyItemEvent event) {
         MemoryUser user = event.getUser();
         MemorySellItem sellItem = event.getSellItem();
@@ -162,6 +184,10 @@ public class JsonDB extends DBCore {
 
     public List<MemorySellItem> getAllItemByUser(UUID uuid) {
         return readLock(() -> sellItems.stream().filter(i -> i.getSellerUuid().equals(uuid)).toList());
+    }
+
+    public List<MemoryUnsoldItem> getAllUnsoldItemsByUser(UUID uuid) {
+        return readLock(() -> users.get(uuid).getUnsoldItems());
     }
 
     public void validateAndRemoveItem(BuyItemCountEvent event) {

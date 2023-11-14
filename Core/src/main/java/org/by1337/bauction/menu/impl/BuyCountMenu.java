@@ -2,6 +2,7 @@ package org.by1337.bauction.menu.impl;
 
 import org.bukkit.configuration.MemorySection;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
@@ -82,6 +83,11 @@ public class BuyCountMenu extends Menu {
                 );
     }
 
+    @Override
+    public void onClose(InventoryCloseEvent e) {
+        super.onClose(e);
+        syncUtil(() -> callBack.result(Optional.empty()));
+    }
 
     @Override
     protected void generate() {

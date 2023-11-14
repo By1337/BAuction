@@ -6,6 +6,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -45,7 +46,8 @@ public class MenuFactory {
 //        } else {
 //            viewRequirement = null;
 //        }
-        return new MenuSetting(items, title, size, -1, viewRequirement);
+        InventoryType type = context.getAs("type", InventoryType.class, InventoryType.CHEST);
+        return new MenuSetting(items, title, size, -1, viewRequirement, type);
     }
 
     @Deprecated(forRemoval = true)

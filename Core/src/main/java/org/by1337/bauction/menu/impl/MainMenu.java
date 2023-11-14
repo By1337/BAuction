@@ -34,12 +34,12 @@ public class MainMenu extends Menu {
     private List<Integer> slots;
 
     private final Command command;
-    private final MemoryUser user;
+    private MemoryUser user;
 
     public MainMenu(MemoryUser user, Player player) {
         super(Main.getCfg().getMenuManger().getMainMenu(), player);
         this.user = user;
-        registerPlaceholderable(user);
+        //registerPlaceholderable(user);
 
         sortings.addAll(Main.getCfg().getSortingMap().values());
         categories.addAll(Main.getCfg().getCategoryMap().values());
@@ -51,12 +51,15 @@ public class MainMenu extends Menu {
                         .argument(new ArgumentString("menu"))
                         .executor(((sender, args) -> {
                             String menuId = (String) args.getOrThrow("menu");
-                            if (menuId.equals("selling-item-list")) {
+                            if (menuId.equals("selling-items")) {
                                 ItemsForSaleMenu items = new ItemsForSaleMenu(player, user, this);
                                 items.open();
-                                return;
+                            } else if (menuId.equals("unsold-items")) {
+                                UnsoldItemsMenu unsoldItemsMenu = new UnsoldItemsMenu(player, user, this);
+                                unsoldItemsMenu.open();
+                            } else {
+                                throw new CommandException("unknown menu id: " + menuId);
                             }
-                            throw new CommandException("unknown menu id: " + menuId);
                         }))
                 )
                 .addSubCommand(new Command("[NEXT_PAGE]")
@@ -78,6 +81,7 @@ public class MainMenu extends Menu {
                 .addSubCommand(new Command("[UPDATE]")
                         .executor(((sender, args) -> {
                             sellItems = null;
+                            this.user = Main.getStorage().getMemoryUser(this.user.getUuid());
                             generate0();
                         }))
                 )
@@ -115,6 +119,7 @@ public class MainMenu extends Menu {
                             if (!Main.getStorage().hasMemorySellItem(uuid)) {
                                 Main.getMessage().sendMsg(player, "&cПредмет уже продан или снят с продажи!");
                                 sellItems = null;
+                                this.user = Main.getStorage().getMemoryUser(this.user.getUuid());
                                 generate0();
                                 return;
                             }
@@ -126,7 +131,6 @@ public class MainMenu extends Menu {
                             }
 
                             new BuyItemProcess(item, user, this, getPlayer()).process();
-
                         }))
                 )
                 .addSubCommand(new Command("[BUY_ITEM_AMOUNT]")
@@ -139,6 +143,7 @@ public class MainMenu extends Menu {
                             if (!Main.getStorage().hasMemorySellItem(uuid)) {
                                 Main.getMessage().sendMsg(player, "&cПредмет уже продан или снят с продажи!");
                                 sellItems = null;
+                                this.user = Main.getStorage().getMemoryUser(this.user.getUuid());
                                 generate0();
                                 return;
                             }
@@ -161,6 +166,7 @@ public class MainMenu extends Menu {
                             if (!Main.getStorage().hasMemorySellItem(uuid)) {
                                 Main.getMessage().sendMsg(player, "&cПредмет уже продан или снят с продажи!");
                                 sellItems = null;
+                                this.user = Main.getStorage().getMemoryUser(this.user.getUuid());
                                 generate0();
                                 return;
                             }
@@ -240,7 +246,7 @@ public class MainMenu extends Menu {
 
     @Override
     public String replace(String s) {
-        StringBuilder sb = new StringBuilder(Main.getMessage().messageBuilder(s, getPlayer()));
+        StringBuilder sb = new StringBuilder(Main.getMessage().messageBuilder(user.replace(s), getPlayer()));
         while (true) {
             if (sb.indexOf("{max_page}") != -1) {
                 sb.replace(sb.indexOf("{max_page}"), sb.indexOf("{max_page}") + "{max_page}".length(), String.valueOf(maxPage == 0 ? 1 : maxPage));
@@ -306,6 +312,7 @@ public class MainMenu extends Menu {
         getPlayer().openInventory(getInventory());
         sendFakeTitle(replace(title));
         sellItems = null;
+        this.user = Main.getStorage().getMemoryUser(this.user.getUuid());
         generate0();
     }
 }

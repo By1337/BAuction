@@ -1,7 +1,6 @@
-menu_title: "&7Товары на продаже ({current_page}/{max_page}):"
+menu_title: "&7Просроченные предметы ({current_page}/{max_page}):"
 size: 54
 type: CHEST
-
 items-slots:
   - 0-44
 

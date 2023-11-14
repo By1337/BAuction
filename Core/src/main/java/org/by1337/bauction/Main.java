@@ -3,6 +3,7 @@ package org.by1337.bauction;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -57,6 +58,7 @@ public final class Main extends JavaPlugin {
         try {
             AdapterRegistry.registerPrimitiveAdapter(Sorting.SortingType.class, new AdapterEnum<>(Sorting.SortingType.class));
             AdapterRegistry.registerPrimitiveAdapter(ItemFlag.class, new AdapterEnum<>(ItemFlag.class));
+            AdapterRegistry.registerPrimitiveAdapter(InventoryType.class, new AdapterEnum<>(InventoryType.class));
             AdapterRegistry.registerAdapter(Sorting.class, new AdapterSortingType());
             AdapterRegistry.registerAdapter(Category.class, new AdapterCategory());
             AdapterRegistry.registerAdapter(Requirements.class, new AdapterRequirements());

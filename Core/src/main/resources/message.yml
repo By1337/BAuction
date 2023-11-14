@@ -2,6 +2,7 @@ time-format:
   ago: 'назад'
   in: 'через'
   just-now: 'Только что'
+  never: 'никогда'
   formats:
     years: '%years% %months%'
     months: '%months% %days%'

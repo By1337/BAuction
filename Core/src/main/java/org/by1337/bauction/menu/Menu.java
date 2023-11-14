@@ -5,6 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -30,11 +31,11 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
 
 
     public Menu(MenuSetting setting, Player player) {
-        this(setting.getItems(), setting.getTitle(), setting.getSize(), setting.getUpdateInterval(), setting.getViewRequirement(), player);
+        this(setting.getItems(), setting.getTitle(), setting.getSize(), setting.getUpdateInterval(), setting.getViewRequirement(), player, setting.getType());
     }
 
-    public Menu(List<CustomItemStack> items, String title, int size, int updateInterval, @Nullable Requirements viewRequirement, Player player) {
-        super(player, size, title);
+    public Menu(List<CustomItemStack> items, String title, int size, int updateInterval, @Nullable Requirements viewRequirement, Player player, InventoryType type) {
+        super(player, size, title, type);
         openRequirements = viewRequirement;
         this.items = items;
         this.title = title;
@@ -44,7 +45,7 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
 
     public void open() {
         Menu menu = this;
-        syncUtil(() -> { // CancelledPacketHandleException bypasser
+        syncUtil(() -> { // CancelledPacketHandleException bypass
             if (openRequirements != null) {
                 if (openRequirements.check(menu, menu)) {
                     viewer.openInventory(inventory);
@@ -109,7 +110,7 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
         customItemStack.run(e, this);
     }
 
-    @EventHandler
+
     public void onClose(InventoryCloseEvent e) {
         new BukkitRunnable() {
             final Player player = (Player) e.getPlayer();

@@ -1,6 +1,6 @@
 menu_title: "&7Аукцион ({current_page}/{max_page})"
 size: 54
-
+type: CHEST
 items-slots:
   - 0-44
 
@@ -18,7 +18,7 @@ items:
       - '&r'
       - '&7* &6Товаров на продаже &b{selling_item_count}'
     click_commands:
-      - '[OPEN_MENU] selling-item-list'
+      - '[OPEN_MENU] selling-items'
 
   not-sold-item:
     material: CHEST
@@ -33,8 +33,7 @@ items:
       - '&r'
       - '&7* &6Не проданных предметов &b{not_sold_item_count}'
     click_commands:
-      - '[OPEN_MENU] not-sold-item-list'
-      -
+      - '[OPEN_MENU] unsold-items'
   update-menu:
     material: EMERALD
     slot: 47
@@ -61,7 +60,6 @@ items:
     lore: []
     click_commands:
       - '[NEXT_PAGE]'
-
 
   info:
     material: PAPER

@@ -2,6 +2,7 @@ package org.by1337.bauction.db;
 
 import org.bukkit.inventory.ItemStack;
 import org.by1337.api.chat.Placeholderable;
+import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.TimeUtil;
 
 import java.util.UUID;
@@ -42,6 +43,10 @@ public class MemoryUnsoldItem implements Placeholderable {
         return deleteVia;
     }
 
+    public UUID getUuid() {
+        return uuid;
+    }
+
     @Override
     public String replace(String s) {
         StringBuilder sb = new StringBuilder(s);
@@ -50,8 +55,12 @@ public class MemoryUnsoldItem implements Placeholderable {
                 sb.replace(sb.indexOf("{expired}"), sb.indexOf("{expired}") + "{expired}".length(), TimeUtil.getFormat(expired));
                 continue;
             }
-            if (sb.indexOf("{delete-via}") != -1) {
-                sb.replace(sb.indexOf("{delete-via}"), sb.indexOf("{delete-via}") + "{delete-via}".length(), TimeUtil.getFormat(deleteVia));
+            if (sb.indexOf("{delete_via}") != -1) {
+                sb.replace(sb.indexOf("{delete_via}"), sb.indexOf("{delete_via}") + "{delete_via}".length(), TimeUtil.getFormat(deleteVia));
+                continue;
+            }
+            if (sb.indexOf("{id}") != -1) {
+                sb.replace(sb.indexOf("{id}"), sb.indexOf("{id}") + "{id}".length(), String.valueOf(uuid));
                 continue;
             }
             break;

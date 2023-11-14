@@ -1,9 +1,8 @@
 package org.by1337.bauction.menu;
 
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.event.inventory.InventoryType;
 import org.by1337.bauction.menu.requirement.Requirements;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class MenuSetting {
@@ -12,13 +11,15 @@ public class MenuSetting {
     private final int size;
     private final int updateInterval;
     private final Requirements viewRequirement;
+    private final InventoryType type;
 
-    public MenuSetting(List<CustomItemStack> items, String title, int size, int updateInterval , Requirements viewRequirement) {
+    public MenuSetting(List<CustomItemStack> items, String title, int size, int updateInterval , Requirements viewRequirement, InventoryType type) {
         this.items = items;
         this.title = title;
         this.size = size;
         this.updateInterval = updateInterval;
         this.viewRequirement = viewRequirement;
+        this.type = type;
     }
 
     public List<CustomItemStack> getItems() {
@@ -37,8 +38,11 @@ public class MenuSetting {
         return updateInterval;
     }
 
-
     public Requirements getViewRequirement() {
         return viewRequirement;
+    }
+
+    public InventoryType getType() {
+        return type;
     }
 }
