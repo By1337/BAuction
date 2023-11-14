@@ -151,7 +151,7 @@ public abstract class DBCore {
 
 
     protected void logger(Action<?> action) {
-        Main.getMessage().logger(gson.toJson(action));
+        //Main.getMessage().logger(gson.toJson(action));
     }
 
     @FunctionalInterface

@@ -25,9 +25,9 @@ import java.util.List;
 
 public class MenuFactory {
 
-    public static MenuSetting create(FileConfiguration menuFile) {
-        YamlContext context = new YamlContext(menuFile);
-        List<CustomItemStack> items = context.getMap("items", CustomItemStack.class).values().stream().toList();
+    public static MenuSetting create(YamlContext context) {
+        //YamlContext context = new YamlContext(menuFile);
+        List<CustomItemStack> items = context.getMap("items", CustomItemStack.class).values().stream().sorted().toList();
 //        for (String key : menuFile.getConfigurationSection("items").getKeys(false)) {
 //            Map<String, Object> map = menuFile.getConfigurationSection(String.format("items.%s", key)).getValues(false);
 //
@@ -37,7 +37,7 @@ public class MenuFactory {
         String title = context.getAsString("menu_title");//menuFile.getString("menu_title", "&7title");
         int size = context.getAsInteger("size");// menuFile.getInt("size", 54);
 
-       // int updateInterval = menuFile.getInt("update_interval", -1);
+        // int updateInterval = menuFile.getInt("update_interval", -1);
 
         Requirements viewRequirement = context.getAs("open_requirement", Requirements.class, null);
 //        if (menuFile.getConfigurationSection("open_requirement") != null) {
@@ -45,7 +45,7 @@ public class MenuFactory {
 //        } else {
 //            viewRequirement = null;
 //        }
-        return new MenuSetting(items, title, size, -1, menuFile, viewRequirement);
+        return new MenuSetting(items, title, size, -1, viewRequirement);
     }
 
     @Deprecated(forRemoval = true)
@@ -184,7 +184,7 @@ public class MenuFactory {
                 if (type.equalsIgnoreCase("string equals") || type.equalsIgnoreCase("sq")) {
                     String input = (String) Objects.requireNonNull(requirement.getOrDefault("input", null), "input is null");
                     String output = (String) Objects.requireNonNull(requirement.getOrDefault("output", null), "output is null");
-                    RequirementStringEquals stringEquals = new RequirementStringEquals(input, output, key);
+                    RequirementStringEquals stringEquals = new RequirementStringEquals(input, output);
                     requirementList.add(stringEquals);
                     continue;
                 }
@@ -193,7 +193,7 @@ public class MenuFactory {
                     String input = (String) Objects.requireNonNull(requirement.getOrDefault("input", null), "input is null");
                     String input2 = (String) Objects.requireNonNull(requirement.getOrDefault("input2", null), "input2 is null");
                     String output = (String) Objects.requireNonNull(requirement.getOrDefault("output", null), "output is null");
-                    RequirementStringContains stringEquals = new RequirementStringContains(input, input2, output, key);
+                    RequirementStringContains stringEquals = new RequirementStringContains(input, input2, output);
                     requirementList.add(stringEquals);
                     continue;
                 }
@@ -280,6 +280,24 @@ public class MenuFactory {
                     int x = Integer.parseInt(str.replace(" ", ""));
                     slots.add(x);
                 }
+            }
+        }
+        return slots;
+    }
+
+    public static List<Integer> getSlots(List<String> list) {
+        List<Integer> slots = new ArrayList<>();
+        for (String str : list) {
+            if (str.contains("-")) {
+                String[] s = str.replace(" ", "").split("-");
+                int x = Integer.parseInt(s[0]);
+                int x1 = Integer.parseInt(s[1]);
+                for (int i = Math.min(x, x1); i <= Math.max(x, x1); i++) {
+                    slots.add(i);
+                }
+            } else {
+                int x = Integer.parseInt(str.replace(" ", ""));
+                slots.add(x);
             }
         }
         return slots;

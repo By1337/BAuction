@@ -25,13 +25,13 @@ public class TimeUtil {
             String formattedTime = formatTime(years, months, days, hours, minutes, seconds);
             if (time < currentTimeMillis) {
 
-                return formattedTime + " " + Main.getCfg().getMessage().getString("time-format.ago");
+                return formattedTime + " " + Main.getCfg().getMessage().getAsString("time-format.ago");
             } else {
-                return Main.getCfg().getMessage().getString("time-format.in") + " " + formattedTime;
+                return Main.getCfg().getMessage().getAsString("time-format.in") + " " + formattedTime;
             }
 
         } else {
-            return Main.getCfg().getMessage().getString("time-format.just-now");
+            return Main.getCfg().getMessage().getAsString("time-format.just-now");
         }
     }
 
@@ -41,27 +41,27 @@ public class TimeUtil {
 
         String str = getFormat(years, months, days, hours, minutes, seconds);
         if (years != 0)
-            str = str.replace("%years%", String.format("%s %s", years, getPluralForm(years, Main.getCfg().getMessage().getString("time-format.years.form-1", "?"), Main.getCfg().getMessage().getString("time-format.years.form-2", "?"), Main.getCfg().getMessage().getString("time-format.years.form-5", "?"))));
+            str = str.replace("%years%", String.format("%s %s", years, getPluralForm(years, Main.getCfg().getMessage().getAsString("time-format.years.form-1", "?"), Main.getCfg().getMessage().getAsString("time-format.years.form-2", "?"), Main.getCfg().getMessage().getAsString("time-format.years.form-5", "?"))));
         else
             str = str.replace("%years%", "");
         if (months != 0)
-            str = str.replace("%months%", String.format("%s %s", months, getPluralForm(months, Main.getCfg().getMessage().getString("time-format.months.form-1", "?"), Main.getCfg().getMessage().getString("time-format.months.form-2", "?"), Main.getCfg().getMessage().getString("time-format.months.form-5", "?"))));
+            str = str.replace("%months%", String.format("%s %s", months, getPluralForm(months, Main.getCfg().getMessage().getAsString("time-format.months.form-1", "?"), Main.getCfg().getMessage().getAsString("time-format.months.form-2", "?"), Main.getCfg().getMessage().getAsString("time-format.months.form-5", "?"))));
         else
             str = str.replace("%months%", "");
         if (days != 0)
-            str = str.replace("%days%", String.format("%s %s", days, getPluralForm(days, Main.getCfg().getMessage().getString("time-format.days.form-1", "?"), Main.getCfg().getMessage().getString("time-format.days.form-2", "?"), Main.getCfg().getMessage().getString("time-format.days.form-5", "?"))));
+            str = str.replace("%days%", String.format("%s %s", days, getPluralForm(days, Main.getCfg().getMessage().getAsString("time-format.days.form-1", "?"), Main.getCfg().getMessage().getAsString("time-format.days.form-2", "?"), Main.getCfg().getMessage().getAsString("time-format.days.form-5", "?"))));
         else
             str = str.replace("%days%", "");
         if (hours != 0)
-            str = str.replace("%hours%", String.format("%s %s", hours, getPluralForm(hours, Main.getCfg().getMessage().getString("time-format.hours.form-1", "?"), Main.getCfg().getMessage().getString("time-format.hours.form-2", "?"), Main.getCfg().getMessage().getString("time-format.hours.form-5", "?"))));
+            str = str.replace("%hours%", String.format("%s %s", hours, getPluralForm(hours, Main.getCfg().getMessage().getAsString("time-format.hours.form-1", "?"), Main.getCfg().getMessage().getAsString("time-format.hours.form-2", "?"), Main.getCfg().getMessage().getAsString("time-format.hours.form-5", "?"))));
         else
             str = str.replace("%hours%", "");
         if (minutes != 0)
-            str = str.replace("%minutes%", String.format("%s %s", minutes, getPluralForm(minutes, Main.getCfg().getMessage().getString("time-format.minutes.form-1", "?"), Main.getCfg().getMessage().getString("time-format.minutes.form-2", "?"), Main.getCfg().getMessage().getString("time-format.minutes.form-5", "?"))));
+            str = str.replace("%minutes%", String.format("%s %s", minutes, getPluralForm(minutes, Main.getCfg().getMessage().getAsString("time-format.minutes.form-1", "?"), Main.getCfg().getMessage().getAsString("time-format.minutes.form-2", "?"), Main.getCfg().getMessage().getAsString("time-format.minutes.form-5", "?"))));
         else
             str = str.replace("%minutes%", "");
         if (seconds != 0)
-            str = str.replace("%seconds%", String.format("%s %s", seconds, getPluralForm(seconds, Main.getCfg().getMessage().getString("time-format.seconds.form-1", "?"), Main.getCfg().getMessage().getString("time-format.seconds.form-2", "?"), Main.getCfg().getMessage().getString("time-format.seconds.form-5", "?"))));
+            str = str.replace("%seconds%", String.format("%s %s", seconds, getPluralForm(seconds, Main.getCfg().getMessage().getAsString("time-format.seconds.form-1", "?"), Main.getCfg().getMessage().getAsString("time-format.seconds.form-2", "?"), Main.getCfg().getMessage().getAsString("time-format.seconds.form-5", "?"))));
         else
             str = str.replace("%seconds%", "");
         return str;
@@ -101,6 +101,6 @@ public class TimeUtil {
             Main.getMessage().error("height=" + height);
             str = "error";
         }
-        return Main.getCfg().getMessage().getString("time-format.formats." + str, "error");
+        return Main.getCfg().getMessage().getAsString("time-format.formats." + str, "error");
     }
 }

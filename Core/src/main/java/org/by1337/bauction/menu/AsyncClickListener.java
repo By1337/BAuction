@@ -69,7 +69,7 @@ public abstract class AsyncClickListener implements Listener {
      * @param e The InventoryCloseEvent.
      */
     @EventHandler
-    private void onClose0(InventoryCloseEvent e) {
+    public void onClose0(InventoryCloseEvent e) {
         if (inventory.equals(e.getInventory())) {
             onClose(e);
             HandlerList.unregisterAll(this);
@@ -82,7 +82,7 @@ public abstract class AsyncClickListener implements Listener {
      * @param e The InventoryClickEvent.
      */
     @EventHandler
-    private void onClick0(InventoryClickEvent e) {
+    public void onClick0(InventoryClickEvent e) {
         if (inventory.equals(e.getInventory())) {
             e.setCancelled(true);
             if ((System.currentTimeMillis() - cd) < 50) {
@@ -100,7 +100,7 @@ public abstract class AsyncClickListener implements Listener {
      * @param e The InventoryDragEvent.
      */
     @EventHandler
-    private void onClick0(InventoryDragEvent e) {
+    public void onClick0(InventoryDragEvent e) {
         if (inventory.equals(e.getInventory())) {
             e.setCancelled(true);
             if ((System.currentTimeMillis() - cd) < 50) {
@@ -126,5 +126,15 @@ public abstract class AsyncClickListener implements Listener {
      */
     protected void sendFakeTitle(String title) {
         BLib.getApi().getFakeTitleFactory().get().send(inventory, title);
+    }
+
+    /**
+     * Utility method for executing a Runnable task on the server's main thread with a delay of 0 ticks.
+     * This ensures synchronization with the server's main thread.
+     *
+     * @param runnable The Runnable task to be executed.
+     */
+    protected void syncUtil(Runnable runnable) {
+        Bukkit.getScheduler().runTaskLater(Main.getInstance(), runnable, 0);
     }
 }

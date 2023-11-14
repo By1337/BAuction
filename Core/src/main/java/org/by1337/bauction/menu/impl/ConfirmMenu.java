@@ -1,5 +1,6 @@
 package org.by1337.bauction.menu.impl;
 
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.bauction.Main;
@@ -19,9 +20,9 @@ public class ConfirmMenu extends Menu {
     private final CustomItemStack itemStack;
     private int itemSlot;
 
-    public ConfirmMenu(@NotNull CallBack<Optional<Result>> callBack, ItemStack itemStack) {
-        super(MenuFactory.create(Main.getCfg().getMenuConfirm()));
-        itemSlot = menuFile.getInt("item-slot");
+    public ConfirmMenu(@NotNull CallBack<Optional<Result>> callBack, ItemStack itemStack, Player player ) {
+        super(MenuFactory.create(Main.getCfg().getMenuConfirm()), player);
+        itemSlot = Main.getCfg().getMenuConfirm().getAsInteger("item-slot");
         this.callBack = callBack;
 
         this.itemStack = new CustomItemStack(new int[]{itemSlot}, new ArrayList<>(), null, new HashMap<>(), itemStack.getAmount(), itemStack.getType().name());
@@ -39,16 +40,16 @@ public class ConfirmMenu extends Menu {
         for (String cmd : commands) {
             cmd = holder.replace(cmd);
             if (cmd.equals("[ACCEPT]")) {
-                callBack.result(Optional.of(Result.ACCEPT));
+                syncUtil(() -> callBack.result(Optional.of(Result.ACCEPT)));
             } else if (cmd.equals("[DENY]")) {
-                callBack.result(Optional.of(Result.DENY));
+                syncUtil(() -> callBack.result(Optional.of(Result.DENY)));
             }
         }
     }
 
     @Override
     public String replace(String string) {
-        String str = Main.getMessage().messageBuilder(string, bukkitPlayer);
+        String str = Main.getMessage().messageBuilder(string, getPlayer());
         for (Placeholderable val : customPlaceHolders) {
             str = val.replace(str);
         }

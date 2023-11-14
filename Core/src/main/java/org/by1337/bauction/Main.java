@@ -51,18 +51,21 @@ public final class Main extends JavaPlugin {
     public void onLoad() {
         instance = this;
         message = new Message(getLogger());
-
-        AdapterRegistry.registerPrimitiveAdapter(Sorting.SortingType.class, new AdapterEnum<>(Sorting.SortingType.class));
-        AdapterRegistry.registerPrimitiveAdapter(ItemFlag.class, new AdapterEnum<>(ItemFlag.class));
-        AdapterRegistry.registerAdapter(Sorting.class, new AdapterSortingType());
-        AdapterRegistry.registerAdapter(Category.class, new AdapterCategory());
-        AdapterRegistry.registerAdapter(Requirements.class, new AdapterRequirements());
-        AdapterRegistry.registerAdapter(CustomItemStack.class, new AdapterCustomItemStack());
-        AdapterRegistry.registerAdapter(Boost.class, new AdapterBoost());
-        AdapterRegistry.registerAdapter(IRequirement.class, new AdapterIRequirement());
-
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
         econ = rsp.getProvider();
+
+        try {
+            AdapterRegistry.registerPrimitiveAdapter(Sorting.SortingType.class, new AdapterEnum<>(Sorting.SortingType.class));
+            AdapterRegistry.registerPrimitiveAdapter(ItemFlag.class, new AdapterEnum<>(ItemFlag.class));
+            AdapterRegistry.registerAdapter(Sorting.class, new AdapterSortingType());
+            AdapterRegistry.registerAdapter(Category.class, new AdapterCategory());
+            AdapterRegistry.registerAdapter(Requirements.class, new AdapterRequirements());
+            AdapterRegistry.registerAdapter(CustomItemStack.class, new AdapterCustomItemStack());
+            AdapterRegistry.registerAdapter(Boost.class, new AdapterBoost());
+            AdapterRegistry.registerAdapter(IRequirement.class, new AdapterIRequirement());
+        }catch (Exception e){
+            message.error(e);
+        }
     }
 
     @Override
@@ -165,8 +168,8 @@ public final class Main extends JavaPlugin {
                     if (!(sender instanceof Player player))
                         throw new CommandException("Вы должны быть игроком!");
                     MemoryUser user = storage.getMemoryUserOrCreate(player);
-                    MainMenu menu = new MainMenu(user);
-                    menu.setBukkitPlayer(player);
+                    MainMenu menu = new MainMenu(user, player);
+                    //menu.setBukkitPlayer(player);
                     menu.open();
                 }))
         ;

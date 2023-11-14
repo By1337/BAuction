@@ -11,15 +11,13 @@ public class MenuSetting {
     private final String title;
     private final int size;
     private final int updateInterval;
-    private final FileConfiguration menuFile;
     private final Requirements viewRequirement;
 
-    public MenuSetting(List<CustomItemStack> items, String title, int size, int updateInterval, FileConfiguration menuFile, Requirements viewRequirement) {
+    public MenuSetting(List<CustomItemStack> items, String title, int size, int updateInterval , Requirements viewRequirement) {
         this.items = items;
         this.title = title;
         this.size = size;
         this.updateInterval = updateInterval;
-        this.menuFile = menuFile;
         this.viewRequirement = viewRequirement;
     }
 
@@ -39,9 +37,6 @@ public class MenuSetting {
         return updateInterval;
     }
 
-    public FileConfiguration getMenuFile() {
-        return menuFile;
-    }
 
     public Requirements getViewRequirement() {
         return viewRequirement;

@@ -1,11 +1,17 @@
 package org.by1337.bauction.db.json;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.by1337.api.util.NameKey;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.booost.BoostManager;
 import org.by1337.bauction.db.*;
 import org.by1337.bauction.db.event.SellItemEvent;
+import org.by1337.bauction.db.event.TakeItemEvent;
 import org.by1337.bauction.db.json.kernel.ActionType;
 import org.by1337.bauction.db.json.kernel.DBCore;
 import org.by1337.bauction.util.Category;
@@ -41,27 +47,40 @@ public class JsonDB extends DBCore {
             map.put(category.nameKey(), list);
         }
 
+        Bukkit.getPluginManager().registerEvents(new Listener() {
+            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+            public void join(PlayerJoinEvent event) {
+                if (readLock(() -> users.containsKey(event.getPlayer().getUniqueId()))) {
+                    MemoryUser memoryUser = getMemoryUser(event.getPlayer().getUniqueId());
+                    writeLock(() -> {
+                        Main.getCfg().getBoostManager().userUpdate(memoryUser);
+                        return null;
+                    });
+                }
+            }
+        }, Main.getInstance());
+
     }
 
     public void validateAndAddItem(SellItemEvent event) {
-       try {
-           MemoryUser memoryUser = super.getUser(event.getUser().getUuid());
-           Main.getCfg().getBoostManager().userUpdate(memoryUser);
+        try {
+            MemoryUser memoryUser = super.getUser(event.getUser().getUuid());
+            Main.getCfg().getBoostManager().userUpdate(memoryUser);
 
-           MemorySellItem sellItem = event.getSellItem();
+            MemorySellItem sellItem = event.getSellItem();
 
-           if (Main.getCfg().getMaxSlots() <= (memoryUser.getItemForSale().size() - memoryUser.getExternalSlots())) {
-               event.setValid(false);
-               event.setReason("&cВы достигли лимита по количеству предметов на аукционе!");
-               return;
-           }
-           super.addItem(sellItem, memoryUser.getUuid());
-           event.setValid(true);
-       }catch (Exception e){
-           Main.getMessage().error(e);
-           event.setValid(false);
-           event.setReason("&cПроизошла ошибка!");
-       }
+            if (Main.getCfg().getMaxSlots() <= (memoryUser.getItemForSale().size() - memoryUser.getExternalSlots())) {
+                event.setValid(false);
+                event.setReason("&cВы достигли лимита по количеству предметов на аукционе!");
+                return;
+            }
+            super.addItem(sellItem, memoryUser.getUuid());
+            event.setValid(true);
+        } catch (Exception e) {
+            Main.getMessage().error(e);
+            event.setValid(false);
+            event.setReason("&cПроизошла ошибка!");
+        }
     }
 
     public void addItem(MemorySellItem sellItem, Player player) {
@@ -76,6 +95,31 @@ public class JsonDB extends DBCore {
 
     public MemoryUser getMemoryUser(UUID uuid) {
         return readLock(() -> users.getOrThrow(uuid, StorageException.NotFoundException::new));
+    }
+
+    public MemorySellItem getMemorySellItem(UUID uuid) {
+        return readLock(() -> sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElseThrow(StorageException.NotFoundException::new));
+    }
+
+    public void validateAndRemoveItem(TakeItemEvent event) {
+        MemoryUser user = event.getUser();
+        MemorySellItem sellItem = event.getSellItem();
+
+        if (!user.getUuid().equals(sellItem.getSellerUuid())) {
+            event.setValid(false);
+            event.setReason("&cВы не владелец предмета!");
+            return;
+        }
+
+        try {
+            tryRemoveItem(sellItem.getUuid());
+        } catch (StorageException e) {
+            Main.getMessage().error(e);
+            event.setValid(false);
+            event.setReason("&cПроизошла ошибка!");
+            return;
+        }
+        event.setValid(true);
     }
 
     public MemoryUser getMemoryUserOrCreate(Player player) {
@@ -107,6 +151,7 @@ public class JsonDB extends DBCore {
         Thread thread = new Thread(() -> {
             if (action.getType() == ActionType.UPDATE_MEMORY_USER) {
                 MemoryUser memoryUser = (MemoryUser) action.getBody();
+                Main.getCfg().getBoostManager().userUpdate(memoryUser);
                 writeLock(() -> {
                     users.put(memoryUser.getUuid(), memoryUser);
                     return null;

@@ -40,7 +40,7 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
         super(player, size, title);
         openRequirements = viewRequirement;
         // this.menuFile = menuFile;
-        Collections.sort(items);
+        //  Collections.sort(items);
         this.items = items;
         this.title = title;
         this.size = size;
@@ -64,17 +64,19 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
 
     public void open() {
         Menu menu = this;
-        if (openRequirements != null) {
-            if (openRequirements.check(this, menu)) {
+        syncUtil(() -> { // CancelledPacketHandleException bypasser
+            if (openRequirements != null) {
+                if (openRequirements.check(menu, menu)) {
+                    viewer.openInventory(inventory);
+                    generate0();
+                } else {
+                    openRequirements.runDenyCommands(menu, menu);
+                }
+            } else {
                 viewer.openInventory(inventory);
                 generate0();
-            } else {
-                openRequirements.runDenyCommands(menu, this);
             }
-        } else {
-            viewer.openInventory(inventory);
-            generate0();
-        }
+        });
     }
 
     protected abstract void generate();
@@ -99,7 +101,8 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
     public abstract void runCommand(Placeholderable holder, String... commands);
 
     @Override
-    protected void onClick(InventoryDragEvent e) {}
+    protected void onClick(InventoryDragEvent e) {
+    }
 
     @Override
     public void onClick(InventoryClickEvent e) {

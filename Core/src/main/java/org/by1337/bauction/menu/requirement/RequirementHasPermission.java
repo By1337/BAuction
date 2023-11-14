@@ -12,8 +12,8 @@ public class RequirementHasPermission implements IRequirement {
 
     @Override
     public boolean check(Placeholderable holder, Menu menu) {
-        if (menu.getBukkitPlayer() != null) {
-            return menu.getBukkitPlayer().hasPermission(holder.replace(permission));
+        if (menu.getPlayer() != null) {
+            return menu.getPlayer().hasPermission(holder.replace(permission));
         } else {
             throw new IllegalArgumentException("Player is null!: " + this);
         }

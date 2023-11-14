@@ -1,7 +1,6 @@
 package org.by1337.bauction.db;
 
 import org.by1337.api.util.NameKey;
-import org.by1337.bauction.db.json.SellItem;
 import org.by1337.bauction.util.Sorting;
 
 import java.util.*;

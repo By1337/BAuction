@@ -1,13 +1,14 @@
 package org.by1337.bauction.menu.impl;
 
 import org.bukkit.configuration.MemorySection;
+import org.bukkit.entity.Player;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
 import org.by1337.api.command.argument.ArgumentInteger;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.json.SellItem;
-import org.by1337.bauction.User;
+import org.by1337.bauction.db.MemorySellItem;
+import org.by1337.bauction.db.MemoryUser;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.MenuFactory;
@@ -18,19 +19,19 @@ import java.util.Optional;
 public class BuyCountMenu extends Menu {
 
     private final Command command;
-    private final User user;
+    private final MemoryUser user;
 
     private int count = 1;
-    private final SellItem item;
+    private final MemorySellItem item;
     private final CustomItemStack customItemStack;
     private final CallBack<Optional<Integer>> callBack;
 
-    public BuyCountMenu(User user, SellItem item, CallBack<Optional<Integer>> callBack) {
-        super(MenuFactory.create(Main.getCfg().getMenuBuyCount()));
+    public BuyCountMenu(MemoryUser user, MemorySellItem item, CallBack<Optional<Integer>> callBack, Player player) {
+        super(MenuFactory.create(Main.getCfg().getMenuBuyCount()), player);
         this.user = user;
         this.item = item;
         this.callBack = callBack;
-        customItemStack = MenuFactory.menuItemBuilder(((MemorySection) super.menuFile.get("item")).getValues(false));
+        customItemStack = Main.getCfg().getMenuBuyCount().getAs("item", CustomItemStack.class);
         customItemStack.setItemStack(item.getItemStack());
         customItemStack.registerPlaceholder(item);
         customItemStack.registerPlaceholder(this);
@@ -63,8 +64,8 @@ public class BuyCountMenu extends Menu {
                 )
                 .addSubCommand(new Command("[BUY]")
                         .executor((sender, args) -> {
-                            if (Main.getEcon().getBalance(bukkitPlayer) < (item.getPriceForOne() * count)) {
-                                Main.getMessage().sendMsg(bukkitPlayer, "&cУ Вас не хватает баланса для покупки предмета!");
+                            if (Main.getEcon().getBalance(getPlayer()) < (item.getPriceForOne() * count)) {
+                                Main.getMessage().sendMsg(getPlayer(), "&cУ Вас не хватает баланса для покупки предмета!");
                                 generate0();
                                 return;
                             }
@@ -98,7 +99,7 @@ public class BuyCountMenu extends Menu {
 
     @Override
     public String replace(String s) {
-        StringBuilder sb = new StringBuilder(Main.getMessage().messageBuilder(s, bukkitPlayer));
+        StringBuilder sb = new StringBuilder(Main.getMessage().messageBuilder(s, getPlayer()));
         while (true) {
             if (sb.indexOf("{count}") != -1) {
                 sb.replace(sb.indexOf("{count}"), sb.indexOf("{count}") + "{count}".length(), String.valueOf(count));

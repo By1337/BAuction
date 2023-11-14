@@ -37,8 +37,8 @@ public class MainMenu extends Menu {
 
     private static MenuSetting setting;
 
-    private static MenuSetting getSetting(){
-        if (setting == null){
+    private static MenuSetting getSetting() {
+        if (setting == null) {
             setting = MenuFactory.create(Main.getCfg().getMenu());
         }
         return setting;
@@ -53,7 +53,7 @@ public class MainMenu extends Menu {
         sortings.addAll(Main.getCfg().getSortingMap().values());
         categories.addAll(Main.getCfg().getCategoryMap().values());
 
-        slots = MenuFactory.getSlots(Main.getCfg().getMenu(), "items-slots");
+        slots = MenuFactory.getSlots(Main.getCfg().getMenu().getList("items-slots", String.class));
 
         command = new Command("menu-commands")
                 .addSubCommand(new Command("[NEXT_PAGE]")
@@ -152,49 +152,37 @@ public class MainMenu extends Menu {
                 .addSubCommand(new Command("[TAKE_ITEM]")
                         .argument(new ArgumentString("uuid"))
                         .executor(((sender, args) -> {
-//                            String uuidS = (String) args.getOrThrow("uuid");
-//
-//                            UUID uuid = UUID.fromString(uuidS);
-//
-//                            MemorySellItem item = sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
-//
-//                            if (item == null) {
-//                                generate0();
-//                                return;
-//                            }
-//
-//
-//                            CallBack<Optional<ConfirmMenu.Result>> callBack = result -> {
-//                                if (result.isPresent()) {
-//                                    if (result.get() == ConfirmMenu.Result.ACCEPT) {
-//                                        TakeItemEvent event = new TakeItemEvent(user, item);
-//                                        Main.getStorage().validateAndRemoveItem(event);
-//
-//                                        if (event.isValid()) {
-//                                            Main.getMessage().sendMsg(bukkitPlayer, "&aВы успешно забрали свой предмет!");
-//                                            Menu.giveItems(bukkitPlayer, item.getItemStack()).forEach(i -> bukkitPlayer.getLocation().getWorld().dropItem(bukkitPlayer.getLocation(), i));
-//                                        } else {
-//                                            Main.getMessage().sendMsg(bukkitPlayer, String.valueOf(event.getReason()));
-//                                        }
-//                                    }
-//                                }
-//                                MainMenu menu = new MainMenu(user);
-//                                menu.setBukkitPlayer(bukkitPlayer);
-//                                menu.setCategories(categories);
-//                                menu.setSortings(sortings);
-//                                menu.setCurrentPage(currentPage);
-//                                menu.open();
-//                            };
-//
-//                            ConfirmMenu confirmMenu = new ConfirmMenu(callBack, item.getItemStack());
-//                            confirmMenu.setBukkitPlayer(bukkitPlayer);
-//                            confirmMenu.registerPlaceholderable(user);
-//                            confirmMenu.registerPlaceholderable(item);
-//                            confirmMenu.open();
+                            String uuidS = (String) args.getOrThrow("uuid");
+                            UUID uuid = UUID.fromString(uuidS);
 
+                            MemorySellItem item = Main.getStorage().getMemorySellItem(uuid);
+
+
+                            CallBack<Optional<ConfirmMenu.Result>> callBack = result -> {
+                                if (result.isPresent()) {
+                                    if (result.get() == ConfirmMenu.Result.ACCEPT) {
+                                        TakeItemEvent event = new TakeItemEvent(user, item);
+                                        Main.getStorage().validateAndRemoveItem(event);
+
+                                        if (event.isValid()) {
+                                            Main.getMessage().sendMsg(getPlayer(), "&aВы успешно забрали свой предмет!");
+                                            Menu.giveItems(getPlayer(), item.getItemStack()).forEach(i -> getPlayer().getLocation().getWorld().dropItem(getPlayer().getLocation(), i));
+                                        } else {
+                                            Main.getMessage().sendMsg(getPlayer(), String.valueOf(event.getReason()));
+                                        }
+                                    }
+                                }
+                                sellItems = null;
+                                reopen();
+                            };
+                          //  getPlayer().closeInventory();
+                            ConfirmMenu confirmMenu = new ConfirmMenu(callBack, item.getItemStack(), getPlayer());
+                            confirmMenu.registerPlaceholderable(user);
+                            confirmMenu.registerPlaceholderable(item);
+                            confirmMenu.open();
                         }))
-                )
-        ;
+                );
+
     }
 
     private ArrayList<MemorySellItem> sellItems = null;
@@ -243,7 +231,7 @@ public class MainMenu extends Menu {
                     customItemStack.setSlots(new int[]{slot});
                     customItemStack.registerPlaceholder(item);
                     customItemStack.setAmount(item.getAmount());
-                  //  customPlaceHolders.forEach(customItemStack::registerPlaceholder);
+                    //  customPlaceHolders.forEach(customItemStack::registerPlaceholder);
                     customItemStacks.add(customItemStack);
 
                 }
@@ -322,11 +310,14 @@ public class MainMenu extends Menu {
         }
         return sb.toString();
     }
-    public void reopen(){
-        if (getPlayer() == null || !getPlayer().isOnline()){
+
+    public void reopen() {
+        if (getPlayer() == null || !getPlayer().isOnline()) {
             throw new IllegalArgumentException();
         }
         reRegister();
         getPlayer().openInventory(getInventory());
+        sendFakeTitle(replace(title));
+        generate0();
     }
 }
