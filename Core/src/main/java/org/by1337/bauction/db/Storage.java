@@ -375,36 +375,7 @@ public class Storage {
 //    }
 //
 //
-//    private void save() {
-//        lock.readLock().lock();
-//        try {
-//            for (File file : Main.getCfg().getItemsDataFolder().listFiles()) {
-//                file.delete();
-//            }
-//            int max = 10000;
-//            int last = 0;
-//            int total = sellItems.size();
-//            List<SellItem> buffer = new ArrayList<>();
-//            for (int i = 0; i < total; i++) {
-//                buffer.add(sellItems.get(i));
-//                if (i - last >= max || i == total - 1) {
-//                    File file = new File(Main.getCfg().getItemsDataFolder() + "/items-" + (last + 1) + "-" + (i) + ".json");
-//                    file.createNewFile();
-//                    try (FileWriter writer = new FileWriter(file)) {
-//                        Gson gson = new Gson();
-//                        gson.toJson(buffer, writer);
-//                        buffer.clear();
-//                        last = i;
-//                    }
-//                }
-//            }
-//        } catch (IOException e) {
-//            Main.getMessage().error("failed to save items!", e);
-//        } finally {
-//            lock.readLock().unlock();
-//        }
-//
-//    }
+
 //
 //    @FunctionalInterface
 //    private interface Task<T> {

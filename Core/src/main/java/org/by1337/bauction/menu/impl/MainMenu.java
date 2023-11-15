@@ -1,5 +1,6 @@
 package org.by1337.bauction.menu.impl;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
@@ -20,6 +21,7 @@ import org.by1337.bauction.db.event.TakeItemEvent;
 import org.by1337.bauction.menu.MenuSetting;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.Sorting;
+import org.by1337.bauction.util.TagUtil;
 
 import java.util.*;
 
@@ -30,11 +32,13 @@ public class MainMenu extends Menu {
 
     private CyclicList<Sorting> sortings = new CyclicList<>();
     private CyclicList<Category> categories = new CyclicList<>();
+    private Category custom;
 
     private List<Integer> slots;
 
     private final Command command;
     private MemoryUser user;
+
 
     public MainMenu(MemoryUser user, Player player) {
         super(Main.getCfg().getMenuManger().getMainMenu(), player);
@@ -46,7 +50,9 @@ public class MainMenu extends Menu {
 
         slots = Main.getCfg().getMenuManger().getMainMenuItemSlots();
 
+
         command = new Command("menu-commands")
+                //<editor-fold desc="commands" defaultstate="collapsed">
                 .addSubCommand(new Command("[OPEN_MENU]")
                         .argument(new ArgumentString("menu"))
                         .executor(((sender, args) -> {
@@ -175,6 +181,7 @@ public class MainMenu extends Menu {
                         }))
                 )
         ;
+        //</editor-fold>
 
     }
 
@@ -190,7 +197,17 @@ public class MainMenu extends Menu {
             lastSorting = sortings.getCurrent();
             lastPage = currentPage;
 
-            sellItems = new ArrayList<>(Main.getStorage().getItems(lastCategory.nameKey(), lastSorting.nameKey()));
+            if (lastCategory == custom){
+                sellItems = new ArrayList<>();
+                for (MemorySellItem item : Main.getStorage().getAllItems()) {
+                    if (TagUtil.matchesCategory(custom, item)){
+                        sellItems.add(item);
+                    }
+                }
+                sellItems.sort(lastSorting.getComparator());
+            }else {
+                sellItems = new ArrayList<>(Main.getStorage().getItems(lastCategory.nameKey(), lastSorting.nameKey()));
+            }
 
             maxPage = (int) Math.ceil((double) sellItems.size() / slots.size());
 
@@ -314,5 +331,11 @@ public class MainMenu extends Menu {
         sellItems = null;
         this.user = Main.getStorage().getMemoryUser(this.user.getUuid());
         generate0();
+    }
+
+    public void setCustomCategory(Category custom) {
+        categories.add(custom);
+        categories.sort(Category::compareTo);
+        this.custom = custom;
     }
 }

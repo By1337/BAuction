@@ -36,6 +36,7 @@ public class JsonDB extends DBCore {
     private final Map<NameKey, Sorting> sortingMap;
 
     public JsonDB(Map<NameKey, Category> categoryMap, Map<NameKey, Sorting> sortingMap) {
+        super();
         this.categoryMap = categoryMap;
         this.sortingMap = sortingMap;
         for (Category category : categoryMap.values()) {
@@ -45,6 +46,27 @@ public class JsonDB extends DBCore {
             }
             map.put(category.nameKey(), list);
         }
+
+        // parse bd
+        writeLock(() -> sellItems.addAll(super.getAllSellItems()));
+        writeLock(() -> {
+            for (MemoryUser user : super.getAllUsers()) {
+                users.put(user.getUuid(), user);
+            }
+            return null;
+        });
+        // sorting
+        writeLock(() -> {
+            sellItems.forEach(sellItem -> {
+                for (Category value : categoryMap.values()) {
+                    if (TagUtil.matchesCategory(value, sellItem)) {
+                        map.get(value.nameKey()).forEach(list -> list.addItem(sellItem));
+                    }
+                }
+            });
+            return null;
+        });
+
 
         Bukkit.getPluginManager().registerEvents(new Listener() {
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -59,6 +81,10 @@ public class JsonDB extends DBCore {
             }
         }, Main.getInstance());
 
+    }
+
+    public List<MemorySellItem> getAllItems() {
+        return readLock(() -> sellItems);
     }
 
     public void validateAndAddItem(SellItemEvent event) {

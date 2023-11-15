@@ -6,6 +6,7 @@ import org.by1337.api.configuration.adapter.ClassAdapter;
 import org.by1337.api.util.NameKey;
 import org.by1337.bauction.util.Category;
 
+import java.util.Collections;
 import java.util.HashSet;
 
 public class AdapterCategory implements ClassAdapter<Category> {

@@ -34,12 +34,8 @@ public class TagUtil {
             for (NamespacedKey key : im.getPersistentDataContainer().getKeys()) {
                 list.add(key.getKey());
             }
-            // todo это не работает и мне сейчас лень об этом заботиться
             if (im instanceof EnchantmentStorageMeta enchantmentStorageMeta) {
-                System.out.println("ok");
-                System.out.println(enchantmentStorageMeta.getEnchants().size());
-
-                enchantmentStorageMeta.getEnchants().keySet().forEach(e -> list.add(e.getKey().getKey()));
+                enchantmentStorageMeta.getStoredEnchants().keySet().forEach(e -> list.add(e.getKey().getKey()));
             }
         }
         list.replaceAll(String::toLowerCase);

@@ -1,8 +1,10 @@
 package org.by1337.bauction.util;
 
 import org.by1337.api.util.NameKey;
+import org.by1337.bauction.db.MemorySellItem;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Comparator;
 import java.util.Objects;
 
 public record Sorting(SortingType type, String value, String selectedName,
@@ -34,6 +36,25 @@ public record Sorting(SortingType type, String value, String selectedName,
                 ", unselectedName='" + unselectedName + '\'' +
                 ", priority=" + priority +
                 '}';
+    }
+
+    public Comparator<MemorySellItem> getComparator(){
+        if (type == Sorting.SortingType.COMPARE_MAX) {
+            return  switch (value){
+                case "{price}" -> (item, item1) -> Double.compare(item1.getPrice(), item.getPrice());
+                case "{price_for_one}" -> (item, item1) -> Double.compare(item1.getPriceForOne(), item.getPriceForOne());
+                case "{sale_time}" -> (item, item1) -> Double.compare((double) item1.getTimeListedForSale() / 1000, (double) item.getTimeListedForSale() / 1000);
+                default -> throw new IllegalArgumentException("unknown sorting type: " + this);
+            };
+        } else {
+            return switch (value){
+                case "{price}" -> Comparator.comparingDouble(MemorySellItem::getPrice);
+                case "{price_for_one}" -> Comparator.comparingDouble(MemorySellItem::getPriceForOne);
+                case "{sale_time}" ->
+                        Comparator.comparingDouble((MemorySellItem item) -> (double) item.getTimeListedForSale() / 1000);
+                default -> throw new IllegalArgumentException("unknown sorting type: " + this);
+            };
+        }
     }
 
     public static enum SortingType {

@@ -2,26 +2,41 @@ package org.by1337.bauction.db.json.kernel;
 
 import org.by1337.bauction.db.MemorySellItem;
 import org.by1337.bauction.db.MemoryUser;
-import org.by1337.bauction.db.json.kernel.SellItem;
-import org.by1337.bauction.db.json.kernel.User;
 
 import java.util.UUID;
 
-public enum ActionType {
-    UPDATE_USER(User.class),
-    UPDATE_MEMORY_USER(MemoryUser.class),
-    UPDATE_SELL_ITEM(SellItem.class),
-    UPDATE_MEMORY_SELL_ITEM(MemorySellItem.class),
-    REMOVE_USER(UUID.class),
-    REMOVE_SELL_ITEM(UUID.class);
+public class ActionType<T> {
 
-    private final Class<?> clazz;
+    public final static ActionType<MemoryUser> UPDATE_MEMORY_USER = new ActionType<>(MemoryUser.class, "UPDATE_MEMORY_USER", false);
+    public final static ActionType<MemorySellItem> UPDATE_MEMORY_SELL_ITEM = new ActionType<>(MemorySellItem.class, "UPDATE_MEMORY_SELL_ITEM", false);
+    public final static ActionType<UUID> UPDATE_SELL_ITEM = new ActionType<>(UUID.class, "UPDATE_SELL_ITEM");
+    public final static ActionType<UUID> REMOVE_USER = new ActionType<>(UUID.class, "REMOVE_USER");
+    public final static ActionType<UUID> REMOVE_SELL_ITEM = new ActionType<>(UUID.class, "REMOVE_SELL_ITEM");
+    public final static ActionType<UUID> UPDATE_USER = new ActionType<>(UUID.class, "UPDATE_USER");
+    public final static ActionType<Void> SAVE_DB = new ActionType<>(Void.class, "SAVE_DB");
 
-    ActionType(Class<?> clazz) {
+    private final Class<T> clazz;
+    private final String name;
+    private final boolean logged;
+
+    ActionType(Class<T> clazz, String name) {
+        this(clazz, name, true);
+    }
+    ActionType(Class<T> clazz, String name, boolean logged) {
         this.clazz = clazz;
+        this.name = name;
+        this.logged = logged;
     }
 
-    public Class<?> getClazz() {
+    public Class<T> getClazz() {
         return clazz;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public boolean isLogged() {
+        return logged;
     }
 }

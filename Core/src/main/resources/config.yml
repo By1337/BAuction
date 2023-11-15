@@ -18,7 +18,7 @@ boosts: # it's list
 max-slots: 10
 
 # Время жизни офера по умолчанию. Для указания времени можно использовать: 1s1m1h1d1w1mo1y
-default-offer-time: '15s'
+default-offer-time: '2d'
 
 remove-expired-items:
   enable: true # Удалять ли просроченные предметы?
