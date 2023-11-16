@@ -29,10 +29,7 @@ import org.by1337.bauction.db.event.SellItemEvent;
 import org.by1337.bauction.menu.requirement.IRequirement;
 import org.by1337.bauction.menu.requirement.Requirements;
 import org.by1337.bauction.search.TrieManager;
-import org.by1337.bauction.util.Category;
-import org.by1337.bauction.util.Metrics;
-import org.by1337.bauction.util.Sorting;
-import org.by1337.bauction.util.TagUtil;
+import org.by1337.bauction.util.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,10 +46,10 @@ public final class Main extends JavaPlugin {
     private Command command;
     private static Economy econ;
     private TrieManager trieManager;
+    private static TimeUtil timeUtil;
 
     // todo /ah reload
     // todo /ah admin open <категория>
-    // todo fix 'истекает через null'
     @Override
     public void onLoad() {
         instance = this;
@@ -75,6 +72,7 @@ public final class Main extends JavaPlugin {
         AdapterRegistry.registerAdapter(IRequirement.class, new AdapterIRequirement());
 
         cfg = new Config(this);
+        timeUtil = new TimeUtil();
         storage = new JsonDB(cfg.getCategoryMap(), cfg.getSortingMap());
         initCommand();
         getCommand("bauc").setTabCompleter(this);
@@ -235,6 +233,10 @@ public final class Main extends JavaPlugin {
 
     public static Economy getEcon() {
         return econ;
+    }
+
+    public static TimeUtil getTimeUtil() {
+        return timeUtil;
     }
 
     @Override

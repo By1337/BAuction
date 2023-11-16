@@ -1,10 +1,33 @@
 package org.by1337.bauction.util;
 
+import org.by1337.api.configuration.YamlContext;
 import org.by1337.bauction.Main;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class TimeUtil {
 
-    public static String getFormat(long time) {
+    private final Map<String, String> map;
+
+    public TimeUtil() {
+        map = new HashMap<>();
+        YamlContext context = Main.getCfg().getMessage();
+
+        map.put("time-format.ago", context.getAsString("time-format.ago"));
+        map.put("time-format.in", context.getAsString("time-format.in"));
+        map.put("time-format.just-now", context.getAsString("time-format.just-now"));
+        map.put("time-format.never", context.getAsString("time-format.never"));
+
+        for (String format : List.of("formats", "years", "months", "days", "hours", "minutes", "seconds")) {
+            for (Map.Entry<String, String> entry : context.getMap("time-format." + format, String.class).entrySet()) {
+                map.put("time-format." + format + "." + entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    public String getFormat(long time) {
         long currentTimeMillis = System.currentTimeMillis();
         long timeDifferenceMillis = currentTimeMillis - time;
         timeDifferenceMillis = timeDifferenceMillis < 0 ? -timeDifferenceMillis : timeDifferenceMillis;
@@ -25,49 +48,48 @@ public class TimeUtil {
             String formattedTime = formatTime(years, months, days, hours, minutes, seconds);
             if (time < currentTimeMillis) {
 
-                return formattedTime + " " + Main.getCfg().getMessage().getAsString("time-format.ago");
+                return formattedTime + " " + map.get("time-format.ago");
             } else {
-                return Main.getCfg().getMessage().getAsString("time-format.in") + " " + formattedTime;
+                return map.get("time-format.in") + " " + formattedTime;
             }
 
         } else {
-            return Main.getCfg().getMessage().getAsString("time-format.just-now");
+            return map.get("time-format.just-now");
         }
     }
 
     //%years% %months% %days% %hours% %minutes% %seconds%
-    private static String formatTime(long years, long months, long days, long hours, long minutes, long seconds) {
+    private String formatTime(long years, long months, long days, long hours, long minutes, long seconds) {
         String str = getFormat(years, months, days, hours, minutes, seconds);
         if (years != 0) {
-            if (years > 10) return Main.getCfg().getMessage().getAsString("never");
-            str = str.replace("%years%", String.format("%s %s", years, getPluralForm(years, Main.getCfg().getMessage().getAsString("time-format.years.form-1", "?"), Main.getCfg().getMessage().getAsString("time-format.years.form-2", "?"), Main.getCfg().getMessage().getAsString("time-format.years.form-5", "?"))));
-        }
-        else
+            //if (years > 10) return ;
+            str = str.replace("%years%", String.format("%s %s", years, getPluralForm(years, map.getOrDefault("time-format.years.form-1", "?"), map.getOrDefault("time-format.years.form-2", "?"), map.getOrDefault("time-format.years.form-5", "?"))));
+        } else
             str = str.replace("%years%", "");
         if (months != 0)
-            str = str.replace("%months%", String.format("%s %s", months, getPluralForm(months, Main.getCfg().getMessage().getAsString("time-format.months.form-1", "?"), Main.getCfg().getMessage().getAsString("time-format.months.form-2", "?"), Main.getCfg().getMessage().getAsString("time-format.months.form-5", "?"))));
+            str = str.replace("%months%", String.format("%s %s", months, getPluralForm(months, map.getOrDefault("time-format.months.form-1", "?"), map.getOrDefault("time-format.months.form-2", "?"), map.getOrDefault("time-format.months.form-5", "?"))));
         else
             str = str.replace("%months%", "");
         if (days != 0)
-            str = str.replace("%days%", String.format("%s %s", days, getPluralForm(days, Main.getCfg().getMessage().getAsString("time-format.days.form-1", "?"), Main.getCfg().getMessage().getAsString("time-format.days.form-2", "?"), Main.getCfg().getMessage().getAsString("time-format.days.form-5", "?"))));
+            str = str.replace("%days%", String.format("%s %s", days, getPluralForm(days, map.getOrDefault("time-format.days.form-1", "?"), map.getOrDefault("time-format.days.form-2", "?"), map.getOrDefault("time-format.days.form-5", "?"))));
         else
             str = str.replace("%days%", "");
         if (hours != 0)
-            str = str.replace("%hours%", String.format("%s %s", hours, getPluralForm(hours, Main.getCfg().getMessage().getAsString("time-format.hours.form-1", "?"), Main.getCfg().getMessage().getAsString("time-format.hours.form-2", "?"), Main.getCfg().getMessage().getAsString("time-format.hours.form-5", "?"))));
+            str = str.replace("%hours%", String.format("%s %s", hours, getPluralForm(hours, map.getOrDefault("time-format.hours.form-1", "?"), map.getOrDefault("time-format.hours.form-2", "?"), map.getOrDefault("time-format.hours.form-5", "?"))));
         else
             str = str.replace("%hours%", "");
         if (minutes != 0)
-            str = str.replace("%minutes%", String.format("%s %s", minutes, getPluralForm(minutes, Main.getCfg().getMessage().getAsString("time-format.minutes.form-1", "?"), Main.getCfg().getMessage().getAsString("time-format.minutes.form-2", "?"), Main.getCfg().getMessage().getAsString("time-format.minutes.form-5", "?"))));
+            str = str.replace("%minutes%", String.format("%s %s", minutes, getPluralForm(minutes, map.getOrDefault("time-format.minutes.form-1", "?"), map.getOrDefault("time-format.minutes.form-2", "?"), map.getOrDefault("time-format.minutes.form-5", "?"))));
         else
             str = str.replace("%minutes%", "");
         if (seconds != 0)
-            str = str.replace("%seconds%", String.format("%s %s", seconds, getPluralForm(seconds, Main.getCfg().getMessage().getAsString("time-format.seconds.form-1", "?"), Main.getCfg().getMessage().getAsString("time-format.seconds.form-2", "?"), Main.getCfg().getMessage().getAsString("time-format.seconds.form-5", "?"))));
+            str = str.replace("%seconds%", String.format("%s %s", seconds, getPluralForm(seconds, map.getOrDefault("time-format.seconds.form-1", "?"), map.getOrDefault("time-format.seconds.form-2", "?"), map.getOrDefault("time-format.seconds.form-5", "?"))));
         else
             str = str.replace("%seconds%", "");
         return str;
     }
 
-    private static String getPluralForm(long number, String form1, String form2, String form5) {
+    private String getPluralForm(long number, String form1, String form2, String form5) {
         number = Math.abs(number);
         long lastDigit = number % 10;
         long lastTwoDigits = number % 100;
@@ -82,7 +104,7 @@ public class TimeUtil {
         }
     }
 
-    private static String getFormat(long years, long months, long days, long hours, long minutes, long seconds) {
+    private String getFormat(long years, long months, long days, long hours, long minutes, long seconds) {
         int height = (years != 0 ? 8 : 0) ^ (months != 0 ? 16 : 0) ^ (days != 0 ? 32 : 0) ^ (hours != 0 ? 64 : 0) ^ (minutes != 0 ? 128 : 0) ^ (seconds != 0 ? 256 : 0);
         String str;
         if ((height & 8) != 0) {
@@ -101,6 +123,6 @@ public class TimeUtil {
             Main.getMessage().error("height=" + height);
             str = "error";
         }
-        return Main.getCfg().getMessage().getAsString("time-format.formats." + str, "error");
+        return map.getOrDefault("time-format.formats." + str, "error");
     }
 }

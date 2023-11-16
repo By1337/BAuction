@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.api.BLib;
 import org.by1337.api.chat.Placeholderable;
+import org.by1337.bauction.Main;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.TagUtil;
 import org.by1337.bauction.util.TimeUtil;
@@ -93,7 +94,7 @@ public class MemorySellItem implements Placeholderable {
                 continue;
             }
             if (sb.indexOf("{expires}") != -1) {
-                sb.replace(sb.indexOf("{expires}"), sb.indexOf("{expires}") + "{expires}".length(), TimeUtil.getFormat(removalDate));
+                sb.replace(sb.indexOf("{expires}"), sb.indexOf("{expires}") + "{expires}".length(), Main.getTimeUtil().getFormat(removalDate));
                 continue;
             }
             if (sb.indexOf("{price_for_one}") != -1) {

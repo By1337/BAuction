@@ -2,6 +2,7 @@ package org.by1337.bauction.db;
 
 import org.bukkit.inventory.ItemStack;
 import org.by1337.api.chat.Placeholderable;
+import org.by1337.bauction.Main;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.TimeUtil;
 
@@ -52,11 +53,11 @@ public class MemoryUnsoldItem implements Placeholderable {
         StringBuilder sb = new StringBuilder(s);
         while (true) {
             if (sb.indexOf("{expired}") != -1) {
-                sb.replace(sb.indexOf("{expired}"), sb.indexOf("{expired}") + "{expired}".length(), TimeUtil.getFormat(expired));
+                sb.replace(sb.indexOf("{expired}"), sb.indexOf("{expired}") + "{expired}".length(), Main.getTimeUtil().getFormat(expired));
                 continue;
             }
             if (sb.indexOf("{delete_via}") != -1) {
-                sb.replace(sb.indexOf("{delete_via}"), sb.indexOf("{delete_via}") + "{delete_via}".length(), TimeUtil.getFormat(deleteVia));
+                sb.replace(sb.indexOf("{delete_via}"), sb.indexOf("{delete_via}") + "{delete_via}".length(), Main.getTimeUtil().getFormat(deleteVia));
                 continue;
             }
             if (sb.indexOf("{id}") != -1) {
