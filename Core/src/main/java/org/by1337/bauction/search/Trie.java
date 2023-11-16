@@ -3,7 +3,8 @@ package org.by1337.bauction.search;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Trie {private TrieNode root;
+public class Trie {
+    private TrieNode root;
 
     public Trie() {
         root = new TrieNode('\0');

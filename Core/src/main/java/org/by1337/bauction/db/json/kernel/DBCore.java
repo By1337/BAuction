@@ -37,8 +37,8 @@ public abstract class DBCore {
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private Logger logger;
-    private FileHandler fileHandler;
+ //   private Logger logger;
+  //  private FileHandler fileHandler;
 
     // private BukkitTask task;
     private Runnable runnable;
@@ -80,25 +80,25 @@ public abstract class DBCore {
     }
 
     private void loadLogger() throws IOException {
-        File logFile = new File(Main.getInstance().getDataFolder() + "/logs.log");
-        if (!logFile.exists()){
-            logFile.createNewFile();
-        }else {
-            logFile.delete();
-            logFile.createNewFile();
-        }
-        logger = Logger.getLogger("bauction-logger");
-        fileHandler = new FileHandler(logFile.getPath());
-
-        fileHandler.setFormatter(new SimpleFormatter() {
-            @Override
-            public synchronized String format(LogRecord record) {
-                return record.getMessage() + "\n";
-            }
-        });
-        logger.addHandler(fileHandler);
-        logger.setUseParentHandlers(false);
-        logger.info("[START_LOGGER]");
+//        File logFile = new File(Main.getInstance().getDataFolder() + "/logs.log");
+//        if (!logFile.exists()){
+//            logFile.createNewFile();
+//        }else {
+//            logFile.delete();
+//            logFile.createNewFile();
+//        }
+//        logger = Logger.getLogger("bauction-logger");
+//        fileHandler = new FileHandler(logFile.getPath());
+//
+//        fileHandler.setFormatter(new SimpleFormatter() {
+//            @Override
+//            public synchronized String format(LogRecord record) {
+//                return record.getMessage() + "\n";
+//            }
+//        });
+//        logger.addHandler(fileHandler);
+//        logger.setUseParentHandlers(false);
+//        logger.info("[START_LOGGER]");
 
     }
 
@@ -225,19 +225,11 @@ public abstract class DBCore {
 
     protected abstract void update(Action<?> action);
 
-//    private Action<User> generateUpdateUserLog(User user) {
-//        return new Action<>(ActionType.UPDATE_USER, user);
-//    }
-//
-//    private Action<UUID> generateRemoveItemLog(UUID uuid) {
-//        return new Action<>(ActionType.REMOVE_SELL_ITEM, uuid);
-//    }
-//
     private <T> Action<T> create(ActionType<T> type, T val) {
         return new Action<>(type, val);
     }
     protected <T> void logger(ActionType<T> type, T val) {
-        logger.info(new Action<>(type, val).toLog());
+       // logger.info(new Action<>(type, val).toLog());
     }
 
     @FunctionalInterface

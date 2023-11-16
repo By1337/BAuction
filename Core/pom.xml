@@ -6,7 +6,9 @@
 
     <groupId>org.by1337</groupId>
     <artifactId>BAuction</artifactId>
-    <version>1.0</version>
+    <!--  for release MAJOR.MINOR.PATCH -->
+    <!--  for beta MAJOR.MINOR.PATCH-<alpha/beta/stable/pre-release>-<build> -->
+    <version>1.0.0-b1</version>
     <packaging>jar</packaging>
 
     <name>Core</name>
@@ -17,6 +19,7 @@
     </properties>
 
     <build>
+        <defaultGoal>clean package</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

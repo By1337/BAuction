@@ -57,19 +57,16 @@ public final class Main extends JavaPlugin {
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
         econ = rsp.getProvider();
 
-        try {
-            AdapterRegistry.registerPrimitiveAdapter(Sorting.SortingType.class, new AdapterEnum<>(Sorting.SortingType.class));
-            AdapterRegistry.registerPrimitiveAdapter(ItemFlag.class, new AdapterEnum<>(ItemFlag.class));
-            AdapterRegistry.registerPrimitiveAdapter(InventoryType.class, new AdapterEnum<>(InventoryType.class));
-            AdapterRegistry.registerAdapter(Sorting.class, new AdapterSortingType());
-            AdapterRegistry.registerAdapter(Category.class, new AdapterCategory());
-            AdapterRegistry.registerAdapter(Requirements.class, new AdapterRequirements());
-            AdapterRegistry.registerAdapter(CustomItemStack.class, new AdapterCustomItemStack());
-            AdapterRegistry.registerAdapter(Boost.class, new AdapterBoost());
-            AdapterRegistry.registerAdapter(IRequirement.class, new AdapterIRequirement());
-        } catch (Exception e) {
-            message.error(e);
-        }
+        AdapterRegistry.registerPrimitiveAdapter(Sorting.SortingType.class, new AdapterEnum<>(Sorting.SortingType.class));
+        AdapterRegistry.registerPrimitiveAdapter(ItemFlag.class, new AdapterEnum<>(ItemFlag.class));
+        AdapterRegistry.registerPrimitiveAdapter(InventoryType.class, new AdapterEnum<>(InventoryType.class));
+        AdapterRegistry.registerAdapter(Sorting.class, new AdapterSortingType());
+        AdapterRegistry.registerAdapter(Category.class, new AdapterCategory());
+        AdapterRegistry.registerAdapter(Requirements.class, new AdapterRequirements());
+        AdapterRegistry.registerAdapter(CustomItemStack.class, new AdapterCustomItemStack());
+        AdapterRegistry.registerAdapter(Boost.class, new AdapterBoost());
+        AdapterRegistry.registerAdapter(IRequirement.class, new AdapterIRequirement());
+
     }
 
     @Override
@@ -81,6 +78,7 @@ public final class Main extends JavaPlugin {
         getCommand("bauc").setExecutor(this);
         new Metrics(this, 20300);
         trieManager = new TrieManager(this);
+        TagUtil.loadAliases(this);
     }
 
     private void initCommand() {
@@ -205,6 +203,15 @@ public final class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         storage.save();
+        AdapterRegistry.unregisterPrimitiveAdapter(Sorting.SortingType.class);
+        AdapterRegistry.unregisterPrimitiveAdapter(ItemFlag.class);
+        AdapterRegistry.unregisterPrimitiveAdapter(InventoryType.class);
+        AdapterRegistry.unregisterAdapter(Sorting.class);
+        AdapterRegistry.unregisterAdapter(Category.class);
+        AdapterRegistry.unregisterAdapter(Requirements.class);
+        AdapterRegistry.unregisterAdapter(CustomItemStack.class);
+        AdapterRegistry.unregisterAdapter(Boost.class);
+        AdapterRegistry.unregisterAdapter(IRequirement.class);
     }
 
     public static Message getMessage() {
@@ -241,8 +248,8 @@ public final class Main extends JavaPlugin {
     @Nullable
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String alias, @NotNull String[] args) {
-        if (args[0].equals("search")){
-            String last = args[args.length -1];
+        if (args[0].equals("search")) {
+            String last = args[args.length - 1];
             if (last.isEmpty()) return List.of("начните вводить название предмета");
             return trieManager.getTrie().getAllKeysWithPrefix(last);
         }

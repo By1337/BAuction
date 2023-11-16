@@ -119,7 +119,7 @@ public class JsonDB extends DBCore {
     }
 
     public MemoryUser getMemoryUser(UUID uuid) {
-        return readLock(() -> users.getOrThrow(uuid, StorageException.NotFoundException::new));
+        return readLock(() -> Main.getCfg().getBoostManager().userUpdate(users.getOrThrow(uuid, StorageException.NotFoundException::new)));
     }
 
     public MemorySellItem getMemorySellItem(UUID uuid) {
@@ -158,7 +158,7 @@ public class JsonDB extends DBCore {
 
     public void validateAndRemoveItem(TakeUnsoldItemEvent event) {
         try {
-            MemoryUser user = getUser(event.getUser().getUuid()); // обновляем на всякий случай
+            MemoryUser user = getUser(event.getUser().getUuid());
             MemoryUnsoldItem unsoldItem = event.getUnsoldItem();
 
             if (!user.getUuid().equals(unsoldItem.getOwner())) {

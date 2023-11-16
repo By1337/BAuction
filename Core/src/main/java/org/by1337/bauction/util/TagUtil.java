@@ -2,19 +2,41 @@ package org.by1337.bauction.util;
 
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
+import org.by1337.api.configuration.YamlContext;
 import org.by1337.bauction.db.MemorySellItem;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.io.File;
+import java.util.*;
 
 public class TagUtil {
+    private static final Map<String, String> tagAliases = new HashMap<>();
+
+    public static void loadAliases(Plugin plugin) {
+        tagAliases.clear();
+
+        YamlContext context;
+        File file;
+        file = new File(plugin.getDataFolder().getPath() + "/tagUtil.yml");
+        if (!file.exists()) {
+            plugin.saveResource("tagUtil.yml", true);
+        }
+        context = new YamlContext(YamlConfiguration.loadConfiguration(file));
+
+        for (String tag : context.getHandle().getConfigurationSection("tags").getKeys(false)) {
+            List<String> list = context.getList("tags." + tag, String.class);
+            list.forEach(str -> tagAliases.put(str, tag));
+        }
+
+    }
+
     public static HashSet<String> getTags(@NotNull ItemStack itemStack) {
         List<String> list = new ArrayList<>();
 
@@ -38,6 +60,12 @@ public class TagUtil {
                 enchantmentStorageMeta.getStoredEnchants().keySet().forEach(e -> list.add(e.getKey().getKey()));
             }
         }
+        for (String str : new ArrayList<>(list)) {
+            if (tagAliases.containsKey(str)){
+                list.add(tagAliases.get(str));
+            }
+        }
+
         list.replaceAll(String::toLowerCase);
         return new HashSet<>(list);
     }

@@ -17,9 +17,9 @@ public class BoostManager {
         boosts = context.getList("boosts", Boost.class);
     }
 
-    public void userUpdate(MemoryUser user) {
+    public MemoryUser userUpdate(MemoryUser user) {
         Player player = Bukkit.getPlayer(user.getUuid());
-        if (player == null) return; // ignore offline players
+        if (player == null) return user;
         int slots = 0;
         long sellTime = 0L;
         for (Boost boost : boosts) {
@@ -33,6 +33,7 @@ public class BoostManager {
 
         user.setExternalSlots(finalSlots);
         user.setExternalSellTime(finalSellTime);
+        return user;
     }
 
 }
