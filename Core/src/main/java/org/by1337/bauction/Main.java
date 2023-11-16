@@ -50,9 +50,16 @@ public final class Main extends JavaPlugin {
     private static Economy econ;
     private TrieManager trieManager;
 
+    // todo /ah reload
+    // todo /ah admin open <категория>
+    // todo fix 'истекает через null'
     @Override
     public void onLoad() {
         instance = this;
+    }
+
+    @Override
+    public void onEnable() {
         message = new Message(getLogger());
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
         econ = rsp.getProvider();
@@ -67,10 +74,6 @@ public final class Main extends JavaPlugin {
         AdapterRegistry.registerAdapter(Boost.class, new AdapterBoost());
         AdapterRegistry.registerAdapter(IRequirement.class, new AdapterIRequirement());
 
-    }
-
-    @Override
-    public void onEnable() {
         cfg = new Config(this);
         storage = new JsonDB(cfg.getCategoryMap(), cfg.getSortingMap());
         initCommand();

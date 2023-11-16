@@ -69,13 +69,11 @@ public abstract class DBCore {
                     }
                     return 50L * 100; // 100 ticks
                 });
-                /*task = */
                 Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), runnable, sleep / 50);
             } catch (Exception e) {
                 Main.getMessage().error(e);
             }
         };
-        /*task = */
         Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), runnable, 0);
     }
 
