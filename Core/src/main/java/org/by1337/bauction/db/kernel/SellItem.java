@@ -1,4 +1,4 @@
-package org.by1337.bauction.db.json.kernel;
+package org.by1337.bauction.db.kernel;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;

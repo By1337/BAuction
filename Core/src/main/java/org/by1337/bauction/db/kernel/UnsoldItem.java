@@ -1,4 +1,4 @@
-package org.by1337.bauction.db.json.kernel;
+package org.by1337.bauction.db.kernel;
 
 import org.by1337.api.BLib;
 import org.by1337.bauction.db.MemoryUnsoldItem;

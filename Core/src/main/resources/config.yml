@@ -22,7 +22,7 @@ default-offer-time: '2d'
 
 remove-expired-items:
   enable: true # Удалять ли просроченные предметы?
-  time: '4d' # Если да то через сколько
+  time: '30s' # Если да то через сколько
 
 # информация о просроченном предмете
 unsold-item:

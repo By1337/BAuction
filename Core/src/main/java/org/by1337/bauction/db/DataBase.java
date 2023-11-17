@@ -1,4 +1,4 @@
-package org.by1337.bauction.db.json;
+package org.by1337.bauction.db;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -8,11 +8,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.by1337.api.util.NameKey;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.booost.BoostManager;
-import org.by1337.bauction.db.*;
+import org.by1337.bauction.db.action.Action;
+import org.by1337.bauction.db.action.DBActionType;
 import org.by1337.bauction.db.event.*;
-import org.by1337.bauction.db.json.kernel.ActionType;
-import org.by1337.bauction.db.json.kernel.DBCore;
+import org.by1337.bauction.db.kernel.DBCore;
+import org.by1337.bauction.db.kernel.JsonDBCore;
+import org.by1337.bauction.db.kernel.JsonDBCoreV2;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.Sorting;
 import org.by1337.bauction.util.TagUtil;
@@ -22,21 +23,23 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 
-public class JsonDB extends DBCore {
+public class DataBase {
 
     private final List<MemorySellItem> sellItems = new ArrayList<>();
+    private final List<MemoryUnsoldItem> unsoldItems = new ArrayList<>();
     private final StorageMap<UUID, MemoryUser> users = new StorageMap<>();
 
     private final StorageMap<NameKey, List<SortingItems>> map = new StorageMap<>();
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-
     private final Map<NameKey, Category> categoryMap;
     private final Map<NameKey, Sorting> sortingMap;
 
-    public JsonDB(Map<NameKey, Category> categoryMap, Map<NameKey, Sorting> sortingMap) {
-        super();
+    private final DBCore core;
+
+    public DataBase(Map<NameKey, Category> categoryMap, Map<NameKey, Sorting> sortingMap) {
+        core = new JsonDBCoreV2(this::update);
         this.categoryMap = categoryMap;
         this.sortingMap = sortingMap;
         for (Category category : categoryMap.values()) {
@@ -47,16 +50,12 @@ public class JsonDB extends DBCore {
             map.put(category.nameKey(), list);
         }
 
-        // parse bd
-        writeLock(() -> sellItems.addAll(super.getAllSellItems()));
         writeLock(() -> {
-            for (MemoryUser user : super.getAllUsers()) {
+            unsoldItems.addAll(core.getAddUnsoldItems());
+            sellItems.addAll(core.getAllSellItems());
+            for (MemoryUser user : core.getAllUsers()) {
                 users.put(user.getUuid(), user);
             }
-            return null;
-        });
-        // sorting
-        writeLock(() -> {
             sellItems.forEach(sellItem -> {
                 for (Category value : categoryMap.values()) {
                     if (TagUtil.matchesCategory(value, sellItem)) {
@@ -66,8 +65,6 @@ public class JsonDB extends DBCore {
             });
             return null;
         });
-
-
         Bukkit.getPluginManager().registerEvents(new Listener() {
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             public void join(PlayerJoinEvent event) {
@@ -80,16 +77,19 @@ public class JsonDB extends DBCore {
                 }
             }
         }, Main.getInstance());
+    }
 
+    public int getItemsSize() {
+        return readLock(sellItems::size);
     }
 
     public List<MemorySellItem> getAllItems() {
-        return readLock(() -> sellItems);
+        return readLock(() -> new ArrayList<>(sellItems));
     }
 
     public void validateAndAddItem(SellItemEvent event) {
         try {
-            MemoryUser memoryUser = super.getUser(event.getUser().getUuid());
+            MemoryUser memoryUser = core.getUser(event.getUser().getUuid());
             Main.getCfg().getBoostManager().userUpdate(memoryUser);
 
             MemorySellItem sellItem = event.getSellItem();
@@ -99,7 +99,7 @@ public class JsonDB extends DBCore {
                 event.setReason("&cВы достигли лимита по количеству предметов на аукционе!");
                 return;
             }
-            super.addItem(sellItem, memoryUser.getUuid());
+            core.addItem(sellItem, memoryUser.getUuid());
             event.setValid(true);
         } catch (Exception e) {
             Main.getMessage().error(e);
@@ -110,25 +110,25 @@ public class JsonDB extends DBCore {
 
     public void addItem(MemorySellItem sellItem, Player player) {
         writeLock(() -> {
-            if (!super.hasUser(player.getUniqueId())) {
-                super.createNew(player.getUniqueId(), player.getName());
+            if (!core.hasUser(player.getUniqueId())) {
+                core.createNew(player.getUniqueId(), player.getName());
             }
-            super.addItem(sellItem, player.getUniqueId());
+            core.addItem(sellItem, player.getUniqueId());
             return null;
         });
     }
 
     public MemoryUser getMemoryUser(UUID uuid) {
-        return readLock(() -> Main.getCfg().getBoostManager().userUpdate(users.getOrThrow(uuid, StorageException.NotFoundException::new)));
+        return readLock(() -> Main.getCfg().getBoostManager().userUpdate(users.getOrThrow(uuid, StorageException.ItemNotFoundException::new)));
     }
 
     public MemorySellItem getMemorySellItem(UUID uuid) {
-        return readLock(() -> sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElseThrow(StorageException.NotFoundException::new));
+        return readLock(() -> sellItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElseThrow(StorageException.ItemNotFoundException::new));
     }
 
     public boolean hasMemorySellItem(UUID uuid) {
         try {
-            return hasSellItem(uuid);
+            return core.hasSellItem(uuid);
         } catch (Exception e) {
             Main.getMessage().error(e);
             return false;
@@ -146,7 +146,7 @@ public class JsonDB extends DBCore {
         }
 
         try {
-            tryRemoveItem(sellItem.getUuid());
+            core.tryRemoveItem(sellItem.getUuid());
         } catch (StorageException e) {
             Main.getMessage().error(e);
             event.setValid(false);
@@ -158,20 +158,20 @@ public class JsonDB extends DBCore {
 
     public void validateAndRemoveItem(TakeUnsoldItemEvent event) {
         try {
-            MemoryUser user = getUser(event.getUser().getUuid());
+            MemoryUser user = core.getUser(event.getUser().getUuid());
             MemoryUnsoldItem unsoldItem = event.getUnsoldItem();
 
             if (!user.getUuid().equals(unsoldItem.getOwner())) {
                 event.setValid(false);
                 event.setReason("&cВы не владелец предмета!");
                 return;
-            } else if (user.getUnsoldItems().stream().noneMatch(i -> i.getUuid().equals(unsoldItem.getUuid()))) {
+            } else if (user.getUnsoldItems().stream().noneMatch(i -> i.equals(unsoldItem.getUuid()))) {
                 event.setValid(false);
                 event.setReason("&cКажется такого предмета нет!");
                 return;
             }
 
-            tryRemoveUnsoldItem(user.getUuid(), unsoldItem.getUuid());
+            core.tryRemoveUnsoldItem(user.getUuid(), unsoldItem.getUuid());
 
             event.setValid(true);
         } catch (Exception e) {
@@ -192,13 +192,13 @@ public class JsonDB extends DBCore {
         }
 
         try {
-            if (!hasSellItem(sellItem.getUuid())) {
+            if (!core.hasSellItem(sellItem.getUuid())) {
                 event.setValid(false);
                 event.setReason("&cПредмет уже продан или снят с продажи!");
                 return;
             }
 
-            tryRemoveItem(sellItem.getUuid());
+            core.tryRemoveItem(sellItem.getUuid());
         } catch (StorageException e) {
             Main.getMessage().error(e);
             event.setValid(false);
@@ -213,7 +213,7 @@ public class JsonDB extends DBCore {
     }
 
     public List<MemoryUnsoldItem> getAllUnsoldItemsByUser(UUID uuid) {
-        return readLock(() -> users.get(uuid).getUnsoldItems());
+        return readLock(() -> core);
     }
 
     public void validateAndRemoveItem(BuyItemCountEvent event) {
@@ -227,7 +227,7 @@ public class JsonDB extends DBCore {
         }
 
         try {
-            if (!hasSellItem(sellItem.getUuid())) {
+            if (!core.hasSellItem(sellItem.getUuid())) {
                 event.setValid(false);
                 event.setReason("&cПредмет уже продан или снят с продажи!");
                 return;
@@ -239,7 +239,7 @@ public class JsonDB extends DBCore {
                 event.setReason("&cКто-то выкупил часть товара и вы больше не можете купить этот предмет в таком количестве!");
                 return;
             }
-            tryRemoveItem(sellItem.getUuid());
+            core.tryRemoveItem(sellItem.getUuid());
 
             int newCount = updated.getAmount() - event.getCount();
 
@@ -260,7 +260,7 @@ public class JsonDB extends DBCore {
                         .itemStack(updated.getItemStack())
                         .build();
 
-                addItem(newItem, buyer.getUuid());
+                core.addItem(newItem, buyer.getUuid());
             }
 
         } catch (StorageException e) {
@@ -276,11 +276,11 @@ public class JsonDB extends DBCore {
         return readLock(() -> {
             if (users.containsKey(player.getUniqueId())) {
                 return users.get(player.getUniqueId());
-            } else if (!super.hasUser(player.getUniqueId())) {
-                return super.createNew(player.getUniqueId(), player.getName());
+            } else if (!core.hasUser(player.getUniqueId())) {
+                return core.createNew(player.getUniqueId(), player.getName());
             } else {
-                MemoryUser memoryUser = super.getUser(player.getUniqueId());
-                update(new Action<>(ActionType.UPDATE_MEMORY_USER, memoryUser));
+                MemoryUser memoryUser = core.getUser(player.getUniqueId());
+               // update(new Action<>(ActionType.UPDATE_MEMORY_USER, memoryUser));
                 return memoryUser;
             }
         });
@@ -296,32 +296,11 @@ public class JsonDB extends DBCore {
         });
     }
 
-    @Override
-    protected void update(Action<?> action) {
+    private void update(Action action) {
         Thread thread = new Thread(() -> {
-            if (action.getType() == ActionType.UPDATE_MEMORY_USER) {
-                MemoryUser memoryUser = (MemoryUser) action.getBody();
-                Main.getCfg().getBoostManager().userUpdate(memoryUser);
-                writeLock(() -> {
-                    users.put(memoryUser.getUuid(), memoryUser);
-                    return null;
-                });
-            }
-            if (action.getType() == ActionType.UPDATE_MEMORY_SELL_ITEM) {
-                MemorySellItem sellItem = (MemorySellItem) action.getBody();
-                writeLock(() -> {
-                    sellItems.add(sellItem);
-                    for (Category value : categoryMap.values()) {
-                        if (TagUtil.matchesCategory(value, sellItem)) {
-                            map.get(value.nameKey()).forEach(list -> list.addItem(sellItem));
-                        }
-                    }
-                    return null;
-                });
-            }
-            if (action.getType() == ActionType.REMOVE_SELL_ITEM) {
-                UUID uuid = ((Action<UUID>) action).getBody();
-                removeIf(i -> i.getUuid().equals(uuid));
+            if (action.getType() == DBActionType.USER_ADD_SELL_ITEM) {
+               MemoryUser user = getMemoryUser(action.getOwner());
+
             }
         });
         thread.start();
@@ -343,6 +322,9 @@ public class JsonDB extends DBCore {
         });
     }
 
+    public void save() {
+        core.save();
+    }
 
     private <T> T writeLock(Task<T> task) {
         lock.writeLock().lock();

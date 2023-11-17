@@ -11,6 +11,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.by1337.api.configuration.YamlContext;
 import org.by1337.bauction.db.MemorySellItem;
+import org.by1337.util.ParsePDCTags;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -54,15 +55,18 @@ public class TagUtil {
                 list.add(potionMeta.getBasePotionData().getType().name());
             }
             for (NamespacedKey key : im.getPersistentDataContainer().getKeys()) {
-                list.add(key.getKey());
+               // list.add(key.getKey());
+                list.addAll(ParsePDCTags.parseTags(im.getPersistentDataContainer()));
             }
             if (im instanceof EnchantmentStorageMeta enchantmentStorageMeta) {
                 enchantmentStorageMeta.getStoredEnchants().keySet().forEach(e -> list.add(e.getKey().getKey()));
             }
         }
+
         for (String str : new ArrayList<>(list)) {
-            if (tagAliases.containsKey(str)){
-                list.add(tagAliases.get(str));
+            String s = tagAliases.get(str);
+            if (s != null){
+                list.add(s);
             }
         }
 

@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.by1337.api.BLib;
 import org.by1337.api.chat.util.Message;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
@@ -21,10 +22,9 @@ import org.by1337.bauction.config.Config;
 import org.by1337.bauction.config.adapter.*;
 import org.by1337.bauction.db.MemorySellItem;
 import org.by1337.bauction.db.MemoryUser;
-import org.by1337.bauction.db.json.JsonDB;
+import org.by1337.bauction.db.DataBase;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.impl.MainMenu;
-import org.by1337.bauction.db.Storage;
 import org.by1337.bauction.db.event.SellItemEvent;
 import org.by1337.bauction.menu.requirement.IRequirement;
 import org.by1337.bauction.menu.requirement.Requirements;
@@ -33,16 +33,13 @@ import org.by1337.bauction.util.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public final class Main extends JavaPlugin {
     private static Message message;
     private static Plugin instance;
     private static Config cfg;
-    private static JsonDB storage;
+    private static DataBase storage;
     private Command command;
     private static Economy econ;
     private TrieManager trieManager;
@@ -61,6 +58,7 @@ public final class Main extends JavaPlugin {
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
         econ = rsp.getProvider();
 
+
         AdapterRegistry.registerPrimitiveAdapter(Sorting.SortingType.class, new AdapterEnum<>(Sorting.SortingType.class));
         AdapterRegistry.registerPrimitiveAdapter(ItemFlag.class, new AdapterEnum<>(ItemFlag.class));
         AdapterRegistry.registerPrimitiveAdapter(InventoryType.class, new AdapterEnum<>(InventoryType.class));
@@ -73,38 +71,111 @@ public final class Main extends JavaPlugin {
 
         cfg = new Config(this);
         timeUtil = new TimeUtil();
-        storage = new JsonDB(cfg.getCategoryMap(), cfg.getSortingMap());
+
+        new Thread(() -> {
+            TimeCounter timeCounter = new TimeCounter();
+            storage = new DataBase(cfg.getCategoryMap(), cfg.getSortingMap());
+            message.logger("Успешно загружено %s предметов за %s мс.", storage.getItemsSize(), timeCounter.getTime());
+            getCommand("bauc").setTabCompleter(this::onTabComplete0);
+            getCommand("bauc").setExecutor(this::onCommand0);
+        }).start();
+
         initCommand();
-        getCommand("bauc").setTabCompleter(this);
-        getCommand("bauc").setExecutor(this);
+
         new Metrics(this, 20300);
         trieManager = new TrieManager(this);
         TagUtil.loadAliases(this);
     }
 
+    @Override
+    public void onDisable() {
+        storage.save();
+        AdapterRegistry.unregisterPrimitiveAdapter(Sorting.SortingType.class);
+        AdapterRegistry.unregisterPrimitiveAdapter(ItemFlag.class);
+        AdapterRegistry.unregisterPrimitiveAdapter(InventoryType.class);
+        AdapterRegistry.unregisterAdapter(Sorting.class);
+        AdapterRegistry.unregisterAdapter(Category.class);
+        AdapterRegistry.unregisterAdapter(Requirements.class);
+        AdapterRegistry.unregisterAdapter(CustomItemStack.class);
+        AdapterRegistry.unregisterAdapter(Boost.class);
+        AdapterRegistry.unregisterAdapter(IRequirement.class);
+    }
+
+    public static Message getMessage() {
+        return message;
+    }
+
+    public static Plugin getInstance() {
+        return instance;
+    }
+
+    public static Config getCfg() {
+        return cfg;
+    }
+
+    public static DataBase getStorage() {
+        return storage;
+    }
+
+    public static Economy getEcon() {
+        return econ;
+    }
+
+    public static TimeUtil getTimeUtil() {
+        return timeUtil;
+    }
+
     private void initCommand() {
         command = new Command("bauc")
+                .addSubCommand(new Command("reload")
+                        .requires(new RequiresPermission("bauc.reload"))
+                        .executor((sender, args) -> {
+                            TimeCounter timeCounter = new TimeCounter();
+                            cfg = new Config(this);
+                            timeUtil = new TimeUtil();
+                            trieManager = new TrieManager(this);
+                            TagUtil.loadAliases(this);
+                            message.sendMsg(sender, "&aПлагин успешно перезагружен за %s мс.", timeCounter.getTime());
+                        })
+                )
                 .requires(new RequiresPermission("bauc.use"))
                 .addSubCommand(new Command("admin")
-                                .requires(new RequiresPermission("bauc.admin"))
-//                        .addSubCommand(new Command("update")
-//                                .requires(new RequiresPermission("bauc.admin.update"))
-//                                .argument(new ArgumentPlayer("player"))
-//                                .executor((sender, args) -> {
-//                                    Player player = (Player) args.getOrThrow("player", "Вы должны указать игрока!");
-//                                  //  storage.updateUser(storage.getUserOrCreate(player).getUuid());
-//                                    message.sendMsg(sender, "&aИнформация о игроке успешно обновлена!");
-//                                })
-//                        )
-
-                                .addSubCommand(new Command("push")
-                                        .requires(new RequiresPermission("bauc.admin.push"))
-                                        .argument(new ArgumentIntegerAllowedMatch("price", List.of("[цена]")))
-                                        .argument(new ArgumentInteger("amount", List.of("[количество]")))
+                        .requires(new RequiresPermission("bauc.admin"))
+                        .addSubCommand(new Command("parse")
+                                .requires(new RequiresPermission("bauc.parse"))
+                                .addSubCommand(new Command("tags")
+                                        .requires(new RequiresPermission("bauc.parse.tags"))
                                         .executor((sender, args) -> {
+                                            if (!(sender instanceof Player player))
+                                                throw new CommandException("Вы должны быть игроком!");
+                                            ItemStack itemStack = player.getInventory().getItemInMainHand();
+                                            if (itemStack.getType().isAir()) {
+                                                throw new CommandException("&cУ Вас в руке должен быть предмет");
+                                            }
+                                            message.sendMsg(sender, TagUtil.getTags(itemStack).toString());
+                                        })
+                                )
+                                .addSubCommand(new Command("nbt")
+                                        .requires(new RequiresPermission("bauc.parse.nbt"))
+                                        .executor((sender, args) -> {
+                                            if (!(sender instanceof Player player))
+                                                throw new CommandException("Вы должны быть игроком!");
+                                            ItemStack itemStack = player.getInventory().getItemInMainHand();
+                                            if (itemStack.getType().isAir()) {
+                                                throw new CommandException("&cУ Вас в руке должен быть предмет");
+                                            }
+                                            message.sendMsg(sender, new String(Base64.getDecoder().decode(BLib.getApi().getItemStackSerialize().serialize(itemStack))));
+                                        })
+                                )
+                        )
+                        .addSubCommand(new Command("push")
+                                .requires(new RequiresPermission("bauc.admin.push"))
+                                .argument(new ArgumentIntegerAllowedMatch("price", List.of("[цена]")))
+                                .argument(new ArgumentInteger("amount", List.of("[количество]")))
+                                .argument(new ArgumentString("time", List.of("[время продажи]")))
+                                .executor((sender, args) -> {
                                             int amount = (int) args.getOrDefault("amount", 1);
                                             int price = (int) args.getOrThrow("price", "&cВы должны указать цену!");
-
                                             if (!(sender instanceof Player player))
                                                 throw new CommandException("Вы должны быть игроком!");
 
@@ -112,12 +183,12 @@ public final class Main extends JavaPlugin {
                                             if (itemStack.getType().isAir()) {
                                                 throw new CommandException("&cВы не можете торговать воздухом!");
                                             }
-                                            long x = System.currentTimeMillis();
+                                            TimeCounter timeCounter = new TimeCounter();
                                             Random random = new Random();
-
                                             MemoryUser user = storage.getMemoryUserOrCreate(player);
+                                            long time = NumberUtil.getTime(((String) args.getOrDefault("time", cfg.getDefaultSellTime() + user.getExternalSellTime())));
                                             for (int i = 0; i < amount; i++) {
-                                                MemorySellItem sellItem = new MemorySellItem(player, itemStack, price + random.nextInt(price / 2), cfg.getDefaultSellTime() + user.getExternalSellTime());
+                                                MemorySellItem sellItem = new MemorySellItem(player, itemStack, price + random.nextInt(price / 2), time);
                                                 SellItemEvent event = new SellItemEvent(user, sellItem);
                                                 storage.validateAndAddItem(event);
                                                 if (!event.isValid()) {
@@ -125,10 +196,10 @@ public final class Main extends JavaPlugin {
                                                     break;
                                                 }
                                             }
-
-                                            message.sendMsg(player, "&aВы успешно выставили %s предметов на продажу за %s миллисекунд!", amount, (System.currentTimeMillis() - x));
-                                        })
+                                            message.sendMsg(player, "&aВы успешно выставили %s предметов на продажу за %s миллисекунд!", amount, timeCounter.getTime());
+                                        }
                                 )
+                        )
                 )
                 .addSubCommand(new Command("sell")
                         .requires(new RequiresPermission("bauc.sell"))
@@ -157,17 +228,6 @@ public final class Main extends JavaPlugin {
                                 message.sendMsg(player, String.valueOf(event.getReason()));
                             }
                         }))
-                )
-                .addSubCommand(new Command("parseTags")
-                        .executor((sender, args) -> {
-                            if (!(sender instanceof Player player))
-                                throw new CommandException("Вы должны быть игроком!");
-                            ItemStack itemStack = player.getInventory().getItemInMainHand();
-                            if (itemStack.getType().isAir()) {
-                                throw new CommandException("&cВы не можете торговать воздухом!");
-                            }
-                            message.sendMsg(sender, TagUtil.getTags(itemStack).toString());
-                        })
                 )
                 .addSubCommand(new Command("search")
                         .argument(new ArgumentStrings("tags"))
@@ -201,46 +261,8 @@ public final class Main extends JavaPlugin {
     }
 
 
-    @Override
-    public void onDisable() {
-        storage.save();
-        AdapterRegistry.unregisterPrimitiveAdapter(Sorting.SortingType.class);
-        AdapterRegistry.unregisterPrimitiveAdapter(ItemFlag.class);
-        AdapterRegistry.unregisterPrimitiveAdapter(InventoryType.class);
-        AdapterRegistry.unregisterAdapter(Sorting.class);
-        AdapterRegistry.unregisterAdapter(Category.class);
-        AdapterRegistry.unregisterAdapter(Requirements.class);
-        AdapterRegistry.unregisterAdapter(CustomItemStack.class);
-        AdapterRegistry.unregisterAdapter(Boost.class);
-        AdapterRegistry.unregisterAdapter(IRequirement.class);
-    }
-
-    public static Message getMessage() {
-        return message;
-    }
-
-    public static Plugin getInstance() {
-        return instance;
-    }
-
-    public static Config getCfg() {
-        return cfg;
-    }
-
-    public static JsonDB getStorage() {
-        return storage;
-    }
-
-    public static Economy getEcon() {
-        return econ;
-    }
-
-    public static TimeUtil getTimeUtil() {
-        return timeUtil;
-    }
-
-    @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String label, @NotNull String[] args) {
+    // @Override
+    public boolean onCommand0(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String label, @NotNull String[] args) {
         try {
             command.process(sender, args);
             return true;
@@ -251,8 +273,8 @@ public final class Main extends JavaPlugin {
     }
 
     @Nullable
-    @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String alias, @NotNull String[] args) {
+    //   @Override
+    public List<String> onTabComplete0(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String alias, @NotNull String[] args) {
         if (args[0].equals("search")) {
             String last = args[args.length - 1];
             if (last.isEmpty()) return List.of("начните вводить название предмета");
@@ -260,4 +282,5 @@ public final class Main extends JavaPlugin {
         }
         return command.getTabCompleter(sender, args);
     }
+
 }

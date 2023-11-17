@@ -5,13 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.by1337</groupId>
-    <artifactId>BAuction</artifactId>
-    <!--  for release MAJOR.MINOR.PATCH -->
-    <!--  for beta MAJOR.MINOR.PATCH-<alpha/beta/stable/pre-release>-->
-    <version>1.0.3-beta</version>
+    <artifactId>util</artifactId>
+    <version>1.0</version>
     <packaging>jar</packaging>
 
-    <name>Core</name>
+    <name>util</name>
 
     <properties>
         <java.version>1.8</java.version>
@@ -19,15 +17,14 @@
     </properties>
 
     <build>
-        <defaultGoal>clean package</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>16</source>
-                    <target>16</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -64,65 +61,14 @@
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
-        <repository>
-            <id>minecraft-repo</id>
-            <url>https://libraries.minecraft.net/</url>
-        </repository>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
     </repositories>
 
     <dependencies>
         <dependency>
             <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
+            <artifactId>spigot</artifactId>
             <version>1.16.5-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.mojang</groupId>
-            <artifactId>authlib</artifactId>
-            <version>1.5.21</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.by1337</groupId>
-            <artifactId>Api</artifactId>
-            <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/Api-1.0.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>org.by1337</groupId>
-            <artifactId>BaucApi</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.10.1</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>RELEASE</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.MilkBowl</groupId>
-            <artifactId>VaultAPI</artifactId>
-            <version>1.7</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.by1337</groupId>
-            <artifactId>util</artifactId>
-            <version>1.0</version>
         </dependency>
     </dependencies>
 </project>

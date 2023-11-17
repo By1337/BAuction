@@ -23,12 +23,17 @@ public class BuyItemProcess implements Placeholderable {
     private final MemoryUser buyer;
     private final Menu menu;
     private final Player player;
+    private final boolean bypass;
 
     public BuyItemProcess(@NotNull MemorySellItem buyingItem, @NotNull MemoryUser buyer, Menu menu, Player player) {
+        this(buyingItem, buyer, menu,player, false);
+    }
+    public BuyItemProcess(@NotNull MemorySellItem buyingItem, @NotNull MemoryUser buyer, Menu menu, Player player, boolean bypass) {
         this.buyingItem = buyingItem;
         this.buyer = buyer;
         this.menu = menu;
         this.player = player;
+        this.bypass = bypass;
     }
 
 
@@ -64,11 +69,17 @@ public class BuyItemProcess implements Placeholderable {
                menu.reopen();
            };
 
-           ConfirmMenu confirmMenu = new ConfirmMenu(callBack, buyingItem.getItemStack(), player);
-           confirmMenu.registerPlaceholderable(buyer);
-           confirmMenu.registerPlaceholderable(buyingItem);
+           if (bypass){
+               callBack.result(Optional.of(ConfirmMenu.Result.ACCEPT));
+           }else {
+               ConfirmMenu confirmMenu = new ConfirmMenu(callBack, buyingItem.getItemStack(), player);
+               confirmMenu.registerPlaceholderable(buyer);
+               confirmMenu.registerPlaceholderable(buyingItem);
 
-           confirmMenu.open();
+               confirmMenu.open();
+           }
+
+
 
        }catch (Exception e){
            Main.getMessage().sendMsg(player, "&cЧто-то пошло не так!");

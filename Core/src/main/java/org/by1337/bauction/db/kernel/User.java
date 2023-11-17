@@ -1,4 +1,4 @@
-package org.by1337.bauction.db.json.kernel;
+package org.by1337.bauction.db.kernel;
 
 import org.by1337.bauction.db.MemoryUser;
 import org.jetbrains.annotations.NotNull;
@@ -11,9 +11,9 @@ import java.util.UUID;
 class User {
     final String nickName;
     final UUID uuid;
-    List<UnsoldItem> unsoldItems = new ArrayList<>();
-    //    transient int externalSlots = 0;
-//    transient long externalSellTime = 0L;
+
+    List<UUID> unsoldItems = new ArrayList<>();
+
     List<UUID> itemForSale = new ArrayList<>();
     int dealCount;
     double dealSum;
@@ -29,7 +29,7 @@ class User {
         return MemoryUser.builder()
                 .nickName(nickName)
                 .uuid(uuid)
-                .unsoldItems(unsoldItems.stream().map(UnsoldItem::toMemoryUnsoldItem).toList())
+                .unsoldItems(Collections.unmodifiableList(unsoldItems))
                 .itemForSale(Collections.unmodifiableList(itemForSale))
                 .dealCount(dealCount)
                 .dealSum(dealSum)

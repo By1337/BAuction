@@ -9,6 +9,7 @@
     <modules>
         <module>Core</module>
         <module>BaucApi</module>
+        <module>util</module>
     </modules>
     <build>
         <defaultGoal>clean package</defaultGoal>

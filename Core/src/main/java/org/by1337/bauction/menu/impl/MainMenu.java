@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
+import org.by1337.api.command.argument.ArgumentSetList;
 import org.by1337.api.command.argument.ArgumentString;
 import org.by1337.api.util.CyclicList;
 import org.by1337.bauction.Main;
@@ -117,7 +118,9 @@ public class MainMenu extends Menu {
                 )
                 .addSubCommand(new Command("[BUY_ITEM_FULL]")
                         .argument(new ArgumentString("uuid"))
+                        .argument(new ArgumentSetList("bypass", List.of("bypass")))
                         .executor(((sender, args) -> {
+                            boolean isBypassed = args.getOrDefault("bypass", "").equals("bypass");
                             String uuidS = (String) args.getOrThrow("uuid");
 
                             UUID uuid = UUID.fromString(uuidS);

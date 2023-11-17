@@ -55,23 +55,23 @@ public class StorageException extends Exception {
         }
     }
 
-    public static class NotFoundException extends StorageException {
-        public NotFoundException() {
+    public static class ItemNotFoundException extends StorageException {
+        public ItemNotFoundException() {
         }
 
-        public NotFoundException(String message) {
+        public ItemNotFoundException(String message) {
             super(message);
         }
 
-        public NotFoundException(String message, Throwable cause) {
+        public ItemNotFoundException(String message, Throwable cause) {
             super(message, cause);
         }
 
-        public NotFoundException(Throwable cause) {
+        public ItemNotFoundException(Throwable cause) {
             super(cause);
         }
 
-        public NotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        public ItemNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
             super(message, cause, enableSuppression, writableStackTrace);
         }
     }

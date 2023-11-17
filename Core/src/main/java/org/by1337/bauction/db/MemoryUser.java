@@ -9,14 +9,14 @@ import java.util.UUID;
 public class MemoryUser implements Placeholderable {
     private final String nickName;
     private final UUID uuid;
-    private final List<MemoryUnsoldItem> unsoldItems;
+    private final List<UUID> unsoldItems;
     private final List<UUID> itemForSale;
     private final int dealCount;
     private final double dealSum;
     private volatile int externalSlots = 0;
     private volatile long externalSellTime = 0L;
 
-    public MemoryUser(String nickName, UUID uuid, List<MemoryUnsoldItem> unsoldItems, List<UUID> itemForSale, int dealCount, double dealSum) {
+    public MemoryUser(String nickName, UUID uuid, List<UUID> unsoldItems, List<UUID> itemForSale, int dealCount, double dealSum) {
         this.nickName = nickName;
         this.uuid = uuid;
         this.unsoldItems = unsoldItems;
@@ -46,7 +46,7 @@ public class MemoryUser implements Placeholderable {
         return uuid;
     }
 
-    public List<MemoryUnsoldItem> getUnsoldItems() {
+    public List<UUID> getUnsoldItems() {
         return unsoldItems;
     }
 
@@ -106,7 +106,7 @@ public class MemoryUser implements Placeholderable {
     public static class MemoryUserBuilder {
         private String nickName;
         private UUID uuid;
-        private List<MemoryUnsoldItem> unsoldItems;
+        private List<UUID> unsoldItems;
         private List<UUID> itemForSale;
         private int dealCount;
         private double dealSum;
@@ -124,7 +124,7 @@ public class MemoryUser implements Placeholderable {
             return this;
         }
 
-        public MemoryUserBuilder unsoldItems(List<MemoryUnsoldItem> unsoldItems) {
+        public MemoryUserBuilder unsoldItems(List<UUID> unsoldItems) {
             this.unsoldItems = unsoldItems;
             return this;
         }
