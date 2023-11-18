@@ -11,7 +11,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.by1337.api.configuration.YamlContext;
 import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.util.ParsePDCTags;
+import org.by1337.bauc.util.ParsePDCTagsMagager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -56,7 +56,7 @@ public class TagUtil {
             }
             for (NamespacedKey key : im.getPersistentDataContainer().getKeys()) {
                // list.add(key.getKey());
-                list.addAll(ParsePDCTags.parseTags(im.getPersistentDataContainer()));
+                list.addAll(ParsePDCTagsMagager.parseTags(im.getPersistentDataContainer()));
             }
             if (im instanceof EnchantmentStorageMeta enchantmentStorageMeta) {
                 enchantmentStorageMeta.getStoredEnchants().keySet().forEach(e -> list.add(e.getKey().getKey()));

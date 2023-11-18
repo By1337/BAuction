@@ -5,6 +5,7 @@ import org.bukkit.inventory.ItemStack;
 import org.by1337.api.BLib;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.lang.Lang;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -33,17 +34,6 @@ public class UnsoldItem implements Placeholderable {
         this.deleteVia = deleteVia;
         uuid = UUID.randomUUID();
     }
-
-
-//    UnsoldItem toMemoryUnsoldItem() {
-//        return UnsoldItem.builder()
-//                .item(BLib.getApi().getItemStackSerialize().deserialize(item))
-//                .expired(expired)
-//                .owner(owner)
-//                .deleteVia(deleteVia)
-//                .uuid(uuid)
-//                .build();
-//    }
 
     public ItemStack getItemStack() {
         if (itemStack == null){
@@ -86,6 +76,14 @@ public class UnsoldItem implements Placeholderable {
             }
             if (sb.indexOf("{id}") != -1) {
                 sb.replace(sb.indexOf("{id}"), sb.indexOf("{id}") + "{id}".length(), String.valueOf(uuid));
+                continue;
+            }
+            if (sb.indexOf("{item_name}") != -1) {
+                sb.replace(sb.indexOf("{item_name}"), sb.indexOf("{item_name}") + "{item_name}".length(),
+                        getItemStack().getItemMeta() != null && getItemStack().getItemMeta().hasDisplayName() ?
+                                getItemStack().getItemMeta().getDisplayName() :
+                                Lang.getMessages(getItemStack().getType().name().toLowerCase())
+                );
                 continue;
             }
             break;

@@ -7,6 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.by1337.api.BLib;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.TagUtil;
 import org.jetbrains.annotations.NotNull;
@@ -114,24 +115,6 @@ public class SellItem implements Placeholderable {
                 item.getPriceForOne()
                 );
     }
-
-//    SellItem toMemorySellItem() {
-//        return SellItem.builder()
-//                .sellerName(sellerName)
-//                .sellerUuid(sellerUuid)
-//                .price(price)
-//                .saleByThePiece(saleByThePiece)
-//                .tags(Collections.unmodifiableSet(tags))
-//                .timeListedForSale(timeListedForSale)
-//                .removalDate(removalDate)
-//                .uuid(uuid)
-//                .material(material)
-//                .amount(amount)
-//                .priceForOne(priceForOne)
-//                .sellFor(Collections.unmodifiableSet(sellFor))
-//                .itemStack(BLib.getApi().getItemStackSerialize().deserialize(item))
-//                .build();
-//    }
 
     public ItemStack getItemStack() {
         if (itemStack == null){
@@ -249,6 +232,14 @@ public class SellItem implements Placeholderable {
             }
             if (sb.indexOf("{sale_time}") != -1) {
                 sb.replace(sb.indexOf("{sale_time}"), sb.indexOf("{sale_time}") + "{sale_time}".length(), String.valueOf(timeListedForSale / 1000));
+                continue;
+            }
+            if (sb.indexOf("{item_name}") != -1) {
+                sb.replace(sb.indexOf("{item_name}"), sb.indexOf("{item_name}") + "{item_name}".length(),
+                        getItemStack().getItemMeta() != null && getItemStack().getItemMeta().hasDisplayName() ?
+                                getItemStack().getItemMeta().getDisplayName() :
+                                Lang.getMessages(getMaterial().name().toLowerCase())
+                );
                 continue;
             }
             break;

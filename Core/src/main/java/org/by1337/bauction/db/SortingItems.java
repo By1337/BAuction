@@ -35,7 +35,6 @@ public class SortingItems {
 
     public void removeIf(Predicate<SellItem> filter) {
         items.removeIf(filter);
-       // items.sort(comparator);
     }
 
     public List<SellItem> getItems() {

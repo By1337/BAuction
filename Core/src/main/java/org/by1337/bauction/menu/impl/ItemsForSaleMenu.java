@@ -10,6 +10,7 @@ import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeItemProcess;
 import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
 
@@ -68,7 +69,7 @@ public class ItemsForSaleMenu extends Menu {
                             UUID uuid = UUID.fromString(uuidS);
 
                             if (!Main.getStorage().hasSellItem(uuid)) {
-                                Main.getMessage().sendMsg(player, "&cПредмет уже продан или снят с продажи!");
+                                Main.getMessage().sendMsg(player, Lang.getMessages("item_already_sold_or_removed"));
                                 sellItems = null;
                                 generate0();
                                 return;

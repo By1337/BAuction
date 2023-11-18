@@ -10,6 +10,7 @@ import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeUnsoldItemProcess;
 import org.by1337.bauction.db.kernel.UnsoldItem;
 import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
 
@@ -71,7 +72,7 @@ public class UnsoldItemsMenu extends Menu {
                             UnsoldItem unsoldItem = unsoldItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
 
                             if (unsoldItem == null) {
-                                Main.getMessage().sendMsg(player, "&cКажется этого предмета больше не существует");
+                                Main.getMessage().sendMsg(player, Lang.getMessages("item_no_longer_exists"));
                                 unsoldItems = null;
                                 generate0();
                                 return;

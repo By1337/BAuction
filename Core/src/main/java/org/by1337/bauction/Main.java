@@ -20,10 +20,10 @@ import org.by1337.api.configuration.adapter.impl.primitive.AdapterEnum;
 import org.by1337.bauction.booost.Boost;
 import org.by1337.bauction.config.Config;
 import org.by1337.bauction.config.adapter.*;
-import org.by1337.bauction.db.kernel.JsonDBCoreV2;
+import org.by1337.bauction.db.kernel.JsonDBCore;
 import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.db.kernel.User;
-import org.by1337.bauction.db.DataBase;
+import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.impl.MainMenu;
 import org.by1337.bauction.db.event.SellItemEvent;
@@ -40,13 +40,12 @@ public final class Main extends JavaPlugin {
     private static Message message;
     private static Plugin instance;
     private static Config cfg;
-    private static JsonDBCoreV2 storage;
+    private static JsonDBCore storage;
     private Command command;
     private static Economy econ;
     private TrieManager trieManager;
     private static TimeUtil timeUtil;
 
-    // todo /ah reload
     // todo /ah admin open <категория>
     @Override
     public void onLoad() {
@@ -70,13 +69,14 @@ public final class Main extends JavaPlugin {
         AdapterRegistry.registerAdapter(Boost.class, new AdapterBoost());
         AdapterRegistry.registerAdapter(IRequirement.class, new AdapterIRequirement());
 
+        Lang.load(this);
         cfg = new Config(this);
         timeUtil = new TimeUtil();
 
         new Thread(() -> {
             TimeCounter timeCounter = new TimeCounter();
-            storage = new JsonDBCoreV2(cfg.getCategoryMap(), cfg.getSortingMap());
-            message.logger("Успешно загружено %s предметов за %s мс.", storage.getItemsSize(), timeCounter.getTime());
+            storage = new JsonDBCore(cfg.getCategoryMap(), cfg.getSortingMap());
+            message.logger(Lang.getMessages("successful_loading"), storage.getItemsSize(), timeCounter.getTime());
             getCommand("bauc").setTabCompleter(this::onTabComplete0);
             getCommand("bauc").setExecutor(this::onCommand0);
         }).start();
@@ -114,7 +114,7 @@ public final class Main extends JavaPlugin {
         return cfg;
     }
 
-    public static JsonDBCoreV2 getStorage() {
+    public static JsonDBCore getStorage() {
         return storage;
     }
 
@@ -136,7 +136,7 @@ public final class Main extends JavaPlugin {
                             timeUtil = new TimeUtil();
                             trieManager = new TrieManager(this);
                             TagUtil.loadAliases(this);
-                            message.sendMsg(sender, "&aПлагин успешно перезагружен за %s мс.", timeCounter.getTime());
+                            message.sendMsg(sender, Lang.getMessages("plugin_reload"), timeCounter.getTime());
                         })
                 )
                 .requires(new RequiresPermission("bauc.use"))
@@ -148,10 +148,10 @@ public final class Main extends JavaPlugin {
                                         .requires(new RequiresPermission("bauc.parse.tags"))
                                         .executor((sender, args) -> {
                                             if (!(sender instanceof Player player))
-                                                throw new CommandException("Вы должны быть игроком!");
+                                                throw new CommandException(Lang.getMessages("must_be_player"));
                                             ItemStack itemStack = player.getInventory().getItemInMainHand();
                                             if (itemStack.getType().isAir()) {
-                                                throw new CommandException("&cУ Вас в руке должен быть предмет");
+                                                throw new CommandException(Lang.getMessages("item_in_hand_required"));
                                             }
                                             message.sendMsg(sender, TagUtil.getTags(itemStack).toString());
                                         })
@@ -160,10 +160,10 @@ public final class Main extends JavaPlugin {
                                         .requires(new RequiresPermission("bauc.parse.nbt"))
                                         .executor((sender, args) -> {
                                             if (!(sender instanceof Player player))
-                                                throw new CommandException("Вы должны быть игроком!");
+                                                throw new CommandException(Lang.getMessages("must_be_player"));
                                             ItemStack itemStack = player.getInventory().getItemInMainHand();
                                             if (itemStack.getType().isAir()) {
-                                                throw new CommandException("&cУ Вас в руке должен быть предмет");
+                                                throw new CommandException(Lang.getMessages("item_in_hand_required"));
                                             }
                                             message.sendMsg(sender, new String(Base64.getDecoder().decode(BLib.getApi().getItemStackSerialize().serialize(itemStack))));
                                         })
@@ -171,23 +171,23 @@ public final class Main extends JavaPlugin {
                         )
                         .addSubCommand(new Command("push")
                                 .requires(new RequiresPermission("bauc.admin.push"))
-                                .argument(new ArgumentIntegerAllowedMatch("price", List.of("[цена]")))
-                                .argument(new ArgumentInteger("amount", List.of("[количество]")))
-                                .argument(new ArgumentString("time", List.of("[время продажи]")))
+                                .argument(new ArgumentIntegerAllowedMatch("price", List.of(Lang.getMessages("price_tag"))))
+                                .argument(new ArgumentInteger("amount", List.of(Lang.getMessages("quantity_tag"))))
+                                .argument(new ArgumentString("time", List.of(Lang.getMessages("sale_time_tag"))))
                                 .executor((sender, args) -> {
                                             int amount = (int) args.getOrDefault("amount", 1);
-                                            int price = (int) args.getOrThrow("price", "&cВы должны указать цену!");
+                                            int price = (int) args.getOrThrow("price", Lang.getMessages("price_not_specified"));
                                             if (!(sender instanceof Player player))
-                                                throw new CommandException("Вы должны быть игроком!");
+                                                throw new CommandException(Lang.getMessages("must_be_player"));
 
                                             ItemStack itemStack = player.getInventory().getItemInMainHand();
                                             if (itemStack.getType().isAir()) {
-                                                throw new CommandException("&cВы не можете торговать воздухом!");
+                                                throw new CommandException(Lang.getMessages("cannot_trade_air"));
                                             }
                                             TimeCounter timeCounter = new TimeCounter();
                                             Random random = new Random();
                                             User user = storage.getUserOrCreate(player);
-                                            long time = NumberUtil.getTime(((String) args.getOrDefault("time", cfg.getDefaultSellTime() + user.getExternalSellTime())));
+                                            long time = NumberUtil.getTime(((String) args.getOrDefault("time", "2d")));
                                             for (int i = 0; i < amount; i++) {
                                                 SellItem sellItem = new SellItem(player, itemStack, price + random.nextInt(price / 2), time);
                                                 SellItemEvent event = new SellItemEvent(user, sellItem);
@@ -197,24 +197,24 @@ public final class Main extends JavaPlugin {
                                                     break;
                                                 }
                                             }
-                                            message.sendMsg(player, "&aВы успешно выставили %s предметов на продажу за %s миллисекунд!", amount, timeCounter.getTime());
+                                            message.sendMsg(player, Lang.getMessages("successful_listing"), amount, timeCounter.getTime());
                                         }
                                 )
                         )
                 )
                 .addSubCommand(new Command("sell")
                         .requires(new RequiresPermission("bauc.sell"))
-                        .argument(new ArgumentIntegerAllowedMatch("price", List.of("[цена]")))
+                        .argument(new ArgumentIntegerAllowedMatch("price", List.of(Lang.getMessages("price_tag"))))
                         .argument(new ArgumentSetList("full", List.of("full"), List.of("full")))
                         .executor(((sender, args) -> {
                             if (!(sender instanceof Player player))
-                                throw new CommandException("Вы должны быть игроком!");
-                            int price = (int) args.getOrThrow("price", "&cВы должны указать цену!");
+                                throw new CommandException(Lang.getMessages("must_be_player"));
+                            int price = (int) args.getOrThrow("price", Lang.getMessages("price_not_specified"));
                             boolean full = !args.getOrDefault("full", "no").equals("full");
 
                             ItemStack itemStack = player.getInventory().getItemInMainHand();
                             if (itemStack.getType().isAir()) {
-                                throw new CommandException("&cВы не можете торговать воздухом!");
+                                throw new CommandException(Lang.getMessages("cannot_trade_air"));
                             }
 
                             User user = storage.getUserOrCreate(player);
@@ -224,7 +224,7 @@ public final class Main extends JavaPlugin {
                             storage.validateAndAddItem(event);
                             if (event.isValid()) {
                                 player.getInventory().setItemInMainHand(null);
-                                message.sendMsg(player, "&aВы успешно выставили предмет на продажу!");
+                                message.sendMsg(player, Lang.getMessages("successful_single_listing"));
                             } else {
                                 message.sendMsg(player, String.valueOf(event.getReason()));
                             }
@@ -234,9 +234,9 @@ public final class Main extends JavaPlugin {
                         .argument(new ArgumentStrings("tags"))
                         .executor((sender, args) -> {
                             if (!(sender instanceof Player player))
-                                throw new CommandException("Вы должны быть игроком!");
+                                throw new CommandException(Lang.getMessages("must_be_player"));
 
-                            String[] rawtags = ((String) args.getOrThrow("tags", "&cУкажите теги!")).split(" ");
+                            String[] rawtags = ((String) args.getOrThrow("tags", Lang.getMessages("tags_required"))).split(" ");
                             List<String> tags = new ArrayList<>();
                             for (String rawtag : rawtags) {
                                 tags.addAll(trieManager.getTrie().getAllWithPrefix(rawtag));
@@ -253,7 +253,7 @@ public final class Main extends JavaPlugin {
                 )
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))
-                        throw new CommandException("Вы должны быть игроком!");
+                        throw new CommandException(Lang.getMessages("must_be_player"));
                     User user = storage.getUserOrCreate(player);
                     MainMenu menu = new MainMenu(user, player);
                     menu.open();
@@ -278,7 +278,7 @@ public final class Main extends JavaPlugin {
     public List<String> onTabComplete0(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String alias, @NotNull String[] args) {
         if (args[0].equals("search")) {
             String last = args[args.length - 1];
-            if (last.isEmpty()) return List.of("начните вводить название предмета");
+            if (last.isEmpty()) return List.of(Lang.getMessages("start_entering_item_name"));
             return trieManager.getTrie().getAllKeysWithPrefix(last);
         }
         return command.getTabCompleter(sender, args);

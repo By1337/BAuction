@@ -10,6 +10,11 @@
         <module>Core</module>
         <module>BaucApi</module>
         <module>util</module>
+        <module>V1_16_5</module>
+        <module>V1_17_1</module>
+        <module>V1_18_2</module>
+        <module>V1_19_4</module>
+        <module>V1_20_1</module>
     </modules>
     <build>
         <defaultGoal>clean package</defaultGoal>

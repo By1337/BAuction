@@ -4,19 +4,19 @@ import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class Action {
-    private final DBActionType type;
+    private final ActionType type;
     @Nullable
     private final UUID owner;
     @Nullable
     private final UUID item;
 
-    public Action(DBActionType type, @Nullable UUID owner, @Nullable UUID item) {
+    public Action(ActionType type, @Nullable UUID owner, @Nullable UUID item) {
         this.type = type;
         this.owner = owner;
         this.item = item;
     }
 
-    public DBActionType getType() {
+    public ActionType getType() {
         return type;
     }
 

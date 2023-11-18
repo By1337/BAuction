@@ -5,6 +5,7 @@ import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.UnsoldItem;
 import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.db.event.TakeUnsoldItemEvent;
+import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.impl.CallBack;
 import org.by1337.bauction.menu.impl.ConfirmMenu;
@@ -36,7 +37,7 @@ public class TakeUnsoldItemProcess {
                     Main.getStorage().validateAndRemoveItem(event);
 
                     if (event.isValid()) {
-                        Main.getMessage().sendMsg(player, "&aВы успешно забрали свой предмет!");
+                        Main.getMessage().sendMsg(player, takingItem.replace(Lang.getMessages("successful_item_retrieval")));
                         PlayerUtil.giveItems(player, takingItem.getItemStack());
                     } else {
                         Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));

@@ -8,6 +8,7 @@ import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.db.event.BuyItemCountEvent;
+import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.impl.BuyCountMenu;
 import org.by1337.bauction.menu.impl.CallBack;
@@ -55,9 +56,9 @@ public class BuyItemCountProcess {
                             Main.getEcon().depositPlayer(seller, price);
                             if (seller.isOnline()) {
                                 Main.getMessage().sendMsg(seller.getPlayer(),
-                                        replace("&aИгрок {buyer_name} купил у вас {item_name}&r за {price}!"));
+                                        replace(Lang.getMessages("item_sold_to_buyer")));
                             }
-                            Main.getMessage().sendMsg(player, replace("&aВы успешно купили {item_name}&r в количестве {amount}!"));
+                            Main.getMessage().sendMsg(player, replace(Lang.getMessages("successful_purchase")));
                             ItemStack itemStack = buyingItem.getItemStack();
                             itemStack.setAmount(itemStack.getAmount() - count);
                             PlayerUtil.giveItems(player, itemStack);
@@ -88,7 +89,7 @@ public class BuyItemCountProcess {
             buyCountMenu.open();
 
         } catch (Exception e) {
-            Main.getMessage().sendMsg(player, "&cЧто-то пошло не так!");
+            Main.getMessage().sendMsg(player, Lang.getMessages("something_went_wrong"));
             Main.getMessage().error(e);
         }
     }
@@ -108,17 +109,9 @@ public class BuyItemCountProcess {
                 sb.replace(sb.indexOf("{price}"), sb.indexOf("{price}") + "{price}".length(), NumberUtil.format(buyingItem.getPriceForOne() * count));
                 continue;
             }
-            if (sb.indexOf("{item_name}") != -1) {
-                sb.replace(sb.indexOf("{item_name}"), sb.indexOf("{item_name}") + "{item_name}".length(),
-                        buyingItem.getItemStack().getItemMeta() != null && buyingItem.getItemStack().getItemMeta().hasDisplayName() ?
-                                buyingItem.getItemStack().getItemMeta().getDisplayName() :
-                                buyingItem.getMaterial().name()
-                );
-                continue;
-            }
             break;
         }
-        return sb.toString();
+        return buyingItem.replace(sb.toString());
     }
 
 }

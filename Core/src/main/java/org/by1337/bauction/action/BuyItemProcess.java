@@ -9,6 +9,7 @@ import org.by1337.bauction.db.kernel.SellItem;
 
 import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.db.event.BuyItemEvent;
+import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.impl.CallBack;
 import org.by1337.bauction.menu.impl.ConfirmMenu;
@@ -40,7 +41,7 @@ public class BuyItemProcess implements Placeholderable {
     public void process() {
        try {
            if (Main.getEcon().getBalance(player) < buyingItem.getPrice()) {
-               Main.getMessage().sendMsg(player, "&cУ Вас не хватает баланса для покупки предмета!");
+               Main.getMessage().sendMsg(player, Lang.getMessages("insufficient_balance"));
                menu.reopen();
                return;
            }
@@ -57,9 +58,9 @@ public class BuyItemProcess implements Placeholderable {
                            Main.getEcon().depositPlayer(seller, buyingItem.getPrice());
                            if (seller.isOnline()){
                                Main.getMessage().sendMsg(seller.getPlayer(),
-                                       replace("&aИгрок {buyer_name} купил у вас {item_name}&r за {price}!"));
+                                       replace(Lang.getMessages("item_sold_to_buyer")));
                            }
-                           Main.getMessage().sendMsg(player, replace("&aВы успешно купили {item_name}&r в количестве {amount}!"));
+                           Main.getMessage().sendMsg(player, replace(Lang.getMessages("successful_purchase")));
                            PlayerUtil.giveItems(player, buyingItem.getItemStack());
                        } else {
                            Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
@@ -82,33 +83,17 @@ public class BuyItemProcess implements Placeholderable {
 
 
        }catch (Exception e){
-           Main.getMessage().sendMsg(player, "&cЧто-то пошло не так!");
+           Main.getMessage().sendMsg(player, Lang.getMessages("something_went_wrong"));
            Main.getMessage().error(e);
        }
     }
 
     @Override
     public String replace(String s) {
-        StringBuilder sb = new StringBuilder(s);
+        StringBuilder sb = new StringBuilder(buyingItem.replace(s));
         while (true) {
-            if (sb.indexOf("{amount}") != -1) {
-                sb.replace(sb.indexOf("{amount}"), sb.indexOf("{amount}") + "{amount}".length(), String.valueOf(buyingItem.getAmount()));
-                continue;
-            }
             if (sb.indexOf("{buyer_name}") != -1) {
                 sb.replace(sb.indexOf("{buyer_name}"), sb.indexOf("{buyer_name}") + "{buyer_name}".length(), player.getName());
-                continue;
-            }
-            if (sb.indexOf("{price}") != -1) {
-                sb.replace(sb.indexOf("{price}"), sb.indexOf("{price}") + "{price}".length(), NumberUtil.format(buyingItem.getPrice()));
-                continue;
-            }
-            if (sb.indexOf("{item_name}") != -1) {
-                sb.replace(sb.indexOf("{item_name}"), sb.indexOf("{item_name}") + "{item_name}".length(),
-                        buyingItem.getItemStack().getItemMeta() != null && buyingItem.getItemStack().getItemMeta().hasDisplayName() ?
-                                buyingItem.getItemStack().getItemMeta().getDisplayName() :
-                                buyingItem.getMaterial().name()
-                        );
                 continue;
             }
             break;

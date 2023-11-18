@@ -9,6 +9,7 @@ import org.by1337.api.command.argument.ArgumentInteger;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.util.NumberUtil;
@@ -66,7 +67,7 @@ public class BuyCountMenu extends Menu {
                 .addSubCommand(new Command("[BUY]")
                         .executor((sender, args) -> {
                             if (Main.getEcon().getBalance(getPlayer()) < (item.getPriceForOne() * count)) {
-                                Main.getMessage().sendMsg(getPlayer(), "&cУ Вас не хватает баланса для покупки предмета!");
+                                Main.getMessage().sendMsg(getPlayer(), Lang.getMessages("insufficient_balance"));
                                 generate0();
                                 return;
                             }

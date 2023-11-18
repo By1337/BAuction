@@ -7,6 +7,7 @@ import org.by1337.api.util.NameKey;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.*;
 import org.by1337.bauction.db.event.*;
+import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.Sorting;
@@ -22,8 +23,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 
-@ThreadSafe
-public class JsonDBCoreV2 implements DBCore {
+public class JsonDBCore implements DBCore {
 
     //  private final DbActionListener listener0;
 
@@ -53,7 +53,7 @@ public class JsonDBCoreV2 implements DBCore {
     private Runnable runnable1;
 
 
-    public JsonDBCoreV2(Map<NameKey, Category> categoryMap, Map<NameKey, Sorting> sortingMap) {
+    public JsonDBCore(Map<NameKey, Category> categoryMap, Map<NameKey, Sorting> sortingMap) {
         //   this.listener0 = listener;
         this.categoryMap = categoryMap;
         this.sortingMap = sortingMap;
@@ -90,35 +90,38 @@ public class JsonDBCoreV2 implements DBCore {
         };
         Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), runnable, 0);
 
-        runnable1 = () -> {
-            long time = System.currentTimeMillis();
-            try {
-                Long sleep = readLock(() -> {
-                    for (UnsoldItem unsoldItem : sortedUnsoldItems) {
-                        if (unsoldItem.deleteVia < time) {
-                            new Thread(() -> { // new Thread иначе deadlock
-                                writeLock(() -> {
-                                    removeUnsoldItem(unsoldItem);
-                                    return null;
-                                });
-                            }).start();
-                        } else {
-                            return Math.min(unsoldItem.deleteVia - time, 50L * 100); // 100 ticks
+        if (removeExpiredItems){
+            runnable1 = () -> {
+                long time = System.currentTimeMillis();
+                try {
+                    Long sleep = readLock(() -> {
+                        for (UnsoldItem unsoldItem : sortedUnsoldItems) {
+                            if (unsoldItem.deleteVia < time) {
+                                new Thread(() -> { // new Thread иначе deadlock
+                                    writeLock(() -> {
+                                        removeUnsoldItem(unsoldItem);
+                                        return null;
+                                    });
+                                }).start();
+                            } else {
+                                return Math.min(unsoldItem.deleteVia - time, 50L * 100); // 100 ticks
+                            }
                         }
-                    }
-                    return 50L * 100; // 100 ticks
-                });
-                Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), runnable1, sleep / 50);
-            } catch (Exception e) {
-                Main.getMessage().error(e);
-            }
-        };
-        Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), runnable1, 0);
+                        return 50L * 100; // 100 ticks
+                    });
+                    Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), runnable1, sleep / 50);
+                } catch (Exception e) {
+                    Main.getMessage().error(e);
+                }
+            };
+            Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), runnable1, 0);
+        }
+
     }
 
     private void expiredItem(SellItem item) {
         tryRemoveItem(item.uuid);
-        UnsoldItem unsoldItem = new UnsoldItem(item.item, item.sellerUuid, item.removalDate, System.currentTimeMillis() + 1000 * 10);
+        UnsoldItem unsoldItem = new UnsoldItem(item.item, item.sellerUuid, item.removalDate, item.removalDate + removeTime);
         addUnsoldItem(unsoldItem);
     }
 
@@ -126,12 +129,10 @@ public class JsonDBCoreV2 implements DBCore {
         return readLock(sortedSellItems::size);
     }
 
-    @ThreadSafe
     public List<SellItem> getAllItems() {
         return readLock(() -> sortedSellItems);
     }
 
-    @ThreadSafe
     public User getUserOrCreate(Player player) {
         if (!hasUser(player.getUniqueId())) {
             return createNewAndSave(player.getUniqueId(), player.getName());
@@ -148,7 +149,7 @@ public class JsonDBCoreV2 implements DBCore {
 
             if (Main.getCfg().getMaxSlots() <= (user.getItemForSale().size() - user.getExternalSlots())) {
                 event.setValid(false);
-                event.setReason("&cВы достигли лимита по количеству предметов на аукционе!");
+                event.setReason(Lang.getMessages("auction_item_limit_reached"));
                 return;
             }
             addItem(sellItem, user.getUuid());
@@ -156,7 +157,7 @@ public class JsonDBCoreV2 implements DBCore {
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
-            event.setReason("&cПроизошла ошибка!");
+            event.setReason(Lang.getMessages("error_occurred"));
         }
     }
 
@@ -176,12 +177,12 @@ public class JsonDBCoreV2 implements DBCore {
 
         if (!user.getUuid().equals(sellItem.getSellerUuid())) {
             event.setValid(false);
-            event.setReason("&cВы не владелец предмета!");
+            event.setReason(Lang.getMessages("not_item_owner"));
             return;
         }
         if (!hasSellItem(sellItem.getUuid())) {
             event.setValid(false);
-            event.setReason("&cПредмет уже продан или снят с продажи!");
+            event.setReason(Lang.getMessages("item_already_sold_or_removed"));
             return;
         }
 
@@ -190,7 +191,7 @@ public class JsonDBCoreV2 implements DBCore {
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
-            event.setReason("&cПроизошла ошибка!");
+            event.setReason(Lang.getMessages("error_occurred"));
             return;
         }
         event.setValid(true);
@@ -203,11 +204,11 @@ public class JsonDBCoreV2 implements DBCore {
 
             if (!user.getUuid().equals(unsoldItem.getOwner())) {
                 event.setValid(false);
-                event.setReason("&cВы не владелец предмета!");
+                event.setReason(Lang.getMessages("not_item_owner"));
                 return;
             } else if (!readLock(() -> unsoldItemsMap.containsKey(unsoldItem.uuid))) {
                 event.setValid(false);
-                event.setReason("&cКажется такого предмета нет!");
+                event.setReason(Lang.getMessages("item_not_found"));
                 return;
             }
 
@@ -217,7 +218,7 @@ public class JsonDBCoreV2 implements DBCore {
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
-            event.setReason("&cПроизошла ошибка!");
+            event.setReason(Lang.getMessages("error_occurred"));
         }
     }
 
@@ -227,12 +228,12 @@ public class JsonDBCoreV2 implements DBCore {
 
         if (user.getUuid().equals(sellItem.getSellerUuid())) {
             event.setValid(false);
-            event.setReason("&cВы владелец предмета!");
+            event.setReason(Lang.getMessages("item_owner"));
             return;
         }
         if (!hasSellItem(sellItem.getUuid())) {
             event.setValid(false);
-            event.setReason("&cПредмет уже продан или снят с продажи!");
+            event.setReason(Lang.getMessages("item_already_sold_or_removed"));
             return;
         }
 
@@ -241,7 +242,7 @@ public class JsonDBCoreV2 implements DBCore {
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
-            event.setReason("&cПроизошла ошибка!");
+            event.setReason(Lang.getMessages("error_occurred"));
             return;
         }
         event.setValid(true);
@@ -253,21 +254,21 @@ public class JsonDBCoreV2 implements DBCore {
 
         if (buyer.getUuid().equals(sellItem.getSellerUuid())) {
             event.setValid(false);
-            event.setReason("&cВы владелец предмета!");
+            event.setReason(Lang.getMessages("item_owner"));
             return;
         }
 
         try {
             if (!hasSellItem(sellItem.getUuid())) {
                 event.setValid(false);
-                event.setReason("&cПредмет уже продан или снят с продажи!");
+                event.setReason(Lang.getMessages("item_already_sold_or_removed"));
                 return;
             }
             SellItem updated = getSellItem(sellItem.getUuid());
 
             if (updated.getAmount() < event.getCount()) {
                 event.setValid(false);
-                event.setReason("&cКто-то выкупил часть товара и вы больше не можете купить этот предмет в таком количестве!");
+                event.setReason(Lang.getMessages("quantity_limit_exceeded"));
                 return;
             }
             tryRemoveItem(sellItem.getUuid());
@@ -297,13 +298,12 @@ public class JsonDBCoreV2 implements DBCore {
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
-            event.setReason("&cПроизошла ошибка!");
+            event.setReason(Lang.getMessages("error_occurred"));
             return;
         }
         event.setValid(true);
     }
 
-    @ThreadSafe
     public List<SellItem> getItems(NameKey category, NameKey sorting) {
         return readLock(() -> {
             if (!sortedItems.containsKey(category)) {
@@ -314,7 +314,6 @@ public class JsonDBCoreV2 implements DBCore {
         });
     }
 
-    @ThreadSafe
     private void removeIf(Predicate<SellItem> filter) {
         writeLock(() -> {
             Iterator<List<SortingItems>> iterator = sortedItems.values().iterator();
@@ -330,22 +329,18 @@ public class JsonDBCoreV2 implements DBCore {
         });
     }
 
-    @ThreadSafe
     public SellItem getSellItem(UUID uuid) {
         return readLock(() -> sellItemsMap.get(uuid));
     }
 
-    @ThreadSafe
     public UnsoldItem getUnsoldItem(UUID uuid) {
         return readLock(() -> unsoldItemsMap.get(uuid));
     }
 
-    @ThreadSafe
     public List<SellItem> getSellItemsByOwner(UUID ownerUuid) {
         return readLock(() -> sellItemsByOwner.getOrDefault(ownerUuid, new ArrayList<>()));
     }
 
-    @ThreadSafe
     public List<UnsoldItem> getUnsoldItemsByOwner(UUID ownerUuid) {
         return readLock(() -> unsoldItemsByOwner.getOrDefault(ownerUuid, new ArrayList<>()));
     }
@@ -398,83 +393,73 @@ public class JsonDBCoreV2 implements DBCore {
         users.get(unsoldItem.owner).unsoldItems.remove(unsoldItem.uuid);
     }
 
-    @ThreadSafe
     @Override
     public List<UnsoldItem> getAddUnsoldItems() {
         return readLock(() -> sortedUnsoldItems.stream().toList());
     }
 
-    @ThreadSafe
     @Override
     public List<SellItem> getAllSellItems() {
         return readLock(() -> sortedSellItems.stream().toList());
     }
 
     @Override
-    @ThreadSafe
     public List<User> getAllUsers() {
         return readLock(() -> users.values().stream().toList());
     }
 
     @Override
-    @ThreadSafe
     public User getUser(UUID uuid) {
         return readLock(() -> users.get(uuid));
     }
 
     @Override
-    @ThreadSafe
     public boolean hasUser(UUID uuid) {
         return readLock(() -> users.containsKey(uuid));
     }
 
     @Override
-    @ThreadSafe
     public boolean hasSellItem(UUID uuid) {
         return readLock(() -> sellItemsMap.containsKey(uuid));
     }
 
-    @ThreadSafe
     public User createNewAndSave(UUID uuid, String name) {
         return writeLock(() -> {
             User user = new User(name, uuid);
             users.put(uuid, user);
-            //  listener0.update(new Action(DBActionType.USER_CREATE, uuid, null));
+            //  listener0.update(new Action(ActionType.USER_CREATE, uuid, null));
             return user;
         });
     }
 
 
     @Override
-    @ThreadSafe
     public void addItem(SellItem memorySellItem, UUID owner) {
         writeLock(() -> {
             SellItem sellItem = SellItem.parse(memorySellItem);
             addSellItem(sellItem);
 
-            //    listener0.update(new Action(DBActionType.USER_ADD_SELL_ITEM, owner, sellItem.uuid));
-            //   listener0.update(new Action(DBActionType.AUCTION_ADD_SELL_ITEM, null, sellItem.uuid));
+            //    listener0.update(new Action(ActionType.USER_ADD_SELL_ITEM, owner, sellItem.uuid));
+            //   listener0.update(new Action(ActionType.AUCTION_ADD_SELL_ITEM, null, sellItem.uuid));
 
             return null;
         });
     }
 
     @Override
-    @ThreadSafe
     public void tryRemoveUnsoldItem(UUID owner, UUID item) {
         writeLock(() -> {
             UnsoldItem item1 = getUnsoldItem(item);
             if (item1 == null) throw new StorageException.NotFoundException();
             removeUnsoldItem(item1);
 
-            //     listener0.update(new Action(DBActionType.USER_REMOVE_UNSOLD_ITEM, owner, item));
+            //     listener0.update(new Action(ActionType.USER_REMOVE_UNSOLD_ITEM, owner, item));
 
             return null;
         });
     }
 
     @Override
-    @ThreadSafe
     public void tryRemoveItem(UUID item) {
         writeLock(() -> {
             SellItem item1 = getSellItem(item);

@@ -33,25 +33,14 @@ public class User implements Placeholderable {
         this.externalSellTime = externalSellTime;
     }
 
-    //    User toMemoryUser(){
-//        return User.builder()
-//                .nickName(nickName)
-//                .uuid(uuid)
-//                .unsoldItems(Collections.unmodifiableList(unsoldItems))
-//                .itemForSale(Collections.unmodifiableList(itemForSale))
-//                .dealCount(dealCount)
-//                .dealSum(dealSum)
-//                .build();
-//    }
-
     @Override
     public String toString() {
         return "User{" +
                 "nickName='" + nickName + '\'' +
                 ", uuid=" + uuid +
                 ", unsoldItemImpls=" + unsoldItems +
-//                ", externalSlots=" + externalSlots +
-//                ", externalSellTime=" + externalSellTime +
+                ", externalSlots=" + externalSlots +
+                ", externalSellTime=" + externalSellTime +
                 ", itemForSale=" + itemForSale +
                 ", dealCount=" + dealCount +
                 ", dealSum=" + dealSum +

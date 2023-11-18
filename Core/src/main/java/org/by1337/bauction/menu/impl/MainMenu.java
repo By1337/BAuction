@@ -14,6 +14,7 @@ import org.by1337.bauction.db.kernel.User;
 
 import org.by1337.bauction.action.BuyItemCountProcess;
 import org.by1337.bauction.action.BuyItemProcess;
+import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.util.Category;
@@ -122,7 +123,7 @@ public class MainMenu extends Menu {
                             UUID uuid = UUID.fromString(uuidS);
 
                             if (!Main.getStorage().hasSellItem(uuid)) {
-                                Main.getMessage().sendMsg(player, "&cПредмет уже продан или снят с продажи!");
+                                Main.getMessage().sendMsg(player, Lang.getMessages("item_already_sold_or_removed"));
                                 sellItems = null;
                                 this.user = Main.getStorage().getUser(this.user.getUuid());
                                 generate0();
@@ -131,7 +132,7 @@ public class MainMenu extends Menu {
                             SellItem item = Main.getStorage().getSellItem(uuid);
 
                             if (Main.getEcon().getBalance(getPlayer()) < item.getPrice()) {
-                                Main.getMessage().sendMsg(getPlayer(), "&cУ Вас не хватает баланса для покупки предмета!");
+                                Main.getMessage().sendMsg(getPlayer(), Lang.getMessages("insufficient_balance"));
                                 return;
                             }
 
@@ -148,7 +149,7 @@ public class MainMenu extends Menu {
                             UUID uuid = UUID.fromString(uuidS);
 
                             if (!Main.getStorage().hasSellItem(uuid)) {
-                                Main.getMessage().sendMsg(player, "&cПредмет уже продан или снят с продажи!");
+                                Main.getMessage().sendMsg(player, Lang.getMessages("item_already_sold_or_removed"));
                                 sellItems = null;
                                 this.user = Main.getStorage().getUser(this.user.getUuid());
                                 generate0();
@@ -157,7 +158,7 @@ public class MainMenu extends Menu {
                             SellItem item = Main.getStorage().getSellItem(uuid);
 
                             if (Main.getEcon().getBalance(getPlayer()) < item.getPriceForOne()) {
-                                Main.getMessage().sendMsg(getPlayer(), "&cУ Вас не хватает баланса для покупки хотя бы одного предмета!");
+                                Main.getMessage().sendMsg(getPlayer(), Lang.getMessages("insufficient_balance_for_purchase"));
                                 return;
                             }
 
@@ -173,7 +174,7 @@ public class MainMenu extends Menu {
                             UUID uuid = UUID.fromString(uuidS);
 
                             if (!Main.getStorage().hasSellItem(uuid)) {
-                                Main.getMessage().sendMsg(player, "&cПредмет уже продан или снят с продажи!");
+                                Main.getMessage().sendMsg(player, Lang.getMessages("item_already_sold_or_removed"));
                                 sellItems = null;
                                 this.user = Main.getStorage().getUser(this.user.getUuid());
                                 generate0();
