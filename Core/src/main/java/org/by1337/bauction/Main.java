@@ -20,6 +20,7 @@ import org.by1337.api.configuration.adapter.impl.primitive.AdapterEnum;
 import org.by1337.bauction.booost.Boost;
 import org.by1337.bauction.config.Config;
 import org.by1337.bauction.config.adapter.*;
+import org.by1337.bauction.datafix.UpdateManager;
 import org.by1337.bauction.db.kernel.JsonDBCore;
 import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.db.kernel.User;
@@ -55,6 +56,9 @@ public final class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         message = new Message(getLogger());
+
+        UpdateManager.checkUpdate();
+
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
         econ = rsp.getProvider();
 

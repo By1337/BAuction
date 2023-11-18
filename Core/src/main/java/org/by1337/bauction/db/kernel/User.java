@@ -20,6 +20,15 @@ public class User implements Placeholderable {
     private volatile long externalSellTime = 0L;
 
 
+    public User(String nickName, UUID uuid, List<UUID> unsoldItems, List<UUID> itemForSale, int dealCount, double dealSum) {
+        this.nickName = nickName;
+        this.uuid = uuid;
+        this.unsoldItems = unsoldItems;
+        this.itemForSale = itemForSale;
+        this.dealCount = dealCount;
+        this.dealSum = dealSum;
+    }
+
     public User(@NotNull String nickName, @NotNull UUID uuid) {
         this.nickName = nickName;
         this.uuid = uuid;

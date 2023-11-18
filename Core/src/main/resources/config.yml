@@ -1,3 +1,4 @@
+version: 1
 # список бустов
 boosts: # it's list
   - name: donat-1 # имя (может быть любым)

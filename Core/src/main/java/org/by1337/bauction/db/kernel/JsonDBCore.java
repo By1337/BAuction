@@ -1,6 +1,7 @@
 package org.by1337.bauction.db.kernel;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.by1337.api.util.NameKey;
@@ -68,6 +69,7 @@ public class JsonDBCore implements DBCore {
             sortedItems.put(category.nameKey(), list);
         }
 
+        load();
         runnable = () -> {
             long time = System.currentTimeMillis();
             try {
@@ -90,7 +92,7 @@ public class JsonDBCore implements DBCore {
         };
         Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), runnable, 0);
 
-        if (removeExpiredItems){
+        if (removeExpiredItems) {
             runnable1 = () -> {
                 long time = System.currentTimeMillis();
                 try {
@@ -427,7 +429,6 @@ public class JsonDBCore implements DBCore {
         return writeLock(() -> {
             User user = new User(name, uuid);
             users.put(uuid, user);
-            //  listener0.update(new Action(ActionType.USER_CREATE, uuid, null));
             return user;
         });
     }
@@ -438,10 +439,6 @@ public class JsonDBCore implements DBCore {
         writeLock(() -> {
             SellItem sellItem = SellItem.parse(memorySellItem);
             addSellItem(sellItem);
-
-            //    listener0.update(new Action(ActionType.USER_ADD_SELL_ITEM, owner, sellItem.uuid));
-            //   listener0.update(new Action(ActionType.AUCTION_ADD_SELL_ITEM, null, sellItem.uuid));
-
             return null;
         });
     }
@@ -452,9 +449,6 @@ public class JsonDBCore implements DBCore {
             UnsoldItem item1 = getUnsoldItem(item);
             if (item1 == null) throw new StorageException.NotFoundException();
             removeUnsoldItem(item1);
-
-            //     listener0.update(new Action(ActionType.USER_REMOVE_UNSOLD_ITEM, owner, item));
-
             return null;
         });
     }
@@ -472,34 +466,60 @@ public class JsonDBCore implements DBCore {
 
     @Override
     public void save() {
-//        try {
-//            readLock(() -> {
-//                save0(sellItems.getList(), "items", "items-");
-//                save0(users.values().stream().toList(), "users", "users-");
-//                return null;
-//            });
-//        } catch (Exception e) {
-//            Main.getMessage().error(e);
-//        }
+        try {
+            readLock(() -> {
+                save0(sortedSellItems, "sellItems", "sell-items-");
+                save0(sortedUnsoldItems, "unsoldItems", "unsold-items-");
+                save0(users.values().stream().toList(), "users", "users-");
+                return null;
+            });
+        } catch (Exception e) {
+            Main.getMessage().error(e);
+        }
     }
 
     @Override
     public void load() {
-//        try {
-//            writeLock(() -> {
-//                List<SellItem> items = load("items", new TypeToken<List<SellItem>>() {
-//                }.getType());
-//                List<User> users = load("users", new TypeToken<List<User>>() {
-//                }.getType());
-//                for (User user : users) {
-//                    this.users.put(user.uuid, user);
-//                }
-//                sellItems.push(items);
-//                return null;
-//            });
-//        } catch (Exception e) {
-//            Main.getMessage().error(e);
-//        }
+        try {
+            writeLock(() -> {
+                List<SellItem> items = load("sellItems", new TypeToken<List<SellItem>>() {
+                }.getType());
+
+                List<User> users = load("users", new TypeToken<List<User>>() {
+                }.getType());
+
+
+                List<UnsoldItem> unsoldItems = load("unsoldItems", new TypeToken<List<UnsoldItem>>() {
+                }.getType());
+
+
+                for (User user : users) {
+                    this.users.put(user.getUuid(), user);
+                }
+
+                for (SellItem item : items) {
+                    sellItemsMap.put(item.uuid, item);
+                    sortedSellItems.add(item);
+                    sellItemsByOwner.computeIfAbsent(item.sellerUuid, k -> new ArrayList<>()).add(item);
+
+                    for (Category value : categoryMap.values()) {
+                        if (TagUtil.matchesCategory(value, item)) {
+                            sortedItems.get(value.nameKey()).forEach(list -> list.addItem(item));
+                        }
+                    }
+                }
+                sortedSellItems.sort(sellItemComparator);
+                for (UnsoldItem unsoldItem : unsoldItems) {
+                    unsoldItemsMap.put(unsoldItem.uuid, unsoldItem);
+                    sortedUnsoldItems.add(unsoldItem);
+                    unsoldItemsByOwner.computeIfAbsent(unsoldItem.owner, k -> new ArrayList<>()).add(unsoldItem);
+                }
+
+                return null;
+            });
+        } catch (Exception e) {
+            Main.getMessage().error(e);
+        }
     }
 
     private <T> List<T> load(String dir, Type type) { //new TypeToken<>().getType()
@@ -541,7 +561,6 @@ public class JsonDBCore implements DBCore {
                     File file = new File(home + "/" + filePrefix + (last + 1) + "-" + (i) + ".json");
                     file.createNewFile();
                     try (FileWriter writer = new FileWriter(file)) {
-                        Gson gson = new Gson();
                         gson.toJson(buffer, writer);
                         buffer.clear();
                         last = i;

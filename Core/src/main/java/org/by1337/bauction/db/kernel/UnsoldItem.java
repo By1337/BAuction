@@ -18,6 +18,14 @@ public class UnsoldItem implements Placeholderable {
     final long deleteVia;
     private transient ItemStack itemStack;
 
+    public UnsoldItem(String item, long expired, UUID owner, UUID uuid, long deleteVia) {
+        this.item = item;
+        this.expired = expired;
+        this.owner = owner;
+        this.uuid = uuid;
+        this.deleteVia = deleteVia;
+    }
+
     public UnsoldItem(String item, long expired, UUID owner, UUID uuid, long deleteVia, ItemStack itemStack) {
         this.item = item;
         this.expired = expired;

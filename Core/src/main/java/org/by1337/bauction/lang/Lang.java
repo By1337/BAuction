@@ -55,6 +55,8 @@ public class Lang {
     }
 
     public static String getMessages(String s) {
-        return messages.get(s);
+        String str = messages.get(s);
+        if (str == null) return "please check the message file";
+        return str;
     }
 }
