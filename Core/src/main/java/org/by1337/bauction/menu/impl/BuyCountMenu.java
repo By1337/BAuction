@@ -128,9 +128,12 @@ public class BuyCountMenu extends Menu {
         if (getPlayer() == null || !getPlayer().isOnline()) {
             throw new IllegalArgumentException();
         }
-        reRegister();
-        getPlayer().openInventory(getInventory());
-        sendFakeTitle(replace(title));
-        generate0();
+        syncUtil(() -> {
+            reRegister();
+            if (!viewer.getOpenInventory().getTopInventory().equals(inventory))
+                viewer.openInventory(getInventory());
+            sendFakeTitle(replace(title));
+            generate0();
+        });
     }
 }

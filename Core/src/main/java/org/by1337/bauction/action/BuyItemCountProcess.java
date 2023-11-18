@@ -13,6 +13,7 @@ import org.by1337.bauction.menu.impl.BuyCountMenu;
 import org.by1337.bauction.menu.impl.CallBack;
 import org.by1337.bauction.menu.impl.ConfirmMenu;
 import org.by1337.bauction.util.NumberUtil;
+import org.by1337.bauction.util.PlayerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -23,13 +24,14 @@ public class BuyItemCountProcess {
     private final User buyer;
     private final Player player;
     private final Menu menu;
+    private final boolean fast;
 
-
-    public BuyItemCountProcess(@NotNull SellItem buyingItem, @NotNull User buyer, Player player, Menu menu) {
+    public BuyItemCountProcess(@NotNull SellItem buyingItem, @NotNull User buyer, Player player, Menu menu, boolean fast) {
         this.buyingItem = buyingItem;
         this.buyer = buyer;
         this.player = player;
         this.menu = menu;
+        this.fast = fast;
     }
 
     private CallBack<Optional<Integer>> callBack;
@@ -42,7 +44,6 @@ public class BuyItemCountProcess {
             CallBack<Optional<ConfirmMenu.Result>> callBack1 = result1 -> {
                 if (result1.isPresent()) {
                     if (result1.get() == ConfirmMenu.Result.ACCEPT) {
-                        //count = result.get();
                         BuyItemCountEvent event = new BuyItemCountEvent(buyer, buyingItem, count);
                         Main.getStorage().validateAndRemoveItem(event);
 
@@ -59,7 +60,7 @@ public class BuyItemCountProcess {
                             Main.getMessage().sendMsg(player, replace("&aВы успешно купили {item_name}&r в количестве {amount}!"));
                             ItemStack itemStack = buyingItem.getItemStack();
                             itemStack.setAmount(itemStack.getAmount() - count);
-                            Menu.giveItems(player, itemStack).forEach(i -> player.getLocation().getWorld().dropItem(player.getLocation(), i));
+                            PlayerUtil.giveItems(player, itemStack);
                         } else {
                             Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
                         }
@@ -73,9 +74,13 @@ public class BuyItemCountProcess {
             callBack = result -> {
                 if (result.isPresent()) {
                     count = result.get();
-                    ItemStack itemStack = buyingItem.getItemStack();
-                    itemStack.setAmount(count);
-                    new ConfirmMenu(callBack1, itemStack, player).open();
+                    if (fast){
+                        callBack1.result(Optional.of(ConfirmMenu.Result.ACCEPT));
+                    }else {
+                        ItemStack itemStack = buyingItem.getItemStack();
+                        itemStack.setAmount(count);
+                        new ConfirmMenu(callBack1, itemStack, player).open();
+                    }
                 }
             };
 

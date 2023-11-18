@@ -10,6 +10,10 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.by1337.api.BLib;
 import org.by1337.bauction.Main;
 
@@ -78,6 +82,21 @@ public abstract class AsyncClickListener implements Listener {
         if (inventory.equals(e.getInventory())) {
             onClose(e);
             HandlerList.unregisterAll(this);
+            new BukkitRunnable() {
+                final Player player = (Player) e.getPlayer();
+                @Override
+                public void run() {
+                    player.updateInventory();
+                    for (ItemStack itemStack : player.getInventory()) {
+                        if (itemStack == null) continue;
+                        ItemMeta im = itemStack.getItemMeta();
+                        if (im == null) continue;
+                        if (im.getPersistentDataContainer().has(CustomItemStack.MENU_ITEM_KEY, PersistentDataType.INTEGER)) {
+                            player.getInventory().remove(itemStack);
+                        }
+                    }
+                }
+            }.runTaskLater(Main.getInstance(), 10);
         }
     }
 

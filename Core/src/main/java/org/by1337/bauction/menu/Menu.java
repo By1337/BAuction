@@ -112,22 +112,6 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
 
 
     public void onClose(InventoryCloseEvent e) {
-        new BukkitRunnable() {
-            final Player player = (Player) e.getPlayer();
-
-            @Override
-            public void run() {
-                player.updateInventory();
-                for (ItemStack itemStack : player.getInventory()) {
-                    if (itemStack == null) continue;
-                    ItemMeta im = itemStack.getItemMeta();
-                    if (im == null) continue;
-                    if (im.getPersistentDataContainer().has(CustomItemStack.MENU_ITEM_KEY, PersistentDataType.INTEGER)) {
-                        player.getInventory().remove(itemStack);
-                    }
-                }
-            }
-        }.runTaskLater(Main.getInstance(), 10);
     }
 
 
@@ -143,7 +127,7 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
         }
         return null;
     }
-
+    @Deprecated(forRemoval = true)
     public static List<ItemStack> giveItems(Player player, ItemStack... itemStack) {
         return new ArrayList<>(player.getInventory().addItem(itemStack).values());
     }

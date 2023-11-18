@@ -13,6 +13,7 @@ import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.impl.CallBack;
 import org.by1337.bauction.menu.impl.ConfirmMenu;
 import org.by1337.bauction.util.NumberUtil;
+import org.by1337.bauction.util.PlayerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -22,17 +23,17 @@ public class BuyItemProcess implements Placeholderable {
     private final User buyer;
     private final Menu menu;
     private final Player player;
-    private final boolean bypass;
+    private final boolean fast;
 
     public BuyItemProcess(@NotNull SellItem buyingItem, @NotNull User buyer, Menu menu, Player player) {
         this(buyingItem, buyer, menu,player, false);
     }
-    public BuyItemProcess(@NotNull SellItem buyingItem, @NotNull User buyer, Menu menu, Player player, boolean bypass) {
+    public BuyItemProcess(@NotNull SellItem buyingItem, @NotNull User buyer, Menu menu, Player player, boolean fast) {
         this.buyingItem = buyingItem;
         this.buyer = buyer;
         this.menu = menu;
         this.player = player;
-        this.bypass = bypass;
+        this.fast = fast;
     }
 
 
@@ -59,7 +60,7 @@ public class BuyItemProcess implements Placeholderable {
                                        replace("&aИгрок {buyer_name} купил у вас {item_name}&r за {price}!"));
                            }
                            Main.getMessage().sendMsg(player, replace("&aВы успешно купили {item_name}&r в количестве {amount}!"));
-                           Menu.giveItems(player, buyingItem.getItemStack()).forEach(i -> player.getLocation().getWorld().dropItem(player.getLocation(), i));
+                           PlayerUtil.giveItems(player, buyingItem.getItemStack());
                        } else {
                            Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
                        }
@@ -68,7 +69,7 @@ public class BuyItemProcess implements Placeholderable {
                menu.reopen();
            };
 
-           if (bypass){
+           if (fast){
                callBack.result(Optional.of(ConfirmMenu.Result.ACCEPT));
            }else {
                ConfirmMenu confirmMenu = new ConfirmMenu(callBack, buyingItem.getItemStack(), player);

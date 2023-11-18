@@ -32,8 +32,15 @@ unsold-item:
     - '&#5AD9FB▌&r &fПросрочен: &#5AD9FB{expired}'
     - '&r '
     - '&#5AD9FB▌&r &fЧтобы снять с продажи нажмите &#5AD9FBлкм'
-  click_commands:
+
+  left_click_commands:
     - '[TAKE_ITEM] {id}'
+  right_click_commands:
+    - '[TAKE_ITEM] {id}'
+  shift_left_click_commands:
+    - '[TAKE_ITEM] {id} fast'
+  shift_right_click_commands:
+    - '[TAKE_ITEM] {id} fast'
 
 # Когда продаваемый предмет один
 selling-item-one:
@@ -45,6 +52,8 @@ selling-item-one:
     - '&r '
   left_click_commands:
     - '[BUY_ITEM_FULL] {id}'
+  shift_left_click_commands:
+    - '[BUY_ITEM_FULL] {id} fast'
   right_click_commands:
     - '[BUY_ITEM_FULL] {id}'
 
@@ -61,6 +70,8 @@ take-item:
     - '&#5AD9FB▌&r &fЧтобы снять с продажи нажмите &#5AD9FBлкм'
   left_click_commands:
     - '[TAKE_ITEM] {id}'
+  shift_left_click_commands:
+    - '[TAKE_ITEM] {id} fast'
 
 # Когда продаваемый предмет не один и его можно купить поштучно
 selling-item:
@@ -75,6 +86,8 @@ selling-item:
     - '&#5AD9FB▌&r &fДля покупки поштучно нажмите &#5AD9FBпкм'
   left_click_commands:
     - '[BUY_ITEM_FULL] {id}'
+  shift_left_click_commands:
+    - '[BUY_ITEM_FULL] {id} fast'
   right_click_commands:
     - '[BUY_ITEM_AMOUNT] {id}'
 
@@ -93,3 +106,7 @@ selling-item-only-full:
     - '[BUY_ITEM_FULL] {id}'
   right_click_commands:
     - '[BUY_ITEM_FULL] {id}'
+  shift_left_click_commands:
+    - '[BUY_ITEM_FULL] {id} fast'
+  shift_right_click_commands:
+    - '[BUY_ITEM_FULL] {id} fast'

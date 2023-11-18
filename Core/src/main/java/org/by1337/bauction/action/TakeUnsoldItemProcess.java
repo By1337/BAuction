@@ -8,6 +8,7 @@ import org.by1337.bauction.db.event.TakeUnsoldItemEvent;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.impl.CallBack;
 import org.by1337.bauction.menu.impl.ConfirmMenu;
+import org.by1337.bauction.util.PlayerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -17,12 +18,14 @@ public class TakeUnsoldItemProcess {
     private final User taker;
     private final Menu menu;
     private final Player player;
+    private final boolean fast;
 
-    public TakeUnsoldItemProcess(@NotNull UnsoldItem takingItem, @NotNull User taker, Menu menu, Player player) {
+    public TakeUnsoldItemProcess(@NotNull UnsoldItem takingItem, @NotNull User taker, Menu menu, Player player, boolean fast) {
         this.takingItem = takingItem;
         this.taker = taker;
         this.menu = menu;
         this.player = player;
+        this.fast = fast;
     }
 
     public void process() {
@@ -34,7 +37,7 @@ public class TakeUnsoldItemProcess {
 
                     if (event.isValid()) {
                         Main.getMessage().sendMsg(player, "&aВы успешно забрали свой предмет!");
-                        Menu.giveItems(player, takingItem.getItemStack()).forEach(i -> player.getLocation().getWorld().dropItem(player.getLocation(), i));
+                        PlayerUtil.giveItems(player, takingItem.getItemStack());
                     } else {
                         Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
                     }
@@ -42,9 +45,14 @@ public class TakeUnsoldItemProcess {
             }
             menu.reopen();
         };
-        ConfirmMenu confirmMenu = new ConfirmMenu(callBack, takingItem.getItemStack(), player);
-        confirmMenu.registerPlaceholderable(taker);
-        confirmMenu.registerPlaceholderable(takingItem);
-        confirmMenu.open();
+        if (fast){
+            callBack.result(Optional.of(ConfirmMenu.Result.ACCEPT));
+        }else {
+            ConfirmMenu confirmMenu = new ConfirmMenu(callBack, takingItem.getItemStack(), player);
+            confirmMenu.registerPlaceholderable(taker);
+            confirmMenu.registerPlaceholderable(takingItem);
+            confirmMenu.open();
+        }
+
     }
 }

@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
+import org.by1337.api.command.argument.ArgumentSetList;
 import org.by1337.api.command.argument.ArgumentString;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeUnsoldItemProcess;
@@ -61,7 +62,9 @@ public class UnsoldItemsMenu extends Menu {
                 )
                 .addSubCommand(new Command("[TAKE_ITEM]")
                         .argument(new ArgumentString("uuid"))
+                        .argument(new ArgumentSetList("fast", List.of("fast")))
                         .executor(((sender, args) -> {
+                            boolean fast = args.getOrDefault("fast", "").equals("fast");
                             String uuidS = (String) args.getOrThrow("uuid");
                             UUID uuid = UUID.fromString(uuidS);
 
@@ -73,7 +76,7 @@ public class UnsoldItemsMenu extends Menu {
                                 generate0();
                                 return;
                             }
-                            new TakeUnsoldItemProcess(unsoldItem, user, this, player).process();
+                            new TakeUnsoldItemProcess(unsoldItem, user, this, player, fast).process();
                         }))
                 )
         ;
@@ -132,14 +135,17 @@ public class UnsoldItemsMenu extends Menu {
     }
 
     public void reopen() {
-        if (getPlayer() == null || !getPlayer().isOnline()) {
+        if (viewer == null || !viewer.isOnline()) {
             throw new IllegalArgumentException();
         }
-        reRegister();
-        getPlayer().openInventory(getInventory());
-        sendFakeTitle(replace(title));
-        unsoldItems = null;
-        generate0();
+        syncUtil(() -> {
+            reRegister();
+            if (!viewer.getOpenInventory().getTopInventory().equals(inventory))
+                viewer.openInventory(getInventory());
+            sendFakeTitle(replace(title));
+            unsoldItems = null;
+            generate0();
+        });
     }
 
     @Override

@@ -114,9 +114,9 @@ public class MainMenu extends Menu {
                 )
                 .addSubCommand(new Command("[BUY_ITEM_FULL]")
                         .argument(new ArgumentString("uuid"))
-                        .argument(new ArgumentSetList("bypass", List.of("bypass")))
+                        .argument(new ArgumentSetList("fast", List.of("fast")))
                         .executor(((sender, args) -> {
-                            boolean isBypassed = args.getOrDefault("bypass", "").equals("bypass");
+                            boolean fast = args.getOrDefault("fast", "").equals("fast");
                             String uuidS = (String) args.getOrThrow("uuid");
 
                             UUID uuid = UUID.fromString(uuidS);
@@ -135,12 +135,14 @@ public class MainMenu extends Menu {
                                 return;
                             }
 
-                            new BuyItemProcess(item, user, this, getPlayer()).process();
+                            new BuyItemProcess(item, user, this, getPlayer(), fast).process();
                         }))
                 )
                 .addSubCommand(new Command("[BUY_ITEM_AMOUNT]")
                         .argument(new ArgumentString("uuid"))
+                        .argument(new ArgumentSetList("fast", List.of("fast")))
                         .executor(((sender, args) -> {
+                            boolean fast = args.getOrDefault("fast", "").equals("fast");
                             String uuidS = (String) args.getOrThrow("uuid");
 
                             UUID uuid = UUID.fromString(uuidS);
@@ -159,12 +161,14 @@ public class MainMenu extends Menu {
                                 return;
                             }
 
-                            new BuyItemCountProcess(item, user, player, this).process();
+                            new BuyItemCountProcess(item, user, player, this, fast).process();
                         }))
                 )
                 .addSubCommand(new Command("[TAKE_ITEM]")
                         .argument(new ArgumentString("uuid"))
+                        .argument(new ArgumentSetList("fast", List.of("fast")))
                         .executor(((sender, args) -> {
+                            boolean fast = args.getOrDefault("fast", "").equals("fast");
                             String uuidS = (String) args.getOrThrow("uuid");
                             UUID uuid = UUID.fromString(uuidS);
 
@@ -176,7 +180,7 @@ public class MainMenu extends Menu {
                                 return;
                             }
                             SellItem item = Main.getStorage().getSellItem(uuid);
-                            new TakeItemProcess(item, user, this, player).process();
+                            new TakeItemProcess(item, user, this, player, fast).process();
                         }))
                 )
         ;
@@ -325,12 +329,15 @@ public class MainMenu extends Menu {
         if (getPlayer() == null || !getPlayer().isOnline()) {
             throw new IllegalArgumentException();
         }
-        reRegister();
-        getPlayer().openInventory(getInventory());
-        sendFakeTitle(replace(title));
-        sellItems = null;
-        this.user = Main.getStorage().getUser(this.user.getUuid());
-        generate0();
+       syncUtil(() -> {
+           reRegister();
+           if (!viewer.getOpenInventory().getTopInventory().equals(inventory))
+               viewer.openInventory(getInventory());
+           sendFakeTitle(replace(title));
+           sellItems = null;
+           this.user = Main.getStorage().getUser(this.user.getUuid());
+           generate0();
+       });
     }
 
     public void setCustomCategory(Category custom) {

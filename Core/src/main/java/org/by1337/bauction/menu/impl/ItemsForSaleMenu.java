@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
+import org.by1337.api.command.argument.ArgumentSetList;
 import org.by1337.api.command.argument.ArgumentString;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeItemProcess;
@@ -60,7 +61,9 @@ public class ItemsForSaleMenu extends Menu {
                 )
                 .addSubCommand(new Command("[TAKE_ITEM]")
                         .argument(new ArgumentString("uuid"))
+                        .argument(new ArgumentSetList("fast", List.of("fast")))
                         .executor(((sender, args) -> {
+                            boolean fast = args.getOrDefault("fast", "").equals("fast");
                             String uuidS = (String) args.getOrThrow("uuid");
                             UUID uuid = UUID.fromString(uuidS);
 
@@ -71,7 +74,7 @@ public class ItemsForSaleMenu extends Menu {
                                 return;
                             }
                             SellItem item = Main.getStorage().getSellItem(uuid);
-                            new TakeItemProcess(item, user, this, player).process();
+                            new TakeItemProcess(item, user, this, player, fast).process();
                         }))
                 )
         ;
@@ -144,11 +147,14 @@ public class ItemsForSaleMenu extends Menu {
         if (getPlayer() == null || !getPlayer().isOnline()) {
             throw new IllegalArgumentException();
         }
-        reRegister();
-        getPlayer().openInventory(getInventory());
-        sendFakeTitle(replace(title));
-        sellItems = null;
-        generate0();
+       syncUtil(() -> {
+           reRegister();
+           if (!viewer.getOpenInventory().getTopInventory().equals(inventory))
+               viewer.openInventory(getInventory());
+           sendFakeTitle(replace(title));
+           sellItems = null;
+           generate0();
+       });
     }
 
     @Override
