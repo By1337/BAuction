@@ -1,6 +1,7 @@
 package org.by1337.bauction.db;
 
 import org.by1337.api.util.NameKey;
+import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.util.Sorting;
 
 import java.util.*;
@@ -8,10 +9,10 @@ import java.util.function.Predicate;
 
 public class SortingItems {
 
-    private List<MemorySellItem> items = new ArrayList<>();
+    private List<SellItem> items = new ArrayList<>();
     private final NameKey sortingName;
     private final Sorting sorting;
-    private final Comparator<MemorySellItem> comparator;
+    private final Comparator<SellItem> comparator;
 
     public SortingItems(Sorting sorting) {
         sortingName = sorting.nameKey();
@@ -19,7 +20,7 @@ public class SortingItems {
         comparator = sorting.getComparator();
     }
 
-    public void addItem(MemorySellItem sellItem) {
+    public void addItem(SellItem sellItem) {
         int insertIndex = Collections.binarySearch(items, sellItem, comparator);
         if (insertIndex < 0) {
             insertIndex = -insertIndex - 1;
@@ -32,12 +33,12 @@ public class SortingItems {
         items.sort(comparator);
     }
 
-    public void removeIf(Predicate<MemorySellItem> filter) {
+    public void removeIf(Predicate<SellItem> filter) {
         items.removeIf(filter);
        // items.sort(comparator);
     }
 
-    public List<MemorySellItem> getItems() {
+    public List<SellItem> getItems() {
         return items;
     }
 

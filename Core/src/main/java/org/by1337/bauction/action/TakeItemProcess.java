@@ -2,8 +2,8 @@ package org.by1337.bauction.action;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.MemorySellItem;
-import org.by1337.bauction.db.MemoryUser;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.db.event.TakeItemEvent;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.impl.CallBack;
@@ -13,12 +13,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 
 public class TakeItemProcess {
-    private final MemorySellItem takingItem;
-    private final MemoryUser taker;
+    private final SellItem takingItem;
+    private final User taker;
     private final Menu menu;
     private final Player player;
 
-    public TakeItemProcess(@NotNull MemorySellItem takingItem, @NotNull MemoryUser taker, Menu menu, Player player) {
+    public TakeItemProcess(@NotNull SellItem takingItem, @NotNull User taker, Menu menu, Player player) {
         this.takingItem = takingItem;
         this.taker = taker;
         this.menu = menu;

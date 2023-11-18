@@ -1,6 +1,5 @@
 package org.by1337.bauction.menu.impl;
 
-import org.bukkit.configuration.MemorySection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.by1337.api.chat.Placeholderable;
@@ -8,11 +7,10 @@ import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
 import org.by1337.api.command.argument.ArgumentInteger;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.MemorySellItem;
-import org.by1337.bauction.db.MemoryUser;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
-import org.by1337.bauction.menu.MenuFactory;
 import org.by1337.bauction.util.NumberUtil;
 
 import java.util.Optional;
@@ -20,14 +18,14 @@ import java.util.Optional;
 public class BuyCountMenu extends Menu {
 
     private final Command command;
-    private final MemoryUser user;
+    private final User user;
 
     private int count = 1;
-    private final MemorySellItem item;
+    private final SellItem item;
     private final CustomItemStack customItemStack;
     private final CallBack<Optional<Integer>> callBack;
 
-    public BuyCountMenu(MemoryUser user, MemorySellItem item, CallBack<Optional<Integer>> callBack, Player player) {
+    public BuyCountMenu(User user, SellItem item, CallBack<Optional<Integer>> callBack, Player player) {
         super(Main.getCfg().getMenuManger().getMenuBuyCount(), player);
         this.user = user;
         this.item = item;

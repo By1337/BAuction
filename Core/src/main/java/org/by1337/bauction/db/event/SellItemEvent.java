@@ -1,18 +1,18 @@
 package org.by1337.bauction.db.event;
 
-import org.by1337.bauction.db.MemorySellItem;
-import org.by1337.bauction.db.MemoryUser;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SellItemEvent implements Validatable {
     private boolean valid;
     private String reason = null;
-    private final MemoryUser user;
-    private final MemorySellItem sellItem;
+    private final User user;
+    private final SellItem sellItem;
 
 
-    public SellItemEvent(@NotNull MemoryUser user, @NotNull MemorySellItem sellItem) {
+    public SellItemEvent(@NotNull User user, @NotNull SellItem sellItem) {
         this.user = user;
         this.sellItem = sellItem;
     }
@@ -38,12 +38,12 @@ public class SellItemEvent implements Validatable {
     }
 
     @NotNull
-    public MemoryUser getUser() {
+    public User getUser() {
         return user;
     }
 
     @NotNull
-    public MemorySellItem getSellItem() {
+    public SellItem getSellItem() {
         return sellItem;
     }
 }

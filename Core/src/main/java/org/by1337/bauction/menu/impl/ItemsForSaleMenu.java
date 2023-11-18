@@ -5,16 +5,12 @@ import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
 import org.by1337.api.command.argument.ArgumentString;
-import org.by1337.api.util.CyclicList;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeItemProcess;
-import org.by1337.bauction.db.MemorySellItem;
-import org.by1337.bauction.db.MemoryUser;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
-import org.by1337.bauction.menu.MenuSetting;
-import org.by1337.bauction.util.Category;
-import org.by1337.bauction.util.Sorting;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -27,10 +23,10 @@ public class ItemsForSaleMenu extends Menu {
     private final List<Integer> slots;
 
     private final Command command;
-    private final MemoryUser user;
+    private final User user;
     private final Menu previous;
 
-    public ItemsForSaleMenu(Player player, MemoryUser user, @Nullable Menu previous) {
+    public ItemsForSaleMenu(Player player, User user, @Nullable Menu previous) {
         super(Main.getCfg().getMenuManger().getItemsForSaleMenu(), player);
         this.user = user;
         this.previous = previous;
@@ -68,20 +64,20 @@ public class ItemsForSaleMenu extends Menu {
                             String uuidS = (String) args.getOrThrow("uuid");
                             UUID uuid = UUID.fromString(uuidS);
 
-                            if (!Main.getStorage().hasMemorySellItem(uuid)) {
+                            if (!Main.getStorage().hasSellItem(uuid)) {
                                 Main.getMessage().sendMsg(player, "&cПредмет уже продан или снят с продажи!");
                                 sellItems = null;
                                 generate0();
                                 return;
                             }
-                            MemorySellItem item = Main.getStorage().getMemorySellItem(uuid);
+                            SellItem item = Main.getStorage().getSellItem(uuid);
                             new TakeItemProcess(item, user, this, player).process();
                         }))
                 )
         ;
     }
 
-    private ArrayList<MemorySellItem> sellItems = null;
+    private ArrayList<SellItem> sellItems = null;
     private int lastPage = -1;
 
 
@@ -91,7 +87,7 @@ public class ItemsForSaleMenu extends Menu {
 
             lastPage = currentPage;
 
-            sellItems = new ArrayList<>(Main.getStorage().getAllItemByUser(user.getUuid()));
+            sellItems = new ArrayList<>(Main.getStorage().getSellItemsByOwner(user.getUuid()));
 
             maxPage = (int) Math.ceil((double) sellItems.size() / slots.size());
 
@@ -107,7 +103,7 @@ public class ItemsForSaleMenu extends Menu {
             Iterator<Integer> slotsIterator = slots.listIterator();
             customItemStacks.clear();
             for (int x = currentPage * slots.size(); x < sellItems.size(); x++) {
-                MemorySellItem item = sellItems.get(x);
+                SellItem item = sellItems.get(x);
 
                 if (slotsIterator.hasNext()) {
                     int slot = slotsIterator.next();

@@ -1,7 +1,7 @@
 package org.by1337.bauction.util;
 
 import org.by1337.api.util.NameKey;
-import org.by1337.bauction.db.MemorySellItem;
+import org.by1337.bauction.db.kernel.SellItem;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
@@ -38,7 +38,7 @@ public record Sorting(SortingType type, String value, String selectedName,
                 '}';
     }
 
-    public Comparator<MemorySellItem> getComparator(){
+    public Comparator<SellItem> getComparator(){
         if (type == Sorting.SortingType.COMPARE_MAX) {
             return  switch (value){
                 case "{price}" -> (item, item1) -> Double.compare(item1.getPrice(), item.getPrice());
@@ -48,10 +48,10 @@ public record Sorting(SortingType type, String value, String selectedName,
             };
         } else {
             return switch (value){
-                case "{price}" -> Comparator.comparingDouble(MemorySellItem::getPrice);
-                case "{price_for_one}" -> Comparator.comparingDouble(MemorySellItem::getPriceForOne);
+                case "{price}" -> Comparator.comparingDouble(SellItem::getPrice);
+                case "{price_for_one}" -> Comparator.comparingDouble(SellItem::getPriceForOne);
                 case "{sale_time}" ->
-                        Comparator.comparingDouble((MemorySellItem item) -> (double) item.getTimeListedForSale() / 1000);
+                        Comparator.comparingDouble((SellItem item) -> (double) item.getTimeListedForSale() / 1000);
                 default -> throw new IllegalArgumentException("unknown sorting type: " + this);
             };
         }

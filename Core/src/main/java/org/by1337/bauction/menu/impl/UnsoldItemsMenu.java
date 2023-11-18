@@ -7,8 +7,8 @@ import org.by1337.api.command.CommandException;
 import org.by1337.api.command.argument.ArgumentString;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeUnsoldItemProcess;
-import org.by1337.bauction.db.MemoryUnsoldItem;
-import org.by1337.bauction.db.MemoryUser;
+import org.by1337.bauction.db.kernel.UnsoldItem;
+import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
 
@@ -23,11 +23,11 @@ public class UnsoldItemsMenu extends Menu {
     private final List<Integer> slots;
 
     private final Command command;
-    private final MemoryUser user;
+    private final User user;
     private final Menu previous;
 
 
-    public UnsoldItemsMenu(Player player, MemoryUser user, @Nullable Menu previous) {
+    public UnsoldItemsMenu(Player player, User user, @Nullable Menu previous) {
         super(Main.getCfg().getMenuManger().getUnsoldItems(), player);
         this.user = user;
         this.previous = previous;
@@ -65,7 +65,7 @@ public class UnsoldItemsMenu extends Menu {
                             String uuidS = (String) args.getOrThrow("uuid");
                             UUID uuid = UUID.fromString(uuidS);
 
-                            MemoryUnsoldItem unsoldItem = unsoldItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
+                            UnsoldItem unsoldItem = unsoldItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
 
                             if (unsoldItem == null) {
                                 Main.getMessage().sendMsg(player, "&cКажется этого предмета больше не существует");
@@ -79,7 +79,7 @@ public class UnsoldItemsMenu extends Menu {
         ;
     }
 
-    private ArrayList<MemoryUnsoldItem> unsoldItems = null;
+    private ArrayList<UnsoldItem> unsoldItems = null;
     private int lastPage = -1;
 
     @Override
@@ -88,7 +88,7 @@ public class UnsoldItemsMenu extends Menu {
 
             lastPage = currentPage;
 
-            unsoldItems = new ArrayList<>(Main.getStorage().getAllUnsoldItemsByUser(user.getUuid()));
+            unsoldItems = new ArrayList<>(Main.getStorage().getUnsoldItemsByOwner(user.getUuid()));
 
             maxPage = (int) Math.ceil((double) unsoldItems.size() / slots.size());
 
@@ -104,16 +104,16 @@ public class UnsoldItemsMenu extends Menu {
             Iterator<Integer> slotsIterator = slots.listIterator();
             customItemStacks.clear();
             for (int x = currentPage * slots.size(); x < unsoldItems.size(); x++) {
-                MemoryUnsoldItem item = unsoldItems.get(x);
+                UnsoldItem item = unsoldItems.get(x);
 
                 if (slotsIterator.hasNext()) {
                     int slot = slotsIterator.next();
                     CustomItemStack customItemStack;
                     customItemStack = Main.getCfg().getConfig().getAs("unsold-item", CustomItemStack.class);
-                    customItemStack.setItemStack(item.getItem());
+                    customItemStack.setItemStack(item.getItemStack());
                     customItemStack.setSlots(new int[]{slot});
                     customItemStack.registerPlaceholder(item);
-                    customItemStack.setAmount(item.getItem().getAmount());
+                    customItemStack.setAmount(item.getItemStack().getAmount());
                     customItemStacks.add(customItemStack);
                 }
             }

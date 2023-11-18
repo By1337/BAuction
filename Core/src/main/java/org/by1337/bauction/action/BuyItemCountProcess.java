@@ -5,8 +5,8 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.MemorySellItem;
-import org.by1337.bauction.db.MemoryUser;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.db.event.BuyItemCountEvent;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.impl.BuyCountMenu;
@@ -19,13 +19,13 @@ import java.util.Optional;
 
 public class BuyItemCountProcess {
 
-    private final MemorySellItem buyingItem;
-    private final MemoryUser buyer;
+    private final SellItem buyingItem;
+    private final User buyer;
     private final Player player;
     private final Menu menu;
 
 
-    public BuyItemCountProcess(@NotNull MemorySellItem buyingItem, @NotNull MemoryUser buyer, Player player, Menu menu) {
+    public BuyItemCountProcess(@NotNull SellItem buyingItem, @NotNull User buyer, Player player, Menu menu) {
         this.buyingItem = buyingItem;
         this.buyer = buyer;
         this.player = player;

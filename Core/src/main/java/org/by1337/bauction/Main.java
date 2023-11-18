@@ -20,8 +20,9 @@ import org.by1337.api.configuration.adapter.impl.primitive.AdapterEnum;
 import org.by1337.bauction.booost.Boost;
 import org.by1337.bauction.config.Config;
 import org.by1337.bauction.config.adapter.*;
-import org.by1337.bauction.db.MemorySellItem;
-import org.by1337.bauction.db.MemoryUser;
+import org.by1337.bauction.db.kernel.JsonDBCoreV2;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.db.DataBase;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.impl.MainMenu;
@@ -39,7 +40,7 @@ public final class Main extends JavaPlugin {
     private static Message message;
     private static Plugin instance;
     private static Config cfg;
-    private static DataBase storage;
+    private static JsonDBCoreV2 storage;
     private Command command;
     private static Economy econ;
     private TrieManager trieManager;
@@ -74,7 +75,7 @@ public final class Main extends JavaPlugin {
 
         new Thread(() -> {
             TimeCounter timeCounter = new TimeCounter();
-            storage = new DataBase(cfg.getCategoryMap(), cfg.getSortingMap());
+            storage = new JsonDBCoreV2(cfg.getCategoryMap(), cfg.getSortingMap());
             message.logger("Успешно загружено %s предметов за %s мс.", storage.getItemsSize(), timeCounter.getTime());
             getCommand("bauc").setTabCompleter(this::onTabComplete0);
             getCommand("bauc").setExecutor(this::onCommand0);
@@ -113,7 +114,7 @@ public final class Main extends JavaPlugin {
         return cfg;
     }
 
-    public static DataBase getStorage() {
+    public static JsonDBCoreV2 getStorage() {
         return storage;
     }
 
@@ -185,10 +186,10 @@ public final class Main extends JavaPlugin {
                                             }
                                             TimeCounter timeCounter = new TimeCounter();
                                             Random random = new Random();
-                                            MemoryUser user = storage.getMemoryUserOrCreate(player);
+                                            User user = storage.getUserOrCreate(player);
                                             long time = NumberUtil.getTime(((String) args.getOrDefault("time", cfg.getDefaultSellTime() + user.getExternalSellTime())));
                                             for (int i = 0; i < amount; i++) {
-                                                MemorySellItem sellItem = new MemorySellItem(player, itemStack, price + random.nextInt(price / 2), time);
+                                                SellItem sellItem = new SellItem(player, itemStack, price + random.nextInt(price / 2), time);
                                                 SellItemEvent event = new SellItemEvent(user, sellItem);
                                                 storage.validateAndAddItem(event);
                                                 if (!event.isValid()) {
@@ -216,9 +217,9 @@ public final class Main extends JavaPlugin {
                                 throw new CommandException("&cВы не можете торговать воздухом!");
                             }
 
-                            MemoryUser user = storage.getMemoryUserOrCreate(player);
+                            User user = storage.getUserOrCreate(player);
 
-                            MemorySellItem sellItem = new MemorySellItem(player, itemStack, price, cfg.getDefaultSellTime() + user.getExternalSellTime(), full);
+                            SellItem sellItem = new SellItem(player, itemStack, price, cfg.getDefaultSellTime() + user.getExternalSellTime(), full);
                             SellItemEvent event = new SellItemEvent(user, sellItem);
                             storage.validateAndAddItem(event);
                             if (event.isValid()) {
@@ -243,7 +244,7 @@ public final class Main extends JavaPlugin {
                             Category custom = cfg.getSorting().getAs("special.search", Category.class);
                             custom.setTags(new HashSet<>(tags));
 
-                            MemoryUser user = storage.getMemoryUserOrCreate(player);
+                            User user = storage.getUserOrCreate(player);
 
                             MainMenu menu = new MainMenu(user, player);
                             menu.setCustomCategory(custom);
@@ -253,7 +254,7 @@ public final class Main extends JavaPlugin {
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))
                         throw new CommandException("Вы должны быть игроком!");
-                    MemoryUser user = storage.getMemoryUserOrCreate(player);
+                    User user = storage.getUserOrCreate(player);
                     MainMenu menu = new MainMenu(user, player);
                     menu.open();
                 }))
