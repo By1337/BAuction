@@ -2,6 +2,7 @@ package org.by1337.bauction.db.kernel;
 
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.util.TimeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -14,8 +15,8 @@ public class User implements Placeholderable {
     final UUID uuid;
     List<UUID> unsoldItems = new ArrayList<>();
     List<UUID> itemForSale = new ArrayList<>();
-    int dealCount;
-    double dealSum;
+    volatile int dealCount;
+    volatile double dealSum;
     private volatile int externalSlots = 0;
     private volatile long externalSellTime = 0L;
 
@@ -96,6 +97,10 @@ public class User implements Placeholderable {
                 sb.replace(sb.indexOf("{deal_sum}"), sb.indexOf("{deal_sum}") + "{deal_sum}".length(), String.valueOf(dealSum));
                 continue;
             }
+            if (sb.indexOf("{nick_name}") != -1) {
+                sb.replace(sb.indexOf("{nick_name}"), sb.indexOf("{nick_name}") + "{nick_name}".length(), nickName);
+                continue;
+            }
             if (sb.indexOf("{deal_count}") != -1) {
                 sb.replace(sb.indexOf("{deal_count}"), sb.indexOf("{deal_count}") + "{deal_count}".length(), String.valueOf(dealCount));
                 continue;
@@ -114,6 +119,10 @@ public class User implements Placeholderable {
             }
             if (sb.indexOf("{slots_count}") != -1) {
                 sb.replace(sb.indexOf("{slots_count}"), sb.indexOf("{slots_count}") + "{slots_count}".length(), String.valueOf(Main.getCfg().getMaxSlots() + externalSlots));
+                continue;
+            }
+            if (sb.indexOf("{external_sell_time}") != -1) {
+                sb.replace(sb.indexOf("{external_sell_time}"), sb.indexOf("{external_sell_time}") + "{external_sell_time}".length(), Main.getTimeUtil().getFormat(externalSellTime, false));
                 continue;
             }
             break;

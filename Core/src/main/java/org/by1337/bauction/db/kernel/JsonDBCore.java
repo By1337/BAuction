@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.by1337.api.util.NameKey;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.booost.BoostManager;
 import org.by1337.bauction.db.*;
 import org.by1337.bauction.db.event.*;
 import org.by1337.bauction.lang.Lang;
@@ -145,7 +146,6 @@ public class JsonDBCore implements DBCore {
     public void validateAndAddItem(SellItemEvent event) {
         try {
             User user = getUser(event.getUser().getUuid());
-            Main.getCfg().getBoostManager().userUpdate(user);
 
             SellItem sellItem = event.getSellItem();
 
@@ -155,6 +155,7 @@ public class JsonDBCore implements DBCore {
                 return;
             }
             addItem(sellItem, user.getUuid());
+            user.dealCount++;
             event.setValid(true);
         } catch (Exception e) {
             Main.getMessage().error(e);
@@ -163,15 +164,15 @@ public class JsonDBCore implements DBCore {
         }
     }
 
-    public void addItem(SellItem sellItem, Player player) {
-        writeLock(() -> {
-            if (!hasUser(player.getUniqueId())) {
-                createNewAndSave(player.getUniqueId(), player.getName());
-            }
-            addItem(sellItem, player.getUniqueId());
-            return null;
-        });
-    }
+//    public void addItem(SellItem sellItem, Player player) {
+//        writeLock(() -> {
+//            if (!hasUser(player.getUniqueId())) {
+//                createNewAndSave(player.getUniqueId(), player.getName());
+//            }
+//            addItem(sellItem, player.getUniqueId());
+//            return null;
+//        });
+//    }
 
     public void validateAndRemoveItem(TakeItemEvent event) {
         User user = event.getUser();
@@ -241,6 +242,11 @@ public class JsonDBCore implements DBCore {
 
         try {
             tryRemoveItem(sellItem.getUuid());
+            User owner = getUser(sellItem.sellerUuid);
+            owner.dealSum += sellItem.price;
+            owner.dealCount++;
+            user.dealCount++;
+            user.dealSum += sellItem.price;
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
@@ -274,7 +280,11 @@ public class JsonDBCore implements DBCore {
                 return;
             }
             tryRemoveItem(sellItem.getUuid());
-
+            buyer.dealCount++;
+            buyer.dealSum += updated.priceForOne * event.getCount();
+            User owner = getUser(updated.sellerUuid);
+            owner.dealCount++;
+            owner.dealSum += updated.priceForOne * event.getCount();
             int newCount = updated.getAmount() - event.getCount();
 
             if (newCount != 0) {
@@ -412,7 +422,7 @@ public class JsonDBCore implements DBCore {
 
     @Override
     public User getUser(UUID uuid) {
-        return readLock(() -> users.get(uuid));
+        return readLock(() -> Main.getCfg().getBoostManager().userUpdate(users.get(uuid)));
     }
 
     @Override

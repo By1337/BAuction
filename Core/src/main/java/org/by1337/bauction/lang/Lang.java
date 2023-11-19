@@ -50,6 +50,7 @@ public class Lang {
         messages.put("price_not_specified", context.getAsString("price_not_specified"));
         messages.put("insufficient_balance_for_purchase", context.getAsString("insufficient_balance_for_purchase"));
         messages.put("item_no_longer_exists", context.getAsString("item_no_longer_exists"));
+        messages.put("has_no_external_time", context.getAsString("has_no_external_time"));
 
         messages.putAll(context.getMap("items", String.class));
     }

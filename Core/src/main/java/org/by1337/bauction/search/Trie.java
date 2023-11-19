@@ -27,6 +27,7 @@ public class Trie {
     public List<String> getAllWithPrefix(String prefix) {
         List<String> results = new ArrayList<>();
         TrieNode node = getNodeByPrefix(prefix);
+        if (node == null) return List.of(prefix);
         getAllWithPrefixHelper(node, results);
         return results;
     }

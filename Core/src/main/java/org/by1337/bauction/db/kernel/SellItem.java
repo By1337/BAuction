@@ -226,6 +226,10 @@ public class SellItem implements Placeholderable {
                 sb.replace(sb.indexOf("{material}"), sb.indexOf("{material}") + "{material}".length(), String.valueOf(material));
                 continue;
             }
+            if (sb.indexOf("{amount}") != -1) {
+                sb.replace(sb.indexOf("{amount}"), sb.indexOf("{amount}") + "{amount}".length(), String.valueOf(amount));
+                continue;
+            }
             if (sb.indexOf("{id}") != -1) {
                 sb.replace(sb.indexOf("{id}"), sb.indexOf("{id}") + "{id}".length(), String.valueOf(uuid));
                 continue;

@@ -25,7 +25,7 @@ something_went_wrong: "&cЧто-то пошло не так!"
 price_not_specified: "&cВы должны указать цену!"
 insufficient_balance_for_purchase: "&cУ Вас не хватает баланса для покупки хотя бы одного предмета!"
 item_no_longer_exists: "&cКажется этого предмета больше не существует"
-
+has_no_external_time: 'нету'
 time-format:
   ago: 'назад'
   in: 'через'

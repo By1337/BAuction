@@ -26,8 +26,11 @@ public class TimeUtil {
             }
         }
     }
-
     public String getFormat(long time) {
+        return getFormat(time, true);
+    }
+
+    public String getFormat(long time, boolean prefix) {
         long currentTimeMillis = System.currentTimeMillis();
         long timeDifferenceMillis = currentTimeMillis - time;
         timeDifferenceMillis = timeDifferenceMillis < 0 ? -timeDifferenceMillis : timeDifferenceMillis;
@@ -46,8 +49,8 @@ public class TimeUtil {
             days %= 30;
             months %= 12;
             String formattedTime = formatTime(years, months, days, hours, minutes, seconds);
+            if (!prefix) return formattedTime;
             if (time < currentTimeMillis) {
-
                 return formattedTime + " " + map.get("time-format.ago");
             } else {
                 return map.get("time-format.in") + " " + formattedTime;

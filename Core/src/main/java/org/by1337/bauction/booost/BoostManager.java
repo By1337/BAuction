@@ -9,7 +9,7 @@ import org.by1337.bauction.db.kernel.User;
 import java.util.List;
 
 public class BoostManager {
-    private List<Boost> boosts;
+    private final List<Boost> boosts;
 
     public BoostManager(YamlContext context) {
         boosts = context.getList("boosts", Boost.class);
@@ -26,11 +26,8 @@ public class BoostManager {
                 sellTime += boost.getExternalSellTime();
             }
         }
-        int finalSlots = slots;
-        long finalSellTime = sellTime;
-
-        user.setExternalSlots(finalSlots);
-        user.setExternalSellTime(finalSellTime);
+        user.setExternalSlots(slots);
+        user.setExternalSellTime(sellTime);
         return user;
     }
 

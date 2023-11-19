@@ -1,6 +1,7 @@
 package org.by1337.bauction;
 
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
@@ -30,6 +31,7 @@ import org.by1337.bauction.menu.impl.MainMenu;
 import org.by1337.bauction.db.event.SellItemEvent;
 import org.by1337.bauction.menu.requirement.IRequirement;
 import org.by1337.bauction.menu.requirement.Requirements;
+import org.by1337.bauction.placeholder.PlaceholderHook;
 import org.by1337.bauction.search.TrieManager;
 import org.by1337.bauction.util.*;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +48,7 @@ public final class Main extends JavaPlugin {
     private static Economy econ;
     private TrieManager trieManager;
     private static TimeUtil timeUtil;
+    private PlaceholderHook placeholderHook;
 
     // todo /ah admin open <категория>
     @Override
@@ -90,6 +93,8 @@ public final class Main extends JavaPlugin {
         new Metrics(this, 20300);
         trieManager = new TrieManager(this);
         TagUtil.loadAliases(this);
+        placeholderHook = new PlaceholderHook();
+        placeholderHook.register();
     }
 
     @Override
@@ -104,6 +109,7 @@ public final class Main extends JavaPlugin {
         AdapterRegistry.unregisterAdapter(CustomItemStack.class);
         AdapterRegistry.unregisterAdapter(Boost.class);
         AdapterRegistry.unregisterAdapter(IRequirement.class);
+        placeholderHook.unregister();
     }
 
     public static Message getMessage() {
@@ -214,7 +220,7 @@ public final class Main extends JavaPlugin {
                             if (!(sender instanceof Player player))
                                 throw new CommandException(Lang.getMessages("must_be_player"));
                             int price = (int) args.getOrThrow("price", Lang.getMessages("price_not_specified"));
-                            boolean full = !args.getOrDefault("full", "no").equals("full");
+                            boolean full = !args.getOrDefault("full", "").equals("full");
 
                             ItemStack itemStack = player.getInventory().getItemInMainHand();
                             if (itemStack.getType().isAir()) {
@@ -222,7 +228,6 @@ public final class Main extends JavaPlugin {
                             }
 
                             User user = storage.getUserOrCreate(player);
-
                             SellItem sellItem = new SellItem(player, itemStack, price, cfg.getDefaultSellTime() + user.getExternalSellTime(), full);
                             SellItemEvent event = new SellItemEvent(user, sellItem);
                             storage.validateAndAddItem(event);
