@@ -1,14 +1,16 @@
 package org.by1337.bauction.menu.impl;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
 import org.by1337.api.command.argument.ArgumentInteger;
+import org.by1337.api.command.argument.ArgumentStrings;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.CSellItem;
+import org.by1337.bauction.db.kernel.СUser;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
@@ -19,14 +21,14 @@ import java.util.Optional;
 public class BuyCountMenu extends Menu {
 
     private final Command command;
-    private final User user;
+    private final СUser user;
 
     private int count = 1;
-    private final SellItem item;
+    private final CSellItem item;
     private final CustomItemStack customItemStack;
     private final CallBack<Optional<Integer>> callBack;
 
-    public BuyCountMenu(User user, SellItem item, CallBack<Optional<Integer>> callBack, Player player) {
+    public BuyCountMenu(СUser user, CSellItem item, CallBack<Optional<Integer>> callBack, Player player) {
         super(Main.getCfg().getMenuManger().getMenuBuyCount(), player);
         this.user = user;
         this.item = item;
@@ -40,6 +42,20 @@ public class BuyCountMenu extends Menu {
         registerPlaceholderable(item);
 
         command = new Command("")
+                .addSubCommand(new Command("[CONSOLE]")
+                        .argument(new ArgumentStrings("cmd"))
+                        .executor(((sender, args) -> {
+                            String cmd = (String) args.getOrThrow("cmd");
+                            Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                        }))
+                )
+                .addSubCommand(new Command("[PLAYER]")
+                        .argument(new ArgumentStrings("cmd"))
+                        .executor(((sender, args) -> {
+                            String cmd = (String) args.getOrThrow("cmd");
+                            viewer.performCommand(cmd);
+                        }))
+                )
                 .addSubCommand(new Command("[ADD]")
                         .argument(new ArgumentInteger("count"))
                         .executor((sender, args) -> {

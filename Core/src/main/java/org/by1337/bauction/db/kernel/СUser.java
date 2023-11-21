@@ -2,15 +2,14 @@ package org.by1337.bauction.db.kernel;
 
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.util.TimeUtil;
+import org.by1337.bauction.auc.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-public class User implements Placeholderable {
+public class СUser implements User {
     final String nickName;
     final UUID uuid;
     List<UUID> unsoldItems = new ArrayList<>();
@@ -21,7 +20,7 @@ public class User implements Placeholderable {
     private long externalSellTime = 0L;
 
 
-    public User(String nickName, UUID uuid, List<UUID> unsoldItems, List<UUID> itemForSale, int dealCount, double dealSum) {
+    public СUser(String nickName, UUID uuid, List<UUID> unsoldItems, List<UUID> itemForSale, int dealCount, double dealSum) {
         this.nickName = nickName;
         this.uuid = uuid;
         this.unsoldItems = unsoldItems;
@@ -30,7 +29,7 @@ public class User implements Placeholderable {
         this.dealSum = dealSum;
     }
 
-    public User(@NotNull String nickName, @NotNull UUID uuid) {
+    public СUser(@NotNull String nickName, @NotNull UUID uuid) {
         this.nickName = nickName;
         this.uuid = uuid;
     }
@@ -45,7 +44,7 @@ public class User implements Placeholderable {
 
     @Override
     public String toString() {
-        return "User{" +
+        return "СUser{" +
                 "nickName='" + nickName + '\'' +
                 ", uuid=" + uuid +
                 ", unsoldItemImpls=" + unsoldItems +

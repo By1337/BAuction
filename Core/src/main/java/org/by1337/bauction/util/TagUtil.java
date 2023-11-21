@@ -10,7 +10,7 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.by1337.api.configuration.YamlContext;
-import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.CSellItem;
 import org.by1337.bauc.util.ParsePDCTagsMagager;
 import org.jetbrains.annotations.NotNull;
 
@@ -88,7 +88,7 @@ public class TagUtil {
         return list;
     }
 
-    public static boolean matchesCategory(Category category, SellItem sellItem) {
+    public static boolean matchesCategory(Category category, CSellItem sellItem) {
         if (category.tags().contains("any")) return true;
         for (String s : sellItem.getTags()) {
             if (category.tags().contains(s))

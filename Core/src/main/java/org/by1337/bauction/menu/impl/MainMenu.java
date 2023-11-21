@@ -1,16 +1,18 @@
 package org.by1337.bauction.menu.impl;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
 import org.by1337.api.command.argument.ArgumentSetList;
 import org.by1337.api.command.argument.ArgumentString;
+import org.by1337.api.command.argument.ArgumentStrings;
 import org.by1337.api.util.CyclicList;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeItemProcess;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.CSellItem;
+import org.by1337.bauction.db.kernel.СUser;
 
 import org.by1337.bauction.action.BuyItemCountProcess;
 import org.by1337.bauction.action.BuyItemProcess;
@@ -35,10 +37,10 @@ public class MainMenu extends Menu {
     private List<Integer> slots;
 
     private final Command command;
-    private User user;
+    private СUser user;
 
 
-    public MainMenu(User user, Player player) {
+    public MainMenu(СUser user, Player player) {
         super(Main.getCfg().getMenuManger().getMainMenu(), player);
         this.user = user;
         //registerPlaceholderable(user);
@@ -51,6 +53,20 @@ public class MainMenu extends Menu {
 
         command = new Command("menu-commands")
                 //<editor-fold desc="commands" defaultstate="collapsed">
+                .addSubCommand(new Command("[CONSOLE]")
+                        .argument(new ArgumentStrings("cmd"))
+                        .executor(((sender, args) -> {
+                            String cmd = (String) args.getOrThrow("cmd");
+                            Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                        }))
+                )
+                .addSubCommand(new Command("[PLAYER]")
+                        .argument(new ArgumentStrings("cmd"))
+                        .executor(((sender, args) -> {
+                            String cmd = (String) args.getOrThrow("cmd");
+                            viewer.performCommand(cmd);
+                        }))
+                )
                 .addSubCommand(new Command("[OPEN_MENU]")
                         .argument(new ArgumentString("menu"))
                         .executor(((sender, args) -> {
@@ -129,7 +145,7 @@ public class MainMenu extends Menu {
                                 generate0();
                                 return;
                             }
-                            SellItem item = Main.getStorage().getSellItem(uuid);
+                            CSellItem item = Main.getStorage().getSellItem(uuid);
 
                             if (Main.getEcon().getBalance(getPlayer()) < item.getPrice()) {
                                 Main.getMessage().sendMsg(getPlayer(), Lang.getMessages("insufficient_balance"));
@@ -155,7 +171,7 @@ public class MainMenu extends Menu {
                                 generate0();
                                 return;
                             }
-                            SellItem item = Main.getStorage().getSellItem(uuid);
+                            CSellItem item = Main.getStorage().getSellItem(uuid);
 
                             if (Main.getEcon().getBalance(getPlayer()) < item.getPriceForOne()) {
                                 Main.getMessage().sendMsg(getPlayer(), Lang.getMessages("insufficient_balance_for_purchase"));
@@ -180,7 +196,7 @@ public class MainMenu extends Menu {
                                 generate0();
                                 return;
                             }
-                            SellItem item = Main.getStorage().getSellItem(uuid);
+                            CSellItem item = Main.getStorage().getSellItem(uuid);
                             new TakeItemProcess(item, user, this, player, fast).process();
                         }))
                 )
@@ -189,7 +205,7 @@ public class MainMenu extends Menu {
 
     }
 
-    private ArrayList<SellItem> sellItems = null;
+    private ArrayList<CSellItem> sellItems = null;
     private Category lastCategory = null;
     private Sorting lastSorting = null;
     private int lastPage = -1;
@@ -204,7 +220,7 @@ public class MainMenu extends Menu {
 
             if (lastCategory == custom && (sortChanged || sellItems == null || sellItems.isEmpty())){
                 sellItems = new ArrayList<>();
-                for (SellItem item : Main.getStorage().getAllItems()) {
+                for (CSellItem item : Main.getStorage().getAllItems()) {
                     if (TagUtil.matchesCategory(custom, item)){
                         sellItems.add(item);
                     }
@@ -228,7 +244,7 @@ public class MainMenu extends Menu {
             Iterator<Integer> slotsIterator = slots.listIterator();
             customItemStacks.clear();
             for (int x = currentPage * slots.size(); x < sellItems.size(); x++) {
-                SellItem item = sellItems.get(x);
+                CSellItem item = sellItems.get(x);
 
                 if (slotsIterator.hasNext()) {
                     int slot = slotsIterator.next();

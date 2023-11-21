@@ -5,31 +5,30 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.CSellItem;
 
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.СUser;
 import org.by1337.bauction.db.event.BuyItemEvent;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.impl.CallBack;
 import org.by1337.bauction.menu.impl.ConfirmMenu;
-import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.PlayerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
 public class BuyItemProcess implements Placeholderable {
-    private final SellItem buyingItem;
-    private final User buyer;
+    private final CSellItem buyingItem;
+    private final СUser buyer;
     private final Menu menu;
     private final Player player;
     private final boolean fast;
 
-    public BuyItemProcess(@NotNull SellItem buyingItem, @NotNull User buyer, Menu menu, Player player) {
+    public BuyItemProcess(@NotNull CSellItem buyingItem, @NotNull СUser buyer, Menu menu, Player player) {
         this(buyingItem, buyer, menu,player, false);
     }
-    public BuyItemProcess(@NotNull SellItem buyingItem, @NotNull User buyer, Menu menu, Player player, boolean fast) {
+    public BuyItemProcess(@NotNull CSellItem buyingItem, @NotNull СUser buyer, Menu menu, Player player, boolean fast) {
         this.buyingItem = buyingItem;
         this.buyer = buyer;
         this.menu = menu;

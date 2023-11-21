@@ -5,40 +5,41 @@ import org.bukkit.inventory.ItemStack;
 import org.by1337.api.BLib;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.auc.UnsoldItem;
 import org.by1337.bauction.lang.Lang;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 @Builder
-public class UnsoldItem implements Placeholderable {
+public class CUnsoldItem implements UnsoldItem {
     final String item;
     final long expired;
-    final UUID owner;
+    final UUID sellerUuid;
     final UUID uuid;
     final long deleteVia;
     private transient ItemStack itemStack;
 
-    public UnsoldItem(String item, long expired, UUID owner, UUID uuid, long deleteVia) {
+    public CUnsoldItem(String item, long expired, UUID sellerUuid, UUID uuid, long deleteVia) {
         this.item = item;
         this.expired = expired;
-        this.owner = owner;
+        this.sellerUuid = sellerUuid;
         this.uuid = uuid;
         this.deleteVia = deleteVia;
     }
 
-    public UnsoldItem(String item, long expired, UUID owner, UUID uuid, long deleteVia, ItemStack itemStack) {
+    public CUnsoldItem(String item, long expired, UUID sellerUuid, UUID uuid, long deleteVia, ItemStack itemStack) {
         this.item = item;
         this.expired = expired;
-        this.owner = owner;
+        this.sellerUuid = sellerUuid;
         this.uuid = uuid;
         this.deleteVia = deleteVia;
         this.itemStack = itemStack;
     }
 
-    public  UnsoldItem(@NotNull String item, @NotNull UUID owner, long expired, long deleteVia) {
+    public CUnsoldItem(@NotNull String item, @NotNull UUID sellerUuid, long expired, long deleteVia) {
         this.item = item;
         this.expired = expired;
-        this.owner = owner;
+        this.sellerUuid = sellerUuid;
         this.deleteVia = deleteVia;
         uuid = UUID.randomUUID();
     }
@@ -58,8 +59,8 @@ public class UnsoldItem implements Placeholderable {
         return expired;
     }
 
-    public UUID getOwner() {
-        return owner;
+    public UUID getSellerUuid() {
+        return sellerUuid;
     }
 
     public UUID getUuid() {

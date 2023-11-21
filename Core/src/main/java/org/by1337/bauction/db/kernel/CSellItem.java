@@ -7,6 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.by1337.api.BLib;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.auc.SellItem;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.TagUtil;
@@ -15,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 @Builder
-public class SellItem implements Placeholderable {
+public class CSellItem implements SellItem {
     final String item;
     final String sellerName;
     final UUID sellerUuid;
@@ -31,7 +32,7 @@ public class SellItem implements Placeholderable {
     final Set<String> sellFor = new HashSet<>();
     private transient ItemStack itemStack;
 
-    public SellItem(String item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, UUID uuid, Material material, int amount, double priceForOne, ItemStack itemStack) {
+    public CSellItem(String item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, UUID uuid, Material material, int amount, double priceForOne, ItemStack itemStack) {
         this.item = item;
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
@@ -47,10 +48,10 @@ public class SellItem implements Placeholderable {
         this.itemStack = itemStack;
     }
 
-    public SellItem(String item, String sellerName, UUID sellerUuid,
-                    double price, boolean saleByThePiece, Set<String> tags,
-                    long timeListedForSale, long removalDate, UUID uuid, Material material,
-                    int amount, double priceForOne) {
+    public CSellItem(String item, String sellerName, UUID sellerUuid,
+                     double price, boolean saleByThePiece, Set<String> tags,
+                     long timeListedForSale, long removalDate, UUID uuid, Material material,
+                     int amount, double priceForOne) {
         this.item = item;
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
@@ -65,7 +66,7 @@ public class SellItem implements Placeholderable {
         this.priceForOne = priceForOne;
     }
 
-    public SellItem(@NotNull String item, @NotNull String sellerName, @NotNull UUID sellerUuid, double price, boolean saleByThePiece, @NotNull Set<String> tags, long saleDuration, @NotNull Material material, int amount) {
+    public CSellItem(@NotNull String item, @NotNull String sellerName, @NotNull UUID sellerUuid, double price, boolean saleByThePiece, @NotNull Set<String> tags, long saleDuration, @NotNull Material material, int amount) {
         this.item = item;
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
@@ -80,11 +81,11 @@ public class SellItem implements Placeholderable {
         priceForOne = price / amount;
     }
 
-    public SellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration) {
+    public CSellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration) {
         this(seller, itemStack, price, saleDuration, true);
     }
 
-    public SellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
+    public CSellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
         item = BLib.getApi().getItemStackSerialize().serialize(itemStack);
         sellerName = seller.getName();
         sellerUuid = seller.getUniqueId();
@@ -99,8 +100,8 @@ public class SellItem implements Placeholderable {
         priceForOne = saleByThePiece ? price / amount : price;
     }
 
-    static SellItem parse(SellItem item) {
-        return new SellItem(
+    static CSellItem parse(CSellItem item) {
+        return new CSellItem(
                 BLib.getApi().getItemStackSerialize().serialize(item.getItemStack()),
                 item.getSellerName(),
                 item.getSellerUuid(),
@@ -113,11 +114,11 @@ public class SellItem implements Placeholderable {
                 item.getMaterial(),
                 item.getAmount(),
                 item.getPriceForOne()
-                );
+        );
     }
 
     public ItemStack getItemStack() {
-        if (itemStack == null){
+        if (itemStack == null) {
             itemStack = BLib.getApi().getItemStackSerialize().deserialize(item);
         }
         return itemStack;
@@ -171,13 +172,13 @@ public class SellItem implements Placeholderable {
         return priceForOne;
     }
 
-    public Set<String> getSellFor() {
-        return sellFor;
-    }
+//    public Set<String> getSellFor() {
+//        return sellFor;
+//    }
 
     @Override
     public String toString() {
-        return "SellItem{" +
+        return "CSellItem{" +
                 "item='" + item + '\'' +
                 ", sellerName='" + sellerName + '\'' +
                 ", sellerUuid=" + sellerUuid +

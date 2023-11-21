@@ -1,9 +1,7 @@
 package org.by1337.bauction;
 
 import net.milkbowl.vault.economy.Economy;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemFlag;
@@ -23,9 +21,9 @@ import org.by1337.bauction.booost.Boost;
 import org.by1337.bauction.config.Config;
 import org.by1337.bauction.config.adapter.*;
 import org.by1337.bauction.datafix.UpdateManager;
+import org.by1337.bauction.db.kernel.CSellItem;
 import org.by1337.bauction.db.kernel.JsonDBCore;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.СUser;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.impl.MainMenu;
@@ -197,10 +195,10 @@ public final class Main extends JavaPlugin {
                                             }
                                             TimeCounter timeCounter = new TimeCounter();
                                             Random random = new Random();
-                                            User user = storage.getUserOrCreate(player);
+                                            СUser user = storage.getUserOrCreate(player);
                                             long time = NumberUtil.getTime(((String) args.getOrDefault("time", "2d")));
                                             for (int i = 0; i < amount; i++) {
-                                                SellItem sellItem = new SellItem(player, itemStack, price + random.nextInt(price / 2), time);
+                                                CSellItem sellItem = new CSellItem(player, itemStack, price + random.nextInt(price / 2), time);
                                                 SellItemEvent event = new SellItemEvent(user, sellItem);
                                                 storage.validateAndAddItem(event);
                                                 if (!event.isValid()) {
@@ -255,8 +253,8 @@ public final class Main extends JavaPlugin {
                                 }
                             }
 
-                            User user = storage.getUserOrCreate(player);
-                            SellItem sellItem = new SellItem(player, itemStack, price, cfg.getDefaultSellTime() + user.getExternalSellTime(), full);
+                            СUser user = storage.getUserOrCreate(player);
+                            CSellItem sellItem = new CSellItem(player, itemStack, price, cfg.getDefaultSellTime() + user.getExternalSellTime(), full);
                             SellItemEvent event = new SellItemEvent(user, sellItem);
                             storage.validateAndAddItem(event);
                             if (event.isValid()) {
@@ -281,7 +279,7 @@ public final class Main extends JavaPlugin {
                             Category custom = cfg.getSorting().getAs("special.search", Category.class);
                             custom.setTags(new HashSet<>(tags));
 
-                            User user = storage.getUserOrCreate(player);
+                            СUser user = storage.getUserOrCreate(player);
 
                             MainMenu menu = new MainMenu(user, player);
                             menu.setCustomCategory(custom);
@@ -291,7 +289,7 @@ public final class Main extends JavaPlugin {
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))
                         throw new CommandException(Lang.getMessages("must_be_player"));
-                    User user = storage.getUserOrCreate(player);
+                    СUser user = storage.getUserOrCreate(player);
                     MainMenu menu = new MainMenu(user, player);
                     menu.open();
                 }))

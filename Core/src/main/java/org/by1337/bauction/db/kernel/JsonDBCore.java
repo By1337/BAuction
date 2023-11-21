@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.by1337.api.util.NameKey;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.booost.BoostManager;
 import org.by1337.bauction.db.*;
 import org.by1337.bauction.db.event.*;
 import org.by1337.bauction.lang.Lang;
@@ -27,15 +26,15 @@ import java.util.function.Predicate;
 
 public class JsonDBCore implements DBCore {
 
-    private Map<UUID, SellItem> sellItemsMap = new HashMap<>();
-    private Map<UUID, UnsoldItem> unsoldItemsMap = new HashMap<>();
-    private Map<UUID, List<SellItem>> sellItemsByOwner = new HashMap<>();
-    private Map<UUID, List<UnsoldItem>> unsoldItemsByOwner = new HashMap<>();
-    private final Comparator<SellItem> sellItemComparator = Comparator.comparingLong(i -> i.removalDate);
-    private ArrayList<SellItem> sortedSellItems = new ArrayList<>();
-    private final Comparator<UnsoldItem> unsoldItemComparator = Comparator.comparingLong(i -> i.deleteVia);
-    private ArrayList<UnsoldItem> sortedUnsoldItems = new ArrayList<>();
-    private Map<UUID, User> users = new HashMap<>();
+    private Map<UUID, CSellItem> sellItemsMap = new HashMap<>();
+    private Map<UUID, CUnsoldItem> unsoldItemsMap = new HashMap<>();
+    private Map<UUID, List<CSellItem>> sellItemsByOwner = new HashMap<>();
+    private Map<UUID, List<CUnsoldItem>> unsoldItemsByOwner = new HashMap<>();
+    private final Comparator<CSellItem> sellItemComparator = Comparator.comparingLong(i -> i.removalDate);
+    private ArrayList<CSellItem> sortedSellItems = new ArrayList<>();
+    private final Comparator<CUnsoldItem> unsoldItemComparator = Comparator.comparingLong(i -> i.deleteVia);
+    private ArrayList<CUnsoldItem> sortedUnsoldItems = new ArrayList<>();
+    private Map<UUID, СUser> users = new HashMap<>();
     private final StorageMap<NameKey, List<SortingItems>> sortedItems = new StorageMap<>();
 
 
@@ -72,7 +71,7 @@ public class JsonDBCore implements DBCore {
             long time = System.currentTimeMillis();
             try {
                 Long sleep = readLock(() -> {
-                    for (SellItem sellItem : sortedSellItems) {
+                    for (CSellItem sellItem : sortedSellItems) {
                         if (sellItem.removalDate < time) {
                             new Thread(() -> { // new Thread иначе deadlock
                                 expiredItem(sellItem);
@@ -95,7 +94,7 @@ public class JsonDBCore implements DBCore {
                 long time = System.currentTimeMillis();
                 try {
                     Long sleep = readLock(() -> {
-                        for (UnsoldItem unsoldItem : sortedUnsoldItems) {
+                        for (CUnsoldItem unsoldItem : sortedUnsoldItems) {
                             if (unsoldItem.deleteVia < time) {
                                 new Thread(() -> { // new Thread иначе deadlock
                                     writeLock(() -> {
@@ -119,9 +118,9 @@ public class JsonDBCore implements DBCore {
 
     }
 
-    private void expiredItem(SellItem item) {
+    private void expiredItem(CSellItem item) {
         tryRemoveItem(item.uuid);
-        UnsoldItem unsoldItem = new UnsoldItem(item.item, item.sellerUuid, item.removalDate, item.removalDate + removeTime);
+        CUnsoldItem unsoldItem = new CUnsoldItem(item.item, item.sellerUuid, item.removalDate, item.removalDate + removeTime);
         addUnsoldItem(unsoldItem);
     }
 
@@ -129,11 +128,11 @@ public class JsonDBCore implements DBCore {
         return readLock(sortedSellItems::size);
     }
 
-    public List<SellItem> getAllItems() {
+    public List<CSellItem> getAllItems() {
         return readLock(() -> sortedSellItems);
     }
 
-    public User getUserOrCreate(Player player) {
+    public СUser getUserOrCreate(Player player) {
         if (!hasUser(player.getUniqueId())) {
             return createNewAndSave(player.getUniqueId(), player.getName());
         }
@@ -142,9 +141,9 @@ public class JsonDBCore implements DBCore {
 
     public void validateAndAddItem(SellItemEvent event) {
         try {
-            User user = getUser(event.getUser().getUuid());
+            СUser user = getUser(event.getUser().getUuid());
 
-            SellItem sellItem = event.getSellItem();
+            CSellItem sellItem = event.getSellItem();
 
             if (Main.getCfg().getMaxSlots() <= (user.getItemForSale().size() - user.getExternalSlots())) {
                 event.setValid(false);
@@ -161,19 +160,9 @@ public class JsonDBCore implements DBCore {
         }
     }
 
-//    public void addItem(SellItem sellItem, Player player) {
-//        writeLock(() -> {
-//            if (!hasUser(player.getUniqueId())) {
-//                createNewAndSave(player.getUniqueId(), player.getName());
-//            }
-//            addItem(sellItem, player.getUniqueId());
-//            return null;
-//        });
-//    }
-
     public void validateAndRemoveItem(TakeItemEvent event) {
-        User user = event.getUser();
-        SellItem sellItem = event.getSellItem();
+        СUser user = event.getUser();
+        CSellItem sellItem = event.getSellItem();
 
         if (!user.getUuid().equals(sellItem.getSellerUuid())) {
             event.setValid(false);
@@ -199,10 +188,10 @@ public class JsonDBCore implements DBCore {
 
     public void validateAndRemoveItem(TakeUnsoldItemEvent event) {
         try {
-            User user = getUser(event.getUser().getUuid());
-            UnsoldItem unsoldItem = event.getUnsoldItem();
+            СUser user = getUser(event.getUser().getUuid());
+            CUnsoldItem unsoldItem = event.getUnsoldItem();
 
-            if (!user.getUuid().equals(unsoldItem.getOwner())) {
+            if (!user.getUuid().equals(unsoldItem.getSellerUuid())) {
                 event.setValid(false);
                 event.setReason(Lang.getMessages("not_item_owner"));
                 return;
@@ -223,8 +212,8 @@ public class JsonDBCore implements DBCore {
     }
 
     public void validateAndRemoveItem(BuyItemEvent event) {
-        User user = event.getUser();
-        SellItem sellItem = event.getSellItem();
+        СUser user = event.getUser();
+        CSellItem sellItem = event.getSellItem();
 
         if (user.getUuid().equals(sellItem.getSellerUuid())) {
             event.setValid(false);
@@ -239,7 +228,7 @@ public class JsonDBCore implements DBCore {
 
         try {
             tryRemoveItem(sellItem.getUuid());
-            User owner = getUser(sellItem.sellerUuid);
+            СUser owner = getUser(sellItem.sellerUuid);
             owner.dealSum += sellItem.price;
             owner.dealCount++;
             user.dealCount++;
@@ -254,8 +243,8 @@ public class JsonDBCore implements DBCore {
     }
 
     public void validateAndRemoveItem(BuyItemCountEvent event) {
-        User buyer = event.getUser();
-        SellItem sellItem = event.getSellItem();
+        СUser buyer = event.getUser();
+        CSellItem sellItem = event.getSellItem();
 
         if (buyer.getUuid().equals(sellItem.getSellerUuid())) {
             event.setValid(false);
@@ -269,7 +258,7 @@ public class JsonDBCore implements DBCore {
                 event.setReason(Lang.getMessages("item_already_sold_or_removed"));
                 return;
             }
-            SellItem updated = getSellItem(sellItem.getUuid());
+            CSellItem updated = getSellItem(sellItem.getUuid());
 
             if (updated.getAmount() < event.getCount()) {
                 event.setValid(false);
@@ -279,13 +268,13 @@ public class JsonDBCore implements DBCore {
             tryRemoveItem(sellItem.getUuid());
             buyer.dealCount++;
             buyer.dealSum += updated.priceForOne * event.getCount();
-            User owner = getUser(updated.sellerUuid);
+            СUser owner = getUser(updated.sellerUuid);
             owner.dealCount++;
             owner.dealSum += updated.priceForOne * event.getCount();
             int newCount = updated.getAmount() - event.getCount();
 
             if (newCount != 0) {
-                SellItem newItem = SellItem.builder()
+                CSellItem newItem = CSellItem.builder()
                         .sellerName(updated.getSellerName())
                         .sellerUuid(updated.getSellerUuid())
                         .price(updated.getPrice())
@@ -297,7 +286,6 @@ public class JsonDBCore implements DBCore {
                         .material(updated.getMaterial())
                         .amount(newCount)
                         .priceForOne(updated.getPrice() / newCount)
-                        //.sellFor(updated.getSellFor())
                         .itemStack(updated.getItemStack())
                         .build();
 
@@ -313,7 +301,7 @@ public class JsonDBCore implements DBCore {
         event.setValid(true);
     }
 
-    public List<SellItem> getItems(NameKey category, NameKey sorting) {
+    public List<CSellItem> getItems(NameKey category, NameKey sorting) {
         return readLock(() -> {
             if (!sortedItems.containsKey(category)) {
                 throw new IllegalStateException("unknown category: " + category.getName());
@@ -323,7 +311,7 @@ public class JsonDBCore implements DBCore {
         });
     }
 
-    private void removeIf(Predicate<SellItem> filter) {
+    private void removeIf(Predicate<CSellItem> filter) {
         writeLock(() -> {
             Iterator<List<SortingItems>> iterator = sortedItems.values().iterator();
             while (iterator.hasNext()) {
@@ -338,24 +326,24 @@ public class JsonDBCore implements DBCore {
         });
     }
 
-    public SellItem getSellItem(UUID uuid) {
+    public CSellItem getSellItem(UUID uuid) {
         return readLock(() -> sellItemsMap.get(uuid));
     }
 
-    public UnsoldItem getUnsoldItem(UUID uuid) {
+    public CUnsoldItem getUnsoldItem(UUID uuid) {
         return readLock(() -> unsoldItemsMap.get(uuid));
     }
 
-    public List<SellItem> getSellItemsByOwner(UUID ownerUuid) {
+    public List<CSellItem> getSellItemsByOwner(UUID ownerUuid) {
         return readLock(() -> sellItemsByOwner.getOrDefault(ownerUuid, new ArrayList<>()));
     }
 
-    public List<UnsoldItem> getUnsoldItemsByOwner(UUID ownerUuid) {
+    public List<CUnsoldItem> getUnsoldItemsByOwner(UUID ownerUuid) {
         return readLock(() -> unsoldItemsByOwner.getOrDefault(ownerUuid, new ArrayList<>()));
     }
 
 
-    private void addSellItem(SellItem sellItem) {
+    private void addSellItem(CSellItem sellItem) {
         sellItemsMap.put(sellItem.uuid, sellItem);
         int insertIndex = Collections.binarySearch(sortedSellItems, sellItem, sellItemComparator);
         if (insertIndex < 0) {
@@ -372,7 +360,7 @@ public class JsonDBCore implements DBCore {
         }
     }
 
-    private void removeSellItem(SellItem sellItem) {
+    private void removeSellItem(CSellItem sellItem) {
         sellItemsMap.remove(sellItem.uuid);
 
         sortedSellItems.remove(sellItem);
@@ -382,7 +370,7 @@ public class JsonDBCore implements DBCore {
         removeIf(i -> i.uuid.equals(sellItem.getUuid()));
     }
 
-    private void addUnsoldItem(UnsoldItem unsoldItem) {
+    private void addUnsoldItem(CUnsoldItem unsoldItem) {
         unsoldItemsMap.put(unsoldItem.uuid, unsoldItem);
         int insertIndex = Collections.binarySearch(sortedUnsoldItems, unsoldItem, unsoldItemComparator);
         if (insertIndex < 0) {
@@ -390,35 +378,35 @@ public class JsonDBCore implements DBCore {
         }
         sortedUnsoldItems.add(insertIndex, unsoldItem);
 
-        unsoldItemsByOwner.computeIfAbsent(unsoldItem.owner, k -> new ArrayList<>()).add(unsoldItem);
-        users.get(unsoldItem.owner).unsoldItems.add(unsoldItem.uuid);
+        unsoldItemsByOwner.computeIfAbsent(unsoldItem.sellerUuid, k -> new ArrayList<>()).add(unsoldItem);
+        users.get(unsoldItem.sellerUuid).unsoldItems.add(unsoldItem.uuid);
     }
 
-    private void removeUnsoldItem(UnsoldItem unsoldItem) {
+    private void removeUnsoldItem(CUnsoldItem unsoldItem) {
         unsoldItemsMap.remove(unsoldItem.uuid);
         sortedUnsoldItems.remove(unsoldItem);
 
-        unsoldItemsByOwner.computeIfAbsent(unsoldItem.owner, k -> new ArrayList<>()).remove(unsoldItem);
-        users.get(unsoldItem.owner).unsoldItems.remove(unsoldItem.uuid);
+        unsoldItemsByOwner.computeIfAbsent(unsoldItem.sellerUuid, k -> new ArrayList<>()).remove(unsoldItem);
+        users.get(unsoldItem.sellerUuid).unsoldItems.remove(unsoldItem.uuid);
     }
 
     @Override
-    public List<UnsoldItem> getAddUnsoldItems() {
+    public List<CUnsoldItem> getAddUnsoldItems() {
         return readLock(() -> sortedUnsoldItems.stream().toList());
     }
 
     @Override
-    public List<SellItem> getAllSellItems() {
+    public List<CSellItem> getAllSellItems() {
         return readLock(() -> sortedSellItems.stream().toList());
     }
 
     @Override
-    public List<User> getAllUsers() {
+    public List<СUser> getAllUsers() {
         return readLock(() -> users.values().stream().toList());
     }
 
     @Override
-    public User getUser(UUID uuid) {
+    public СUser getUser(UUID uuid) {
         return readLock(() -> Main.getCfg().getBoostManager().userUpdate(users.get(uuid)));
     }
 
@@ -432,9 +420,9 @@ public class JsonDBCore implements DBCore {
         return readLock(() -> sellItemsMap.containsKey(uuid));
     }
 
-    public User createNewAndSave(UUID uuid, String name) {
+    public СUser createNewAndSave(UUID uuid, String name) {
         return writeLock(() -> {
-            User user = new User(name, uuid);
+            СUser user = new СUser(name, uuid);
             users.put(uuid, user);
             return user;
         });
@@ -442,9 +430,9 @@ public class JsonDBCore implements DBCore {
 
 
     @Override
-    public void addItem(SellItem memorySellItem, UUID owner) {
+    public void addItem(CSellItem memorySellItem, UUID owner) {
         writeLock(() -> {
-            SellItem sellItem = SellItem.parse(memorySellItem);
+            CSellItem sellItem = CSellItem.parse(memorySellItem);
             addSellItem(sellItem);
             return null;
         });
@@ -453,7 +441,7 @@ public class JsonDBCore implements DBCore {
     @Override
     public void tryRemoveUnsoldItem(UUID owner, UUID item) {
         writeLock(() -> {
-            UnsoldItem item1 = getUnsoldItem(item);
+            CUnsoldItem item1 = getUnsoldItem(item);
             if (item1 == null) throw new StorageException.NotFoundException();
             removeUnsoldItem(item1);
             return null;
@@ -463,7 +451,7 @@ public class JsonDBCore implements DBCore {
     @Override
     public void tryRemoveItem(UUID item) {
         writeLock(() -> {
-            SellItem item1 = getSellItem(item);
+            CSellItem item1 = getSellItem(item);
             if (item1 == null) throw new StorageException.NotFoundException();
             removeSellItem(item1);
             return null;
@@ -489,22 +477,22 @@ public class JsonDBCore implements DBCore {
     public void load() {
         try {
             writeLock(() -> {
-                List<SellItem> items = load("sellItems", new TypeToken<List<SellItem>>() {
+                List<CSellItem> items = load("sellItems", new TypeToken<List<CSellItem>>() {
                 }.getType());
 
-                List<User> users = load("users", new TypeToken<List<User>>() {
-                }.getType());
-
-
-                List<UnsoldItem> unsoldItems = load("unsoldItems", new TypeToken<List<UnsoldItem>>() {
+                List<СUser> users = load("users", new TypeToken<List<СUser>>() {
                 }.getType());
 
 
-                for (User user : users) {
+                List<CUnsoldItem> unsoldItems = load("unsoldItems", new TypeToken<List<CUnsoldItem>>() {
+                }.getType());
+
+
+                for (СUser user : users) {
                     this.users.put(user.getUuid(), user);
                 }
 
-                for (SellItem item : items) {
+                for (CSellItem item : items) {
                     sellItemsMap.put(item.uuid, item);
                     sortedSellItems.add(item);
                     sellItemsByOwner.computeIfAbsent(item.sellerUuid, k -> new ArrayList<>()).add(item);
@@ -516,10 +504,10 @@ public class JsonDBCore implements DBCore {
                     }
                 }
                 sortedSellItems.sort(sellItemComparator);
-                for (UnsoldItem unsoldItem : unsoldItems) {
+                for (CUnsoldItem unsoldItem : unsoldItems) {
                     unsoldItemsMap.put(unsoldItem.uuid, unsoldItem);
                     sortedUnsoldItems.add(unsoldItem);
-                    unsoldItemsByOwner.computeIfAbsent(unsoldItem.owner, k -> new ArrayList<>()).add(unsoldItem);
+                    unsoldItemsByOwner.computeIfAbsent(unsoldItem.sellerUuid, k -> new ArrayList<>()).add(unsoldItem);
                 }
 
                 return null;

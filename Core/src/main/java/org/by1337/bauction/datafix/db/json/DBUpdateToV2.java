@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.bukkit.Material;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.db.kernel.CSellItem;
+import org.by1337.bauction.db.kernel.CUnsoldItem;
+import org.by1337.bauction.db.kernel.СUser;
 
 import java.io.File;
 import java.io.FileReader;
@@ -25,7 +28,7 @@ public class DBUpdateToV2 {
         new File(Main.getInstance().getDataFolder() + "/items").delete();
         new File(Main.getInstance().getDataFolder() + "/users").delete();
 
-        List<org.by1337.bauction.db.kernel.UnsoldItem> unsoldItems = new ArrayList<>();
+        List<CUnsoldItem> unsoldItems = new ArrayList<>();
 
         for (User user : users) {
             unsoldItems.addAll(user.unsoldItems.stream().map(UnsoldItem::convert).toList());
@@ -106,8 +109,8 @@ public class DBUpdateToV2 {
         double priceForOne;
         Set<String> sellFor = new HashSet<>();
 
-        public org.by1337.bauction.db.kernel.SellItem convert() {
-            return org.by1337.bauction.db.kernel.SellItem.builder()
+        public CSellItem convert() {
+            return CSellItem.builder()
                     .item(item)
                     .sellerName(sellerName)
                     .sellerUuid(sellerUuid)
@@ -132,8 +135,8 @@ public class DBUpdateToV2 {
         UUID uuid;
         long deleteVia;
 
-        public org.by1337.bauction.db.kernel.UnsoldItem convert() {
-            return new org.by1337.bauction.db.kernel.UnsoldItem(item, expired, owner, uuid, deleteVia);
+        public CUnsoldItem convert() {
+            return new CUnsoldItem(item, expired, owner, uuid, deleteVia);
         }
     }
 
@@ -145,8 +148,8 @@ public class DBUpdateToV2 {
         int dealCount;
         double dealSum;
 
-        public org.by1337.bauction.db.kernel.User convert() {
-            return new org.by1337.bauction.db.kernel.User(
+        public СUser convert() {
+            return new СUser(
                     nickName,
                     uuid,
                     unsoldItems.stream().map(i -> i.uuid).toList(),

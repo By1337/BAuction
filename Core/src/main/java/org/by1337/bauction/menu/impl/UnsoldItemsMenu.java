@@ -1,15 +1,17 @@
 package org.by1337.bauction.menu.impl;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
 import org.by1337.api.command.argument.ArgumentSetList;
 import org.by1337.api.command.argument.ArgumentString;
+import org.by1337.api.command.argument.ArgumentStrings;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeUnsoldItemProcess;
-import org.by1337.bauction.db.kernel.UnsoldItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.CUnsoldItem;
+import org.by1337.bauction.db.kernel.СUser;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
@@ -25,11 +27,11 @@ public class UnsoldItemsMenu extends Menu {
     private final List<Integer> slots;
 
     private final Command command;
-    private final User user;
+    private final СUser user;
     private final Menu previous;
 
 
-    public UnsoldItemsMenu(Player player, User user, @Nullable Menu previous) {
+    public UnsoldItemsMenu(Player player, СUser user, @Nullable Menu previous) {
         super(Main.getCfg().getMenuManger().getUnsoldItems(), player);
         this.user = user;
         this.previous = previous;
@@ -69,7 +71,7 @@ public class UnsoldItemsMenu extends Menu {
                             String uuidS = (String) args.getOrThrow("uuid");
                             UUID uuid = UUID.fromString(uuidS);
 
-                            UnsoldItem unsoldItem = unsoldItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
+                            CUnsoldItem unsoldItem = unsoldItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
 
                             if (unsoldItem == null) {
                                 Main.getMessage().sendMsg(player, Lang.getMessages("item_no_longer_exists"));
@@ -80,10 +82,24 @@ public class UnsoldItemsMenu extends Menu {
                             new TakeUnsoldItemProcess(unsoldItem, user, this, player, fast).process();
                         }))
                 )
+                .addSubCommand(new Command("[CONSOLE]")
+                        .argument(new ArgumentStrings("cmd"))
+                        .executor(((sender, args) -> {
+                            String cmd = (String) args.getOrThrow("cmd");
+                            Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                        }))
+                )
+                .addSubCommand(new Command("[PLAYER]")
+                        .argument(new ArgumentStrings("cmd"))
+                        .executor(((sender, args) -> {
+                            String cmd = (String) args.getOrThrow("cmd");
+                            viewer.performCommand(cmd);
+                        }))
+                )
         ;
     }
 
-    private ArrayList<UnsoldItem> unsoldItems = null;
+    private ArrayList<CUnsoldItem> unsoldItems = null;
     private int lastPage = -1;
 
     @Override
@@ -108,7 +124,7 @@ public class UnsoldItemsMenu extends Menu {
             Iterator<Integer> slotsIterator = slots.listIterator();
             customItemStacks.clear();
             for (int x = currentPage * slots.size(); x < unsoldItems.size(); x++) {
-                UnsoldItem item = unsoldItems.get(x);
+                CUnsoldItem item = unsoldItems.get(x);
 
                 if (slotsIterator.hasNext()) {
                     int slot = slotsIterator.next();
