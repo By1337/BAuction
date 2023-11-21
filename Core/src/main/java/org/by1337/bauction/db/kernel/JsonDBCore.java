@@ -27,8 +27,6 @@ import java.util.function.Predicate;
 
 public class JsonDBCore implements DBCore {
 
-    //  private final DbActionListener listener0;
-
     private Map<UUID, SellItem> sellItemsMap = new HashMap<>();
     private Map<UUID, UnsoldItem> unsoldItemsMap = new HashMap<>();
     private Map<UUID, List<SellItem>> sellItemsByOwner = new HashMap<>();
@@ -38,7 +36,6 @@ public class JsonDBCore implements DBCore {
     private final Comparator<UnsoldItem> unsoldItemComparator = Comparator.comparingLong(i -> i.deleteVia);
     private ArrayList<UnsoldItem> sortedUnsoldItems = new ArrayList<>();
     private Map<UUID, User> users = new HashMap<>();
-
     private final StorageMap<NameKey, List<SortingItems>> sortedItems = new StorageMap<>();
 
 
@@ -155,7 +152,7 @@ public class JsonDBCore implements DBCore {
                 return;
             }
             addItem(sellItem, user.getUuid());
-            user.dealCount++;
+         //   user.dealCount++;
             event.setValid(true);
         } catch (Exception e) {
             Main.getMessage().error(e);

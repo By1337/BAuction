@@ -1,4 +1,4 @@
-version: 1
+version: 2
 # список бустов
 boosts: # it's list
   - name: donat-1 # имя (может быть любым)
@@ -20,6 +20,9 @@ max-slots: 10
 
 # Время жизни офера по умолчанию. Для указания времени можно использовать: 1s1m1h1d1w1mo1y
 default-offer-time: '2d'
+
+offer-min-price: 10
+offer-max-price: 100000000
 
 remove-expired-items:
   enable: true # Удалять ли просроченные предметы?

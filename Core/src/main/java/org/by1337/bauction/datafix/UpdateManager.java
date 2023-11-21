@@ -10,7 +10,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class UpdateManager {
-    private final static int CURRENT_VERSION = 1;
+    private final static int CURRENT_VERSION = 2;
 
     public static void checkUpdate() {
         Plugin plugin = Main.getInstance();
@@ -24,12 +24,12 @@ public class UpdateManager {
 
         int version = config.getAsInteger("version", 0);
 
-        if (CURRENT_VERSION != version){
+        if (CURRENT_VERSION != version) {
             Main.getMessage().warning("detected deprecated config!");
             Main.getMessage().logger("start update...");
         }
-        run(version);
 
+        run(version, config);
         config.set("version", CURRENT_VERSION);
         try {
             ((YamlConfiguration) config.getHandle()).save(configFile);
@@ -37,11 +37,18 @@ public class UpdateManager {
             Main.getMessage().error(e);
         }
     }
-    private static void run(int version){
-        if (version == 0){
+
+    private static void run(int version, YamlContext config) {
+        if (version == 0) {
             DBUpdateToV2 DBUpdateToV2 = new DBUpdateToV2();
             DBUpdateToV2.update();
             version++;
+            run(version, config);
+        } else if (version == 1) {
+            config.set("offer-min-price", 10);
+            config.set("offer-max-price", 100000000);
+            version++;
+            run(version, config);
         }
     }
 }

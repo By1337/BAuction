@@ -15,10 +15,10 @@ public class User implements Placeholderable {
     final UUID uuid;
     List<UUID> unsoldItems = new ArrayList<>();
     List<UUID> itemForSale = new ArrayList<>();
-    volatile int dealCount;
-    volatile double dealSum;
-    private volatile int externalSlots = 0;
-    private volatile long externalSellTime = 0L;
+    int dealCount;
+    double dealSum;
+    private int externalSlots = 0;
+    private long externalSellTime = 0L;
 
 
     public User(String nickName, UUID uuid, List<UUID> unsoldItems, List<UUID> itemForSale, int dealCount, double dealSum) {

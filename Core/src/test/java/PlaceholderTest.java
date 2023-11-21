@@ -1,4 +1,5 @@
 import org.by1337.bauction.Main;
+import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.placeholder.Placeholder;
 import org.junit.Assert;
 import org.junit.Test;

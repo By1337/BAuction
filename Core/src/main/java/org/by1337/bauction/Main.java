@@ -3,6 +3,7 @@ package org.by1337.bauction;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemFlag;
@@ -214,17 +215,44 @@ public final class Main extends JavaPlugin {
                 )
                 .addSubCommand(new Command("sell")
                         .requires(new RequiresPermission("bauc.sell"))
-                        .argument(new ArgumentIntegerAllowedMatch("price", List.of(Lang.getMessages("price_tag"))))
-                        .argument(new ArgumentSetList("full", List.of("full"), List.of("full")))
+                        .argument(new ArgumentIntegerAllowedMatch("price", List.of(Lang.getMessages("price_tag")),
+                                cfg.getConfig().getAsInteger("offer-min-price", 1),
+                                cfg.getConfig().getAsInteger("offer-max-price", Integer.MAX_VALUE)
+                        ))
+                        .argument(new ArgumentSetList("full",
+                                        List.of(
+                                                "full",
+                                                "full:false"
+                                        ),
+                                        List.of(
+                                                "full",
+                                                "full:false"
+                                        )
+                                )
+                        )
+                        .argument(new ArgumentInteger("amount", List.of(Lang.getMessages("quantity_tag")), 1, 64))
                         .executor(((sender, args) -> {
                             if (!(sender instanceof Player player))
                                 throw new CommandException(Lang.getMessages("must_be_player"));
                             int price = (int) args.getOrThrow("price", Lang.getMessages("price_not_specified"));
-                            boolean full = !args.getOrDefault("full", "").equals("full");
 
-                            ItemStack itemStack = player.getInventory().getItemInMainHand();
+                            String fullS = (String) args.getOrDefault("full", "full:false");
+
+                            boolean full = !(fullS.equals("full"));
+
+                            int amount = (int) args.getOrDefault("amount", -1);
+
+                            ItemStack itemStack = player.getInventory().getItemInMainHand().clone();
                             if (itemStack.getType().isAir()) {
                                 throw new CommandException(Lang.getMessages("cannot_trade_air"));
+                            }
+
+                            int cashback = 0;
+                            if (amount != -1) {
+                                if (itemStack.getAmount() > amount) {
+                                    cashback = itemStack.getAmount() - amount;
+                                    itemStack.setAmount(amount);
+                                }
                             }
 
                             User user = storage.getUserOrCreate(player);
@@ -232,8 +260,8 @@ public final class Main extends JavaPlugin {
                             SellItemEvent event = new SellItemEvent(user, sellItem);
                             storage.validateAndAddItem(event);
                             if (event.isValid()) {
-                                player.getInventory().setItemInMainHand(null);
-                                message.sendMsg(player, Lang.getMessages("successful_single_listing"));
+                                player.getInventory().getItemInMainHand().setAmount(cashback);
+                                message.sendMsg(player, sellItem.replace(Lang.getMessages("successful_single_listing")));
                             } else {
                                 message.sendMsg(player, String.valueOf(event.getReason()));
                             }
