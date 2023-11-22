@@ -11,7 +11,7 @@ import org.by1337.api.command.argument.ArgumentStrings;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeItemProcess;
 import org.by1337.bauction.db.kernel.CSellItem;
-import org.by1337.bauction.db.kernel.СUser;
+import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
@@ -27,10 +27,10 @@ public class ItemsForSaleMenu extends Menu {
     private final List<Integer> slots;
 
     private final Command command;
-    private final СUser user;
+    private final CUser user;
     private final Menu previous;
 
-    public ItemsForSaleMenu(Player player, СUser user, @Nullable Menu previous) {
+    public ItemsForSaleMenu(Player player, CUser user, @Nullable Menu previous) {
         super(Main.getCfg().getMenuManger().getItemsForSaleMenu(), player);
         this.user = user;
         this.previous = previous;

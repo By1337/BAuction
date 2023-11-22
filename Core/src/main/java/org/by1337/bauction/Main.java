@@ -17,13 +17,14 @@ import org.by1337.api.command.argument.*;
 import org.by1337.api.command.requires.RequiresPermission;
 import org.by1337.api.configuration.adapter.AdapterRegistry;
 import org.by1337.api.configuration.adapter.impl.primitive.AdapterEnum;
+import org.by1337.api.util.NameKey;
 import org.by1337.bauction.booost.Boost;
 import org.by1337.bauction.config.Config;
 import org.by1337.bauction.config.adapter.*;
 import org.by1337.bauction.datafix.UpdateManager;
 import org.by1337.bauction.db.kernel.CSellItem;
 import org.by1337.bauction.db.kernel.JsonDBCore;
-import org.by1337.bauction.db.kernel.СUser;
+import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.impl.MainMenu;
@@ -49,7 +50,6 @@ public final class Main extends JavaPlugin {
     private static TimeUtil timeUtil;
     private PlaceholderHook placeholderHook;
 
-    // todo /ah admin open <категория>
     @Override
     public void onLoad() {
         instance = this;
@@ -145,12 +145,42 @@ public final class Main extends JavaPlugin {
                             timeUtil = new TimeUtil();
                             trieManager = new TrieManager(this);
                             TagUtil.loadAliases(this);
+                            initCommand();
                             message.sendMsg(sender, Lang.getMessages("plugin_reload"), timeCounter.getTime());
                         })
                 )
                 .requires(new RequiresPermission("bauc.use"))
                 .addSubCommand(new Command("admin")
                         .requires(new RequiresPermission("bauc.admin"))
+                        .addSubCommand(new Command("open")
+                                .requires(new RequiresPermission("bauc.admin.open"))
+                                .argument(new ArgumentPlayer("player"))
+                                .argument(new ArgumentSetList("category", cfg.getCategoryMap().keySet().stream().map(NameKey::getName).toList()))
+                                .executor((sender, args) -> {
+                                    Player player = (Player) args.getOrThrow("player");
+                                    String categoryS = (String) args.getOrThrow("category");
+
+                                    Category category = cfg.getCategoryMap().get(new NameKey(categoryS, true));
+
+                                    if (category == null){
+                                        message.sendMsg(sender, "unknown category %s", categoryS);
+                                        return;
+                                    }
+
+                                    CUser user = storage.getUserOrCreate(player);
+                                    MainMenu menu = new MainMenu(user, player);
+
+                                    int index = menu.getCategories().indexOf(category);
+
+                                    if (index == -1){
+                                        message.sendMsg(sender, "unknown category %s", categoryS);
+                                        menu.unregister();
+                                        return;
+                                    }
+                                    menu.getCategories().current = index;
+                                    menu.open();
+                                })
+                        )
                         .addSubCommand(new Command("parse")
                                 .requires(new RequiresPermission("bauc.parse"))
                                 .addSubCommand(new Command("tags")
@@ -195,7 +225,7 @@ public final class Main extends JavaPlugin {
                                             }
                                             TimeCounter timeCounter = new TimeCounter();
                                             Random random = new Random();
-                                            СUser user = storage.getUserOrCreate(player);
+                                            CUser user = storage.getUserOrCreate(player);
                                             long time = NumberUtil.getTime(((String) args.getOrDefault("time", "2d")));
                                             for (int i = 0; i < amount; i++) {
                                                 CSellItem sellItem = new CSellItem(player, itemStack, price + random.nextInt(price / 2), time);
@@ -253,7 +283,7 @@ public final class Main extends JavaPlugin {
                                 }
                             }
 
-                            СUser user = storage.getUserOrCreate(player);
+                            CUser user = storage.getUserOrCreate(player);
                             CSellItem sellItem = new CSellItem(player, itemStack, price, cfg.getDefaultSellTime() + user.getExternalSellTime(), full);
                             SellItemEvent event = new SellItemEvent(user, sellItem);
                             storage.validateAndAddItem(event);
@@ -279,7 +309,7 @@ public final class Main extends JavaPlugin {
                             Category custom = cfg.getSorting().getAs("special.search", Category.class);
                             custom.setTags(new HashSet<>(tags));
 
-                            СUser user = storage.getUserOrCreate(player);
+                            CUser user = storage.getUserOrCreate(player);
 
                             MainMenu menu = new MainMenu(user, player);
                             menu.setCustomCategory(custom);
@@ -289,7 +319,7 @@ public final class Main extends JavaPlugin {
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))
                         throw new CommandException(Lang.getMessages("must_be_player"));
-                    СUser user = storage.getUserOrCreate(player);
+                    CUser user = storage.getUserOrCreate(player);
                     MainMenu menu = new MainMenu(user, player);
                     menu.open();
                 }))

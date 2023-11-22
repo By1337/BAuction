@@ -6,7 +6,7 @@ import org.bukkit.Material;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.CSellItem;
 import org.by1337.bauction.db.kernel.CUnsoldItem;
-import org.by1337.bauction.db.kernel.СUser;
+import org.by1337.bauction.db.kernel.CUser;
 
 import java.io.File;
 import java.io.FileReader;
@@ -148,8 +148,8 @@ public class DBUpdateToV2 {
         int dealCount;
         double dealSum;
 
-        public СUser convert() {
-            return new СUser(
+        public CUser convert() {
+            return new CUser(
                     nickName,
                     uuid,
                     unsoldItems.stream().map(i -> i.uuid).toList(),

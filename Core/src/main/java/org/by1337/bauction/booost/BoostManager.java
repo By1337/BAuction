@@ -3,7 +3,7 @@ package org.by1337.bauction.booost;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.by1337.api.configuration.YamlContext;
-import org.by1337.bauction.db.kernel.СUser;
+import org.by1337.bauction.db.kernel.CUser;
 
 
 import java.util.List;
@@ -15,7 +15,7 @@ public class BoostManager {
         boosts = context.getList("boosts", Boost.class);
     }
 
-    public СUser userUpdate(СUser user) {
+    public CUser userUpdate(CUser user) {
         Player player = Bukkit.getPlayer(user.getUuid());
         if (player == null) return user;
         int slots = 0;

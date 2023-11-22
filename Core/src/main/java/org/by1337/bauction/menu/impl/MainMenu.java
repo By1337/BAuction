@@ -12,7 +12,7 @@ import org.by1337.api.util.CyclicList;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeItemProcess;
 import org.by1337.bauction.db.kernel.CSellItem;
-import org.by1337.bauction.db.kernel.СUser;
+import org.by1337.bauction.db.kernel.CUser;
 
 import org.by1337.bauction.action.BuyItemCountProcess;
 import org.by1337.bauction.action.BuyItemProcess;
@@ -37,10 +37,10 @@ public class MainMenu extends Menu {
     private List<Integer> slots;
 
     private final Command command;
-    private СUser user;
+    private CUser user;
 
 
-    public MainMenu(СUser user, Player player) {
+    public MainMenu(CUser user, Player player) {
         super(Main.getCfg().getMenuManger().getMainMenu(), player);
         this.user = user;
         //registerPlaceholderable(user);
@@ -296,7 +296,7 @@ public class MainMenu extends Menu {
             }
             if (sb.indexOf("{categories}") != -1) {
                 sb.replace(sb.indexOf("{categories}"), sb.indexOf("{categories}") + "{categories}".length(),
-                        getCategories()
+                        getCategoriesNames()
                 );
                 continue;
             }
@@ -316,7 +316,7 @@ public class MainMenu extends Menu {
     }
 
 
-    private String getCategories() {
+    private String getCategoriesNames() {
         StringBuilder sb = new StringBuilder();
         Category c = categories.getCurrent();
         for (Category category : categories) {
@@ -361,5 +361,13 @@ public class MainMenu extends Menu {
         categories.add(custom);
         categories.sort(Category::compareTo);
         this.custom = custom;
+    }
+
+    public CyclicList<Sorting> getSortings() {
+        return sortings;
+    }
+
+    public CyclicList<Category> getCategories() {
+        return categories;
     }
 }

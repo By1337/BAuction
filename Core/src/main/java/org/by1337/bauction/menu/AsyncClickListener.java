@@ -81,9 +81,10 @@ public abstract class AsyncClickListener implements Listener {
     public void onClose0(InventoryCloseEvent e) {
         if (inventory.equals(e.getInventory())) {
             onClose(e);
-            HandlerList.unregisterAll(this);
+            unregister();
             new BukkitRunnable() {
                 final Player player = (Player) e.getPlayer();
+
                 @Override
                 public void run() {
                     player.updateInventory();
@@ -98,6 +99,10 @@ public abstract class AsyncClickListener implements Listener {
                 }
             }.runTaskLater(Main.getInstance(), 10);
         }
+    }
+
+    public void unregister() {
+        HandlerList.unregisterAll(this);
     }
 
     /**

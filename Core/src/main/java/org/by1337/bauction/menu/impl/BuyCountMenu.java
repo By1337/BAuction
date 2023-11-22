@@ -10,7 +10,7 @@ import org.by1337.api.command.argument.ArgumentInteger;
 import org.by1337.api.command.argument.ArgumentStrings;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.CSellItem;
-import org.by1337.bauction.db.kernel.СUser;
+import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
@@ -21,14 +21,14 @@ import java.util.Optional;
 public class BuyCountMenu extends Menu {
 
     private final Command command;
-    private final СUser user;
+    private final CUser user;
 
     private int count = 1;
     private final CSellItem item;
     private final CustomItemStack customItemStack;
     private final CallBack<Optional<Integer>> callBack;
 
-    public BuyCountMenu(СUser user, CSellItem item, CallBack<Optional<Integer>> callBack, Player player) {
+    public BuyCountMenu(CUser user, CSellItem item, CallBack<Optional<Integer>> callBack, Player player) {
         super(Main.getCfg().getMenuManger().getMenuBuyCount(), player);
         this.user = user;
         this.item = item;

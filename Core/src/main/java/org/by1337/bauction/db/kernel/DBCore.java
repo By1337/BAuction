@@ -7,11 +7,11 @@ import java.util.UUID;
 
 public interface DBCore {
     List<CSellItem> getAllSellItems() throws StorageException;
-    List<СUser> getAllUsers() throws StorageException;
-    СUser getUser(UUID uuid) throws StorageException;
+    List<CUser> getAllUsers() throws StorageException;
+    CUser getUser(UUID uuid) throws StorageException;
     boolean hasUser(UUID uuid) throws StorageException;
     boolean hasSellItem(UUID uuid) throws StorageException;
-    СUser createNewAndSave(UUID uuid, String name) throws StorageException;
+    CUser createNewAndSave(UUID uuid, String name) throws StorageException;
     void addItem(CSellItem sellItem, UUID owner) throws StorageException;
     void tryRemoveUnsoldItem(UUID owner, UUID item) throws StorageException;
     void tryRemoveItem(UUID itemUuid) throws StorageException;

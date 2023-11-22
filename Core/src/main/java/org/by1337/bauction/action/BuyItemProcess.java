@@ -7,7 +7,7 @@ import org.by1337.api.chat.Placeholderable;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.CSellItem;
 
-import org.by1337.bauction.db.kernel.СUser;
+import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.db.event.BuyItemEvent;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.Menu;
@@ -20,15 +20,15 @@ import java.util.Optional;
 
 public class BuyItemProcess implements Placeholderable {
     private final CSellItem buyingItem;
-    private final СUser buyer;
+    private final CUser buyer;
     private final Menu menu;
     private final Player player;
     private final boolean fast;
 
-    public BuyItemProcess(@NotNull CSellItem buyingItem, @NotNull СUser buyer, Menu menu, Player player) {
+    public BuyItemProcess(@NotNull CSellItem buyingItem, @NotNull CUser buyer, Menu menu, Player player) {
         this(buyingItem, buyer, menu,player, false);
     }
-    public BuyItemProcess(@NotNull CSellItem buyingItem, @NotNull СUser buyer, Menu menu, Player player, boolean fast) {
+    public BuyItemProcess(@NotNull CSellItem buyingItem, @NotNull CUser buyer, Menu menu, Player player, boolean fast) {
         this.buyingItem = buyingItem;
         this.buyer = buyer;
         this.menu = menu;

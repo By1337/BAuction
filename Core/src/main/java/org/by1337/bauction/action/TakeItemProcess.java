@@ -3,7 +3,7 @@ package org.by1337.bauction.action;
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.CSellItem;
-import org.by1337.bauction.db.kernel.СUser;
+import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.db.event.TakeItemEvent;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.Menu;
@@ -16,12 +16,12 @@ import java.util.Optional;
 
 public class TakeItemProcess {
     private final CSellItem takingItem;
-    private final СUser taker;
+    private final CUser taker;
     private final Menu menu;
     private final Player player;
     private final boolean fast;
 
-    public TakeItemProcess(@NotNull CSellItem takingItem, @NotNull СUser taker, Menu menu, Player player, boolean fast) {
+    public TakeItemProcess(@NotNull CSellItem takingItem, @NotNull CUser taker, Menu menu, Player player, boolean fast) {
         this.takingItem = takingItem;
         this.taker = taker;
         this.menu = menu;

@@ -34,7 +34,7 @@ public class JsonDBCore implements DBCore {
     private ArrayList<CSellItem> sortedSellItems = new ArrayList<>();
     private final Comparator<CUnsoldItem> unsoldItemComparator = Comparator.comparingLong(i -> i.deleteVia);
     private ArrayList<CUnsoldItem> sortedUnsoldItems = new ArrayList<>();
-    private Map<UUID, СUser> users = new HashMap<>();
+    private Map<UUID, CUser> users = new HashMap<>();
     private final StorageMap<NameKey, List<SortingItems>> sortedItems = new StorageMap<>();
 
 
@@ -132,7 +132,7 @@ public class JsonDBCore implements DBCore {
         return readLock(() -> sortedSellItems);
     }
 
-    public СUser getUserOrCreate(Player player) {
+    public CUser getUserOrCreate(Player player) {
         if (!hasUser(player.getUniqueId())) {
             return createNewAndSave(player.getUniqueId(), player.getName());
         }
@@ -141,7 +141,7 @@ public class JsonDBCore implements DBCore {
 
     public void validateAndAddItem(SellItemEvent event) {
         try {
-            СUser user = getUser(event.getUser().getUuid());
+            CUser user = getUser(event.getUser().getUuid());
 
             CSellItem sellItem = event.getSellItem();
 
@@ -161,7 +161,7 @@ public class JsonDBCore implements DBCore {
     }
 
     public void validateAndRemoveItem(TakeItemEvent event) {
-        СUser user = event.getUser();
+        CUser user = event.getUser();
         CSellItem sellItem = event.getSellItem();
 
         if (!user.getUuid().equals(sellItem.getSellerUuid())) {
@@ -188,7 +188,7 @@ public class JsonDBCore implements DBCore {
 
     public void validateAndRemoveItem(TakeUnsoldItemEvent event) {
         try {
-            СUser user = getUser(event.getUser().getUuid());
+            CUser user = getUser(event.getUser().getUuid());
             CUnsoldItem unsoldItem = event.getUnsoldItem();
 
             if (!user.getUuid().equals(unsoldItem.getSellerUuid())) {
@@ -212,7 +212,7 @@ public class JsonDBCore implements DBCore {
     }
 
     public void validateAndRemoveItem(BuyItemEvent event) {
-        СUser user = event.getUser();
+        CUser user = event.getUser();
         CSellItem sellItem = event.getSellItem();
 
         if (user.getUuid().equals(sellItem.getSellerUuid())) {
@@ -228,7 +228,7 @@ public class JsonDBCore implements DBCore {
 
         try {
             tryRemoveItem(sellItem.getUuid());
-            СUser owner = getUser(sellItem.sellerUuid);
+            CUser owner = getUser(sellItem.sellerUuid);
             owner.dealSum += sellItem.price;
             owner.dealCount++;
             user.dealCount++;
@@ -243,7 +243,7 @@ public class JsonDBCore implements DBCore {
     }
 
     public void validateAndRemoveItem(BuyItemCountEvent event) {
-        СUser buyer = event.getUser();
+        CUser buyer = event.getUser();
         CSellItem sellItem = event.getSellItem();
 
         if (buyer.getUuid().equals(sellItem.getSellerUuid())) {
@@ -268,7 +268,7 @@ public class JsonDBCore implements DBCore {
             tryRemoveItem(sellItem.getUuid());
             buyer.dealCount++;
             buyer.dealSum += updated.priceForOne * event.getCount();
-            СUser owner = getUser(updated.sellerUuid);
+            CUser owner = getUser(updated.sellerUuid);
             owner.dealCount++;
             owner.dealSum += updated.priceForOne * event.getCount();
             int newCount = updated.getAmount() - event.getCount();
@@ -401,12 +401,12 @@ public class JsonDBCore implements DBCore {
     }
 
     @Override
-    public List<СUser> getAllUsers() {
+    public List<CUser> getAllUsers() {
         return readLock(() -> users.values().stream().toList());
     }
 
     @Override
-    public СUser getUser(UUID uuid) {
+    public CUser getUser(UUID uuid) {
         return readLock(() -> Main.getCfg().getBoostManager().userUpdate(users.get(uuid)));
     }
 
@@ -420,9 +420,9 @@ public class JsonDBCore implements DBCore {
         return readLock(() -> sellItemsMap.containsKey(uuid));
     }
 
-    public СUser createNewAndSave(UUID uuid, String name) {
+    public CUser createNewAndSave(UUID uuid, String name) {
         return writeLock(() -> {
-            СUser user = new СUser(name, uuid);
+            CUser user = new CUser(name, uuid);
             users.put(uuid, user);
             return user;
         });
@@ -480,7 +480,7 @@ public class JsonDBCore implements DBCore {
                 List<CSellItem> items = load("sellItems", new TypeToken<List<CSellItem>>() {
                 }.getType());
 
-                List<СUser> users = load("users", new TypeToken<List<СUser>>() {
+                List<CUser> users = load("users", new TypeToken<List<CUser>>() {
                 }.getType());
 
 
@@ -488,7 +488,7 @@ public class JsonDBCore implements DBCore {
                 }.getType());
 
 
-                for (СUser user : users) {
+                for (CUser user : users) {
                     this.users.put(user.getUuid(), user);
                 }
 

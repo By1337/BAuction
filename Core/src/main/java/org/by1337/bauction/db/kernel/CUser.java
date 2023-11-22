@@ -1,6 +1,5 @@
 package org.by1337.bauction.db.kernel;
 
-import org.by1337.api.chat.Placeholderable;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.auc.User;
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class СUser implements User {
+public class CUser implements User {
     final String nickName;
     final UUID uuid;
     List<UUID> unsoldItems = new ArrayList<>();
@@ -20,16 +19,17 @@ public class СUser implements User {
     private long externalSellTime = 0L;
 
 
-    public СUser(String nickName, UUID uuid, List<UUID> unsoldItems, List<UUID> itemForSale, int dealCount, double dealSum) {
+    public CUser(String nickName, UUID uuid, List<UUID> unsoldItems, List<UUID> itemForSale, int dealCount, double dealSum) {
         this.nickName = nickName;
         this.uuid = uuid;
         this.unsoldItems = unsoldItems;
         this.itemForSale = itemForSale;
         this.dealCount = dealCount;
         this.dealSum = dealSum;
+
     }
 
-    public СUser(@NotNull String nickName, @NotNull UUID uuid) {
+    public CUser(@NotNull String nickName, @NotNull UUID uuid) {
         this.nickName = nickName;
         this.uuid = uuid;
     }
@@ -44,7 +44,7 @@ public class СUser implements User {
 
     @Override
     public String toString() {
-        return "СUser{" +
+        return "CUser{" +
                 "nickName='" + nickName + '\'' +
                 ", uuid=" + uuid +
                 ", unsoldItemImpls=" + unsoldItems +
