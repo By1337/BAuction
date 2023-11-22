@@ -1,11 +1,14 @@
 package org.by1337.bauction;
 
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -152,6 +155,27 @@ public final class Main extends JavaPlugin {
                 .requires(new RequiresPermission("bauc.use"))
                 .addSubCommand(new Command("admin")
                         .requires(new RequiresPermission("bauc.admin"))
+                        .addSubCommand(new Command("addTag")
+                                .requires(new RequiresPermission("bauc.admin.addTag"))
+                                .argument(new ArgumentString("key", List.of("[tag key]")))
+                                .argument(new ArgumentString("value", List.of("[tag value]")))
+                                .executor((sender, args) -> {
+                                            String key = (String) args.getOrThrow("key");
+                                            String value = (String) args.getOrThrow("value");
+
+                                            if (!(sender instanceof Player player))
+                                                throw new CommandException(Lang.getMessages("must_be_player"));
+                                            ItemStack itemStack = player.getInventory().getItemInMainHand();
+                                            if (itemStack.getType().isAir()) {
+                                                throw new CommandException(Lang.getMessages("item_in_hand_required"));
+                                            }
+                                            ItemMeta im = itemStack.getItemMeta();
+                                            im.getPersistentDataContainer().set(NamespacedKey.fromString(key), PersistentDataType.STRING, value);
+                                            itemStack.setItemMeta(im);
+                                            message.sendMsg(sender, "&adone");
+                                        }
+                                )
+                        )
                         .addSubCommand(new Command("open")
                                 .requires(new RequiresPermission("bauc.admin.open"))
                                 .argument(new ArgumentPlayer("player"))
@@ -162,7 +186,7 @@ public final class Main extends JavaPlugin {
 
                                     Category category = cfg.getCategoryMap().get(new NameKey(categoryS, true));
 
-                                    if (category == null){
+                                    if (category == null) {
                                         message.sendMsg(sender, "unknown category %s", categoryS);
                                         return;
                                     }
@@ -172,7 +196,7 @@ public final class Main extends JavaPlugin {
 
                                     int index = menu.getCategories().indexOf(category);
 
-                                    if (index == -1){
+                                    if (index == -1) {
                                         message.sendMsg(sender, "unknown category %s", categoryS);
                                         menu.unregister();
                                         return;

@@ -8,7 +8,7 @@
     <artifactId>BAuction</artifactId>
     <!--  for release MAJOR.MINOR.PATCH -->
     <!--  for beta MAJOR.MINOR.PATCH-<alpha/beta/stable/pre-release>-->
-    <version>1.0.5-beta</version>
+    <version>1.0.5.1-beta</version>
     <packaging>jar</packaging>
 
     <name>Core</name>
