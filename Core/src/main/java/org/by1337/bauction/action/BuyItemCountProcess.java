@@ -60,7 +60,7 @@ public class BuyItemCountProcess {
                             }
                             Main.getMessage().sendMsg(player, replace(Lang.getMessages("successful_purchase")));
                             ItemStack itemStack = buyingItem.getItemStack();
-                            itemStack.setAmount(itemStack.getAmount() - count);
+                            itemStack.setAmount(count);
                             PlayerUtil.giveItems(player, itemStack);
                         } else {
                             Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
