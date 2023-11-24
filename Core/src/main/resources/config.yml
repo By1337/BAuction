@@ -26,13 +26,13 @@ offer-max-price: 100000000
 
 remove-expired-items:
   enable: true # Удалять ли просроченные предметы?
-  time: '30s' # Если да то через сколько
+  time: '2d' # Если да то через сколько
 
 # информация о просроченном предмете
 unsold-item:
   lore:
     - '&r '
-    - '&#5AD9FB&n▌&r &fУдаление через: &#5AD9FB{delete_via}'
+    - '&#5AD9FB&n▌&r &fУдаление: &#5AD9FB{delete_via}'
     - '&#5AD9FB▌&r &fПросрочен: &#5AD9FB{expired}'
     - '&r '
     - '&#5AD9FB▌&r &fЧтобы снять с продажи нажмите &#5AD9FBлкм'

@@ -4,15 +4,14 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.by1337.api.chat.util.Message;
 import org.by1337.api.util.NameKey;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.auc.User;
 import org.by1337.bauction.db.*;
 import org.by1337.bauction.db.event.*;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.util.Category;
-import org.by1337.bauction.util.NumberUtil;
-import org.by1337.bauction.util.Sorting;
-import org.by1337.bauction.util.TagUtil;
+import org.by1337.bauction.util.*;
 
 import java.io.File;
 import java.io.FileReader;
@@ -39,7 +38,7 @@ public class JsonDBCore implements DBCore {
 
 
     private final Gson gson = new Gson();
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     private final long removeTime;
     private final boolean removeExpiredItems;
@@ -71,11 +70,18 @@ public class JsonDBCore implements DBCore {
             long time = System.currentTimeMillis();
             try {
                 Long sleep = readLock(() -> {
+                    int removed = 0;
                     for (CSellItem sellItem : sortedSellItems) {
                         if (sellItem.removalDate < time) {
                             new Thread(() -> { // new Thread иначе deadlock
-                                expiredItem(sellItem);
+                                writeLock(() -> {
+                                    expiredItem(sellItem);
+                                    return null;
+                                });
                             }).start();
+                            removed++;
+                            if (removed > 20)
+                                return 50L * 5;
                         } else {
                             return Math.min(sellItem.removalDate - time, 50L * 100); // 100 ticks
                         }
@@ -94,6 +100,7 @@ public class JsonDBCore implements DBCore {
                 long time = System.currentTimeMillis();
                 try {
                     Long sleep = readLock(() -> {
+                        int removed = 0;
                         for (CUnsoldItem unsoldItem : sortedUnsoldItems) {
                             if (unsoldItem.deleteVia < time) {
                                 new Thread(() -> { // new Thread иначе deadlock
@@ -102,6 +109,9 @@ public class JsonDBCore implements DBCore {
                                         return null;
                                     });
                                 }).start();
+                                removed++;
+                                if (removed > 20)
+                                    return 50L * 5;
                             } else {
                                 return Math.min(unsoldItem.deleteVia - time, 50L * 100); // 100 ticks
                             }
@@ -119,6 +129,9 @@ public class JsonDBCore implements DBCore {
     }
 
     private void expiredItem(CSellItem item) {
+        if (!lock.isWriteLockedByCurrentThread()) {
+            throw new IllegalStateException("Current thread does not hold the write lock");
+        }
         tryRemoveItem(item.uuid);
         CUnsoldItem unsoldItem = new CUnsoldItem(item.item, item.sellerUuid, item.removalDate, item.removalDate + removeTime);
         addUnsoldItem(unsoldItem);
@@ -151,7 +164,7 @@ public class JsonDBCore implements DBCore {
                 return;
             }
             addItem(sellItem, user.getUuid());
-         //   user.dealCount++;
+            //   user.dealCount++;
             event.setValid(true);
         } catch (Exception e) {
             Main.getMessage().error(e);
@@ -344,6 +357,9 @@ public class JsonDBCore implements DBCore {
 
 
     private void addSellItem(CSellItem sellItem) {
+        if (!lock.isWriteLockedByCurrentThread()) {
+            throw new IllegalStateException("Current thread does not hold the write lock");
+        }
         sellItemsMap.put(sellItem.uuid, sellItem);
         int insertIndex = Collections.binarySearch(sortedSellItems, sellItem, sellItemComparator);
         if (insertIndex < 0) {
@@ -361,6 +377,9 @@ public class JsonDBCore implements DBCore {
     }
 
     private void removeSellItem(CSellItem sellItem) {
+        if (!lock.isWriteLockedByCurrentThread()) {
+            throw new IllegalStateException("Current thread does not hold the write lock");
+        }
         sellItemsMap.remove(sellItem.uuid);
 
         sortedSellItems.remove(sellItem);
@@ -371,6 +390,10 @@ public class JsonDBCore implements DBCore {
     }
 
     private void addUnsoldItem(CUnsoldItem unsoldItem) {
+        if (!lock.isWriteLockedByCurrentThread()) {
+            throw new IllegalStateException("Current thread does not hold the write lock");
+        }
+
         unsoldItemsMap.put(unsoldItem.uuid, unsoldItem);
         int insertIndex = Collections.binarySearch(sortedUnsoldItems, unsoldItem, unsoldItemComparator);
         if (insertIndex < 0) {
@@ -383,11 +406,15 @@ public class JsonDBCore implements DBCore {
     }
 
     private void removeUnsoldItem(CUnsoldItem unsoldItem) {
+        if (!lock.isWriteLockedByCurrentThread()) {
+            throw new IllegalStateException("Current thread does not hold the write lock");
+        }
         unsoldItemsMap.remove(unsoldItem.uuid);
         sortedUnsoldItems.remove(unsoldItem);
 
         unsoldItemsByOwner.computeIfAbsent(unsoldItem.sellerUuid, k -> new ArrayList<>()).remove(unsoldItem);
-        users.get(unsoldItem.sellerUuid).unsoldItems.remove(unsoldItem.uuid);
+        CUser user = users.get(unsoldItem.sellerUuid);
+        user.unsoldItems.remove(unsoldItem.uuid);
     }
 
     @Override
@@ -477,39 +504,127 @@ public class JsonDBCore implements DBCore {
     public void load() {
         try {
             writeLock(() -> {
+                TimeCounter timeCounter = new TimeCounter();
+                Message message = Main.getMessage();
+                message.logger("[DB] load items fom files # step 1");
                 List<CSellItem> items = load("sellItems", new TypeToken<List<CSellItem>>() {
                 }.getType());
 
                 List<CUser> users = load("users", new TypeToken<List<CUser>>() {
                 }.getType());
 
-
                 List<CUnsoldItem> unsoldItems = load("unsoldItems", new TypeToken<List<CUnsoldItem>>() {
                 }.getType());
 
+                message.logger("[DB] # step 1 completed in %s ms.", timeCounter.getTime());
+                timeCounter.reset();
 
-                for (CUser user : users) {
-                    this.users.put(user.getUuid(), user);
+                message.logger("[DB] init users # step 2");
+                users.forEach(user -> this.users.put(user.getUuid(), user));
+
+
+                message.logger("[DB] # step 2 completed in %s ms.", timeCounter.getTime());
+                timeCounter.reset();
+
+                message.logger("[DB] validate items and unsold items # step 3");
+                List<CUnsoldItem> toAdd = new ArrayList<>();
+                long time = System.currentTimeMillis();
+                {
+                    items.removeIf(item -> {
+
+                        if (item.removalDate <= time) {
+                            CUnsoldItem unsoldItem = new CUnsoldItem(item.item, item.sellerUuid, item.removalDate, item.removalDate + removeTime);
+                            toAdd.add(unsoldItem);
+
+                            CUser user = this.users.get(item.sellerUuid);
+                            user.itemForSale.remove(item.uuid);
+                            user.unsoldItems.add(unsoldItem.uuid);
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+                {
+                    unsoldItems.removeIf(item -> {
+                        if (item.deleteVia <= removeTime) {
+                            CUser user = this.users.get(item.sellerUuid);
+                            user.unsoldItems.remove(item.uuid);
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+                unsoldItems.addAll(toAdd);
+
+                message.logger("[DB] # step 3 completed in %s ms.", timeCounter.getTime());
+                timeCounter.reset();
+
+                message.logger("[DB] validate users # step 4");
+                { // validate 1
+
+                    items.forEach(item -> {
+                        CUser user = this.users.get(item.sellerUuid);
+                        if (!user.itemForSale.contains(item.uuid)) {
+                            Main.getMessage().error("user %s has no item %s!", user.uuid, item.uuid);
+                            user.itemForSale.add(item.uuid);
+                        }
+                    });
+
+                    unsoldItems.forEach(item -> {
+                        CUser user = this.users.get(item.sellerUuid);
+                        if (!user.unsoldItems.contains(item.uuid)) {
+                            Main.getMessage().error("user %s has no unsold item %s!", user.uuid, item.uuid);
+                            user.unsoldItems.add(item.uuid);
+                        }
+                    });
                 }
 
-                for (CSellItem item : items) {
+                message.logger("[DB] # step 4 completed in %s ms.", timeCounter.getTime());
+                timeCounter.reset();
+
+                message.logger("[DB] final initialization # step 5");
+                items.forEach(item -> {
                     sellItemsMap.put(item.uuid, item);
                     sortedSellItems.add(item);
                     sellItemsByOwner.computeIfAbsent(item.sellerUuid, k -> new ArrayList<>()).add(item);
 
-                    for (Category value : categoryMap.values()) {
+                    categoryMap.values().forEach(value -> {
                         if (TagUtil.matchesCategory(value, item)) {
                             sortedItems.get(value.nameKey()).forEach(list -> list.addItem(item));
                         }
-                    }
-                }
+                    });
+                });
                 sortedSellItems.sort(sellItemComparator);
-                for (CUnsoldItem unsoldItem : unsoldItems) {
+                unsoldItems.forEach(unsoldItem -> {
                     unsoldItemsMap.put(unsoldItem.uuid, unsoldItem);
                     sortedUnsoldItems.add(unsoldItem);
                     unsoldItemsByOwner.computeIfAbsent(unsoldItem.sellerUuid, k -> new ArrayList<>()).add(unsoldItem);
-                }
+                });
+                message.logger("[DB] # step 5 completed in %s ms.", timeCounter.getTime());
+                timeCounter.reset();
 
+                message.logger("[DB] validate users 2 # step 6");
+                this.users.values().forEach(user -> {
+                    user.unsoldItems.removeIf(uuid -> {
+                        if (!unsoldItemsMap.containsKey(uuid)) {
+                            message.error("user %s has non-existent item %s", user.uuid, uuid);
+                            return true;
+                        }
+                        return false;
+                    });
+
+                    user.itemForSale.removeIf(uuid -> {
+                        if (!sellItemsMap.containsKey(uuid)) {
+                            message.error("user %s has non-existent item %s", user.uuid, uuid);
+                            return true;
+                        }
+                        return false;
+                    });
+                });
+
+                message.logger("[DB] # step 6 completed in %s ms.", timeCounter.getTime());
+
+                message.logger("[DB] total time %s ms.", timeCounter.getTotalTime());
                 return null;
             });
         } catch (Exception e) {
@@ -517,7 +632,7 @@ public class JsonDBCore implements DBCore {
         }
     }
 
-    private <T> List<T> load(String dir, Type type) { //new TypeToken<>().getType()
+    private <T> List<T> load(String dir, Type type) {
         File home = new File(Main.getInstance().getDataFolder() + "/" + dir);
         List<T> out = new ArrayList<>();
         try {
