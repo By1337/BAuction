@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.by1337.api.chat.util.Message;
 import org.by1337.api.util.NameKey;
 import org.by1337.bauction.Main;
@@ -285,6 +286,8 @@ public class JsonDBCore implements DBCore {
             owner.dealCount++;
             owner.dealSum += updated.priceForOne * event.getCount();
             int newCount = updated.getAmount() - event.getCount();
+            ItemStack itemStack = updated.getItemStack().clone();
+            itemStack.setAmount(newCount);
 
             if (newCount != 0) {
                 CSellItem newItem = CSellItem.builder()
@@ -299,7 +302,7 @@ public class JsonDBCore implements DBCore {
                         .material(updated.getMaterial())
                         .amount(newCount)
                         .priceForOne(updated.priceForOne)
-                        .itemStack(updated.getItemStack())
+                        .itemStack(itemStack)
                         .build();
 
                 addItem(newItem, buyer.getUuid());
