@@ -290,7 +290,7 @@ public class JsonDBCore implements DBCore {
                 CSellItem newItem = CSellItem.builder()
                         .sellerName(updated.getSellerName())
                         .sellerUuid(updated.getSellerUuid())
-                        .price(updated.getPrice())
+                        .price(updated.priceForOne * newCount)
                         .saleByThePiece(true)
                         .tags(updated.getTags())
                         .timeListedForSale(updated.getTimeListedForSale())
@@ -298,7 +298,7 @@ public class JsonDBCore implements DBCore {
                         .uuid(updated.getUuid())
                         .material(updated.getMaterial())
                         .amount(newCount)
-                        .priceForOne(updated.getPrice() / newCount)
+                        .priceForOne(updated.priceForOne)
                         .itemStack(updated.getItemStack())
                         .build();
 
