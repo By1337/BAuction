@@ -141,6 +141,7 @@ public final class Main extends JavaPlugin {
     private void initCommand() {
         command = new Command("bauc")
                 .addSubCommand(new Command("reload")
+                        //<editor-fold desc="reload" defaultstate="collapsed">
                         .requires(new RequiresPermission("bauc.reload"))
                         .executor((sender, args) -> {
                             TimeCounter timeCounter = new TimeCounter();
@@ -151,11 +152,13 @@ public final class Main extends JavaPlugin {
                             initCommand();
                             message.sendMsg(sender, Lang.getMessages("plugin_reload"), timeCounter.getTime());
                         })
+                        //</editor-fold>
                 )
                 .requires(new RequiresPermission("bauc.use"))
                 .addSubCommand(new Command("admin")
                         .requires(new RequiresPermission("bauc.admin"))
                         .addSubCommand(new Command("addTag")
+                                //<editor-fold desc="addTag" defaultstate="collapsed">
                                 .requires(new RequiresPermission("bauc.admin.addTag"))
                                 .argument(new ArgumentString("key", List.of("[tag key]")))
                                 .argument(new ArgumentString("value", List.of("[tag value]")))
@@ -175,8 +178,10 @@ public final class Main extends JavaPlugin {
                                             message.sendMsg(sender, "&adone");
                                         }
                                 )
+                                //</editor-fold>
                         )
                         .addSubCommand(new Command("open")
+                                //<editor-fold desc="open" defaultstate="collapsed">
                                 .requires(new RequiresPermission("bauc.admin.open"))
                                 .argument(new ArgumentPlayer("player"))
                                 .argument(new ArgumentSetList("category", cfg.getCategoryMap().keySet().stream().map(NameKey::getName).toList()))
@@ -204,8 +209,10 @@ public final class Main extends JavaPlugin {
                                     menu.getCategories().current = index;
                                     menu.open();
                                 })
+                                //</editor-fold>
                         )
                         .addSubCommand(new Command("parse")
+                                //<editor-fold desc="parse" defaultstate="collapsed">
                                 .requires(new RequiresPermission("bauc.parse"))
                                 .addSubCommand(new Command("tags")
                                         .requires(new RequiresPermission("bauc.parse.tags"))
@@ -218,8 +225,10 @@ public final class Main extends JavaPlugin {
                                             }
                                             message.sendMsg(sender, TagUtil.getTags(itemStack).toString());
                                         })
+                                        //</editor-fold>
                                 )
                                 .addSubCommand(new Command("nbt")
+                                        //<editor-fold desc="nbt" defaultstate="collapsed">
                                         .requires(new RequiresPermission("bauc.parse.nbt"))
                                         .executor((sender, args) -> {
                                             if (!(sender instanceof Player player))
@@ -230,9 +239,11 @@ public final class Main extends JavaPlugin {
                                             }
                                             message.sendMsg(sender, new String(Base64.getDecoder().decode(BLib.getApi().getItemStackSerialize().serialize(itemStack))));
                                         })
+                                        //</editor-fold>
                                 )
                         )
                         .addSubCommand(new Command("push")
+                                //<editor-fold desc="push" defaultstate="collapsed">
                                 .requires(new RequiresPermission("bauc.admin.push"))
                                 .argument(new ArgumentIntegerAllowedMatch("price", List.of(Lang.getMessages("price_tag"))))
                                 .argument(new ArgumentInteger("amount", List.of(Lang.getMessages("quantity_tag"))))
@@ -263,9 +274,11 @@ public final class Main extends JavaPlugin {
                                             message.sendMsg(player, Lang.getMessages("successful_listing"), amount, timeCounter.getTime());
                                         }
                                 )
+                                //</editor-fold>
                         )
                 )
                 .addSubCommand(new Command("sell")
+                        //<editor-fold desc="sell" defaultstate="collapsed">
                         .requires(new RequiresPermission("bauc.sell"))
                         .argument(new ArgumentIntegerAllowedMatch("price", List.of(Lang.getMessages("price_tag")),
                                 cfg.getConfig().getAsInteger("offer-min-price", 1),
@@ -318,8 +331,10 @@ public final class Main extends JavaPlugin {
                                 message.sendMsg(player, String.valueOf(event.getReason()));
                             }
                         }))
+                        //</editor-fold>
                 )
                 .addSubCommand(new Command("search")
+                        //<editor-fold desc="search" defaultstate="collapsed">
                         .argument(new ArgumentStrings("tags"))
                         .executor((sender, args) -> {
                             if (!(sender instanceof Player player))
@@ -339,6 +354,7 @@ public final class Main extends JavaPlugin {
                             menu.setCustomCategory(custom);
                             menu.open();
                         })
+                        //</editor-fold>
                 )
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))
@@ -351,7 +367,6 @@ public final class Main extends JavaPlugin {
     }
 
 
-    // @Override
     public boolean onCommand0(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String label, @NotNull String[] args) {
         try {
             command.process(sender, args);
@@ -363,7 +378,6 @@ public final class Main extends JavaPlugin {
     }
 
     @Nullable
-    //   @Override
     public List<String> onTabComplete0(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String alias, @NotNull String[] args) {
         if (args[0].equals("search")) {
             String last = args[args.length - 1];

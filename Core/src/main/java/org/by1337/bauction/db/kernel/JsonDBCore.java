@@ -7,10 +7,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.api.chat.util.Message;
 import org.by1337.api.util.NameKey;
+import org.by1337.bauc.util.SyncDetectorManager;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.auc.User;
 import org.by1337.bauction.db.*;
 import org.by1337.bauction.db.event.*;
+import org.by1337.bauction.event.SellItemProcess;
+import org.by1337.bauction.event.TakeItemProcess;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.util.*;
 
@@ -20,7 +22,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.*;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 
@@ -156,8 +157,15 @@ public class JsonDBCore implements DBCore {
     public void validateAndAddItem(SellItemEvent event) {
         try {
             CUser user = getUser(event.getUser().getUuid());
-
             CSellItem sellItem = event.getSellItem();
+
+            SellItemProcess sellItemProcess = new SellItemProcess(!SyncDetectorManager.isSync(), user, sellItem);
+            Bukkit.getPluginManager().callEvent(sellItemProcess);
+            if (sellItemProcess.isCancelled()) {
+                event.setValid(false);
+                event.setReason(sellItemProcess.getReason());
+                return;
+            }
 
             if (Main.getCfg().getMaxSlots() <= (user.getItemForSale().size() - user.getExternalSlots())) {
                 event.setValid(false);
@@ -165,8 +173,8 @@ public class JsonDBCore implements DBCore {
                 return;
             }
             addItem(sellItem, user.getUuid());
-            //   user.dealCount++;
             event.setValid(true);
+            Bukkit.getPluginManager().callEvent(new org.by1337.bauction.event.SellItemEvent(!SyncDetectorManager.isSync(), user, sellItem));
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
@@ -177,6 +185,15 @@ public class JsonDBCore implements DBCore {
     public void validateAndRemoveItem(TakeItemEvent event) {
         CUser user = event.getUser();
         CSellItem sellItem = event.getSellItem();
+
+        TakeItemProcess event1 = new TakeItemProcess(!SyncDetectorManager.isSync(), user, sellItem);
+        Bukkit.getPluginManager().callEvent(event1);
+
+        if (event1.isCancelled()) {
+            event.setValid(false);
+            event.setReason(event1.getReason());
+            return;
+        }
 
         if (!user.getUuid().equals(sellItem.getSellerUuid())) {
             event.setValid(false);
@@ -191,6 +208,7 @@ public class JsonDBCore implements DBCore {
 
         try {
             tryRemoveItem(sellItem.getUuid());
+            Bukkit.getPluginManager().callEvent(new org.by1337.bauction.event.TakeItemEvent(!SyncDetectorManager.isSync(), user, sellItem));
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
