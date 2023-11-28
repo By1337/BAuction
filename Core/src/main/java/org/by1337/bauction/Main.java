@@ -26,8 +26,9 @@ import org.by1337.bauction.config.Config;
 import org.by1337.bauction.config.adapter.*;
 import org.by1337.bauction.datafix.UpdateManager;
 import org.by1337.bauction.db.kernel.CSellItem;
-import org.by1337.bauction.db.kernel.JsonDBCore;
 import org.by1337.bauction.db.kernel.CUser;
+import org.by1337.bauction.db.kernel.JsonDBCore;
+import org.by1337.bauction.db.kernel.MysqlDb;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.impl.MainMenu;
@@ -40,6 +41,7 @@ import org.by1337.bauction.util.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
 import java.util.*;
 
 public final class Main extends JavaPlugin {
@@ -89,6 +91,25 @@ public final class Main extends JavaPlugin {
             getCommand("bauc").setTabCompleter(this::onTabComplete0);
             getCommand("bauc").setExecutor(this::onCommand0);
         }).start();
+
+//        new Thread(() -> {
+//            TimeCounter timeCounter = new TimeCounter();
+//            try {
+//                storage = new MysqlDb(cfg.getCategoryMap(), cfg.getSortingMap(),
+//                        "localhost",
+//                        "auction",
+//                        "root",
+//                        "",
+//                        3306
+//                );
+//            } catch (SQLException e) {
+//                throw new RuntimeException(e);
+//            }
+//            storage.load();
+//            message.logger(Lang.getMessages("successful_loading"), storage.getItemsSize(), timeCounter.getTime());
+//            getCommand("bauc").setTabCompleter(this::onTabComplete0);
+//            getCommand("bauc").setExecutor(this::onCommand0);
+//        }).start();
 
         initCommand();
 

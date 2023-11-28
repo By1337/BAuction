@@ -9,6 +9,7 @@ import org.by1337.api.chat.util.Message;
 import org.by1337.api.util.NameKey;
 import org.by1337.bauc.util.SyncDetectorManager;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.auc.SellItem;
 import org.by1337.bauction.db.*;
 import org.by1337.bauction.db.event.*;
 import org.by1337.bauction.event.SellItemProcess;
@@ -27,29 +28,29 @@ import java.util.function.Predicate;
 
 public class JsonDBCore implements DBCore {
 
-    private Map<UUID, CSellItem> sellItemsMap = new HashMap<>();
-    private Map<UUID, CUnsoldItem> unsoldItemsMap = new HashMap<>();
-    private Map<UUID, List<CSellItem>> sellItemsByOwner = new HashMap<>();
-    private Map<UUID, List<CUnsoldItem>> unsoldItemsByOwner = new HashMap<>();
-    private final Comparator<CSellItem> sellItemComparator = Comparator.comparingLong(i -> i.removalDate);
-    private ArrayList<CSellItem> sortedSellItems = new ArrayList<>();
-    private final Comparator<CUnsoldItem> unsoldItemComparator = Comparator.comparingLong(i -> i.deleteVia);
-    private ArrayList<CUnsoldItem> sortedUnsoldItems = new ArrayList<>();
-    private Map<UUID, CUser> users = new HashMap<>();
-    private final StorageMap<NameKey, List<SortingItems>> sortedItems = new StorageMap<>();
+    protected Map<UUID, CSellItem> sellItemsMap = new HashMap<>();
+    protected Map<UUID, CUnsoldItem> unsoldItemsMap = new HashMap<>();
+    protected Map<UUID, List<CSellItem>> sellItemsByOwner = new HashMap<>();
+    protected Map<UUID, List<CUnsoldItem>> unsoldItemsByOwner = new HashMap<>();
+    protected final Comparator<CSellItem> sellItemComparator = Comparator.comparingLong(i -> i.removalDate);
+    protected ArrayList<CSellItem> sortedSellItems = new ArrayList<>(); // main
+    protected final Comparator<CUnsoldItem> unsoldItemComparator = Comparator.comparingLong(i -> i.deleteVia);
+    protected ArrayList<CUnsoldItem> sortedUnsoldItems = new ArrayList<>(); // main
+    protected Map<UUID, CUser> users = new HashMap<>(); // main
+    protected final StorageMap<NameKey, List<SortingItems>> sortedItems = new StorageMap<>();
 
 
-    private final Gson gson = new Gson();
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    protected final Gson gson = new Gson();
+    protected final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private final long removeTime;
-    private final boolean removeExpiredItems;
+    protected final long removeTime;
+    protected final boolean removeExpiredItems;
 
-    private final Map<NameKey, Category> categoryMap;
-    private final Map<NameKey, Sorting> sortingMap;
+    protected final Map<NameKey, Category> categoryMap;
+    protected final Map<NameKey, Sorting> sortingMap;
 
-    private Runnable runnable;
-    private Runnable runnable1;
+    protected Runnable runnable;
+    protected Runnable runnable1;
 
 
     public JsonDBCore(Map<NameKey, Category> categoryMap, Map<NameKey, Sorting> sortingMap) {
@@ -67,7 +68,6 @@ public class JsonDBCore implements DBCore {
             sortedItems.put(category.nameKey(), list);
         }
 
-        load();
         runnable = () -> {
             long time = System.currentTimeMillis();
             try {
@@ -131,9 +131,7 @@ public class JsonDBCore implements DBCore {
     }
 
     private void expiredItem(CSellItem item) {
-        if (!lock.isWriteLockedByCurrentThread()) {
-            throw new IllegalStateException("Current thread does not hold the write lock");
-        }
+        isWriteLock();
         tryRemoveItem(item.uuid);
         CUnsoldItem unsoldItem = new CUnsoldItem(item.item, item.sellerUuid, item.removalDate, item.removalDate + removeTime);
         addUnsoldItem(unsoldItem);
@@ -156,6 +154,7 @@ public class JsonDBCore implements DBCore {
 
     public void validateAndAddItem(SellItemEvent event) {
         try {
+            update();
             CUser user = getUser(event.getUser().getUuid());
             CSellItem sellItem = event.getSellItem();
 
@@ -183,6 +182,7 @@ public class JsonDBCore implements DBCore {
     }
 
     public void validateAndRemoveItem(TakeItemEvent event) {
+        update();
         CUser user = event.getUser();
         CSellItem sellItem = event.getSellItem();
 
@@ -219,6 +219,7 @@ public class JsonDBCore implements DBCore {
     }
 
     public void validateAndRemoveItem(TakeUnsoldItemEvent event) {
+        update();
         try {
             CUser user = getUser(event.getUser().getUuid());
             CUnsoldItem unsoldItem = event.getUnsoldItem();
@@ -244,6 +245,7 @@ public class JsonDBCore implements DBCore {
     }
 
     public void validateAndRemoveItem(BuyItemEvent event) {
+        update();
         CUser user = event.getUser();
         CSellItem sellItem = event.getSellItem();
 
@@ -275,6 +277,7 @@ public class JsonDBCore implements DBCore {
     }
 
     public void validateAndRemoveItem(BuyItemCountEvent event) {
+        update();
         CUser buyer = event.getUser();
         CSellItem sellItem = event.getSellItem();
 
@@ -345,7 +348,7 @@ public class JsonDBCore implements DBCore {
         });
     }
 
-    private void removeIf(Predicate<CSellItem> filter) {
+    protected void removeIf(Predicate<CSellItem> filter) {
         writeLock(() -> {
             Iterator<List<SortingItems>> iterator = sortedItems.values().iterator();
             while (iterator.hasNext()) {
@@ -377,10 +380,8 @@ public class JsonDBCore implements DBCore {
     }
 
 
-    private void addSellItem(CSellItem sellItem) {
-        if (!lock.isWriteLockedByCurrentThread()) {
-            throw new IllegalStateException("Current thread does not hold the write lock");
-        }
+    protected void addSellItem(CSellItem sellItem) {
+        isWriteLock();
         sellItemsMap.put(sellItem.uuid, sellItem);
         int insertIndex = Collections.binarySearch(sortedSellItems, sellItem, sellItemComparator);
         if (insertIndex < 0) {
@@ -397,10 +398,8 @@ public class JsonDBCore implements DBCore {
         }
     }
 
-    private void removeSellItem(CSellItem sellItem) {
-        if (!lock.isWriteLockedByCurrentThread()) {
-            throw new IllegalStateException("Current thread does not hold the write lock");
-        }
+    protected void removeSellItem(CSellItem sellItem) {
+        isWriteLock();
         sellItemsMap.remove(sellItem.uuid);
 
         sortedSellItems.remove(sellItem);
@@ -410,11 +409,8 @@ public class JsonDBCore implements DBCore {
         removeIf(i -> i.uuid.equals(sellItem.getUuid()));
     }
 
-    private void addUnsoldItem(CUnsoldItem unsoldItem) {
-        if (!lock.isWriteLockedByCurrentThread()) {
-            throw new IllegalStateException("Current thread does not hold the write lock");
-        }
-
+    protected void addUnsoldItem(CUnsoldItem unsoldItem) {
+        isWriteLock();
         unsoldItemsMap.put(unsoldItem.uuid, unsoldItem);
         int insertIndex = Collections.binarySearch(sortedUnsoldItems, unsoldItem, unsoldItemComparator);
         if (insertIndex < 0) {
@@ -426,10 +422,8 @@ public class JsonDBCore implements DBCore {
         users.get(unsoldItem.sellerUuid).unsoldItems.add(unsoldItem.uuid);
     }
 
-    private void removeUnsoldItem(CUnsoldItem unsoldItem) {
-        if (!lock.isWriteLockedByCurrentThread()) {
-            throw new IllegalStateException("Current thread does not hold the write lock");
-        }
+    protected void removeUnsoldItem(CUnsoldItem unsoldItem) {
+        isWriteLock();
         unsoldItemsMap.remove(unsoldItem.uuid);
         sortedUnsoldItems.remove(unsoldItem);
 
@@ -438,6 +432,11 @@ public class JsonDBCore implements DBCore {
         user.unsoldItems.remove(unsoldItem.uuid);
     }
 
+    protected void isWriteLock() {
+        if (!lock.isWriteLockedByCurrentThread()) {
+            throw new IllegalStateException("Current thread does not hold the write lock");
+        }
+    }
     @Override
     public List<CUnsoldItem> getAddUnsoldItems() {
         return readLock(() -> sortedUnsoldItems.stream().toList());
@@ -478,9 +477,9 @@ public class JsonDBCore implements DBCore {
 
 
     @Override
-    public void addItem(CSellItem memorySellItem, UUID owner) {
+    public void addItem(SellItem cSellItem, UUID owner) {
         writeLock(() -> {
-            CSellItem sellItem = CSellItem.parse(memorySellItem);
+            CSellItem sellItem = CSellItem.parse(cSellItem);
             addSellItem(sellItem);
             return null;
         });
@@ -703,7 +702,7 @@ public class JsonDBCore implements DBCore {
         }
     }
 
-    private <T> T writeLock(Task<T> task) {
+    protected <T> T writeLock(Task<T> task) {
         lock.writeLock().lock();
         T res;
         try {
@@ -716,7 +715,7 @@ public class JsonDBCore implements DBCore {
         }
     }
 
-    private <T> T readLock(Task<T> task) {
+    protected <T> T readLock(Task<T> task) {
         lock.readLock().lock();
         T res;
         try {
@@ -727,6 +726,10 @@ public class JsonDBCore implements DBCore {
         } finally {
             lock.readLock().unlock();
         }
+    }
+
+    protected void update(){
+
     }
 
 }

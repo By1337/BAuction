@@ -4,7 +4,10 @@ import org.by1337.bauction.Main;
 import org.by1337.bauction.auc.User;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +21,29 @@ public class CUser implements User {
     private int externalSlots = 0;
     private long externalSellTime = 0L;
 
+    public String toSql(String table) {
+        return String.format(
+                "INSERT INTO %s (uuid, name, unsold_items, item_for_sale, deal_count, deal_sum)" +
+                        "VALUES('%s', '%s', '%s', '%s', %s, %s)", table, uuid, nickName, listToString(unsoldItems), listToString(itemForSale), dealCount, dealSum
+        );
+    }
+
+    public String toSqlUpdate(String table) {
+        return String.format(
+                "UPDATE %s SET uuid = '%s', name = '%s', unsold_items = '%s', item_for_sale = '%s', deal_count = %s, deal_sum = %s WHERE uuid = '%s';", table, uuid, nickName, listToString(unsoldItems), listToString(itemForSale), dealCount, dealSum, uuid
+        );
+    }
+
+    private static String listToString(Collection<?> collection) {
+        StringBuilder sb = new StringBuilder();
+        for (Object o : collection) {
+            sb.append(o).append(",");
+        }
+        if (!sb.isEmpty()) {
+            sb.setLength(sb.length() - 1);
+        }
+        return sb.toString();
+    }
 
     public CUser(String nickName, UUID uuid, List<UUID> unsoldItems, List<UUID> itemForSale, int dealCount, double dealSum) {
         this.nickName = nickName;
@@ -32,6 +58,28 @@ public class CUser implements User {
     public CUser(@NotNull String nickName, @NotNull UUID uuid) {
         this.nickName = nickName;
         this.uuid = uuid;
+    }
+
+    public static CUser fromResultSet(ResultSet resultSet) throws SQLException {
+        String nickName = resultSet.getString("name");
+        UUID uuid = UUID.fromString(resultSet.getString("uuid"));
+        List<UUID> unsoldItems = parseUUIDList(resultSet.getString("unsold_items"));
+        List<UUID> itemForSale = parseUUIDList(resultSet.getString("item_for_sale"));
+        int dealCount = resultSet.getInt("deal_count");
+        double dealSum = resultSet.getDouble("deal_sum");
+
+        return new CUser(nickName, uuid, unsoldItems, itemForSale, dealCount, dealSum);
+    }
+
+    private static List<UUID> parseUUIDList(String uuidString) {
+        List<UUID> uuidList = new ArrayList<>();
+        if (!uuidString.isEmpty()) {
+            String[] uuidArray = uuidString.split(",");
+            for (String uuid : uuidArray) {
+                uuidList.add(UUID.fromString(uuid));
+            }
+        }
+        return uuidList;
     }
 
     public void setExternalSlots(int externalSlots) {

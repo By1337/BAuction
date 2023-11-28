@@ -9,6 +9,9 @@ import org.by1337.bauction.auc.UnsoldItem;
 import org.by1337.bauction.lang.Lang;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collection;
 import java.util.UUID;
 @Builder
 public class CUnsoldItem implements UnsoldItem {
@@ -18,6 +21,22 @@ public class CUnsoldItem implements UnsoldItem {
     final UUID uuid;
     final long deleteVia;
     private transient ItemStack itemStack;
+
+    public String toSql(String table){
+        return String.format(
+                "INSERT INTO %s (uuid, seller_uuid, item, delete_via, expired)" +
+                        "VALUES('%s', '%s', '%s', %s, %s)", table, uuid, sellerUuid, item, deleteVia, expired
+        );
+    }
+    public static CUnsoldItem fromResultSet(ResultSet resultSet) throws SQLException {
+        String item = resultSet.getString("item");
+        long expired = resultSet.getLong("expired");
+        UUID sellerUuid = UUID.fromString(resultSet.getString("seller_uuid"));
+        UUID uuid = UUID.fromString(resultSet.getString("uuid"));
+        long deleteVia = resultSet.getLong("delete_via");
+
+        return new CUnsoldItem(item, expired, sellerUuid, uuid, deleteVia);
+    }
 
     public CUnsoldItem(String item, long expired, UUID sellerUuid, UUID uuid, long deleteVia) {
         this.item = item;

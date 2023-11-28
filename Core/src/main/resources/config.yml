@@ -1,4 +1,11 @@
-version: 2
+version: 2 # НЕ МЕНЯТЬ
+db:
+  type: json # json or mysql
+  host: 'localhost'
+  data-base: 'bauction'
+  user: 'root'
+  password: ''
+  port: 3306
 # список бустов
 boosts: # it's list
   - name: donat-1 # имя (может быть любым)
