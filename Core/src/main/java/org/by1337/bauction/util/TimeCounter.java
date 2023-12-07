@@ -18,10 +18,10 @@ public class TimeCounter {
     }
 
     private String getColored(long x) {
-        if (x < 50) return "&#01FF00" + x;
-        else if (x < 100) return "&#E7FF00" + x;
-        else if (x < 150) return "&#FF9B00" + x;
-        else return "&#FF0000" + x;
+        if (x < 50) return "&a" + x;
+        else if (x < 100) return "&e" + x;
+        else if (x < 150) return "&4" + x;
+        else return "&c" + x;
     }
 
     public long getTotalTime() {

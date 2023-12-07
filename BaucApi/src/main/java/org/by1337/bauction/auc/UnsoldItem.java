@@ -2,13 +2,15 @@ package org.by1337.bauction.auc;
 
 import org.bukkit.inventory.ItemStack;
 import org.by1337.api.chat.Placeholderable;
+import org.by1337.bauction.serialize.SerializableToByteArray;
+import org.by1337.bauction.util.UniqueName;
 
 import java.util.UUID;
 
 /**
  * Interface representing an unsold item that has expired on the auction.
  */
-public interface UnsoldItem extends Placeholderable {
+public interface UnsoldItem extends Placeholderable, SerializableToByteArray {
 
     /**
      * Get the item that remains unsold as an ItemStack.
@@ -43,7 +45,7 @@ public interface UnsoldItem extends Placeholderable {
      *
      * @return The UUID of the unsold item.
      */
-    UUID getUuid();
+    UniqueName getUniqueName();
 
     /**
      * Get the date when the unsold item will be permanently deleted.

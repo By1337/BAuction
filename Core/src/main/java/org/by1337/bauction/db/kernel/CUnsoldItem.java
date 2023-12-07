@@ -1,56 +1,64 @@
 package org.by1337.bauction.db.kernel;
 
 import lombok.Builder;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.api.BLib;
-import org.by1337.api.chat.Placeholderable;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.auc.UnsoldItem;
 import org.by1337.bauction.lang.Lang;
+import org.by1337.bauction.serialize.SerializeUtils;
+import org.by1337.bauction.util.CUniqueName;
+import org.by1337.bauction.util.UniqueName;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+
 @Builder
 public class CUnsoldItem implements UnsoldItem {
     final String item;
     final long expired;
     final UUID sellerUuid;
-    final UUID uuid;
+    final UniqueName uniqueName;
     final long deleteVia;
     private transient ItemStack itemStack;
 
-    public String toSql(String table){
+    public String toSql(String table) {
         return String.format(
                 "INSERT INTO %s (uuid, seller_uuid, item, delete_via, expired)" +
-                        "VALUES('%s', '%s', '%s', %s, %s)", table, uuid, sellerUuid, item, deleteVia, expired
+                        "VALUES('%s', '%s', '%s', %s, %s)", table, uniqueName.getKey(), sellerUuid, item, deleteVia, expired
         );
     }
+
     public static CUnsoldItem fromResultSet(ResultSet resultSet) throws SQLException {
         String item = resultSet.getString("item");
         long expired = resultSet.getLong("expired");
-        UUID sellerUuid = UUID.fromString(resultSet.getString("seller_uuid"));
-        UUID uuid = UUID.fromString(resultSet.getString("uuid"));
+        String sellerUuidString = resultSet.getString("seller_uuid");
+        UniqueName uniqueName = new CUniqueName(resultSet.getString("uuid"));
+
         long deleteVia = resultSet.getLong("delete_via");
 
-        return new CUnsoldItem(item, expired, sellerUuid, uuid, deleteVia);
+        return new CUnsoldItem(item, expired, UUID.fromString(sellerUuidString), uniqueName, deleteVia);
     }
 
-    public CUnsoldItem(String item, long expired, UUID sellerUuid, UUID uuid, long deleteVia) {
+    public CUnsoldItem(String item, long expired, UUID sellerUuid, UniqueName uniqueName, long deleteVia) {
         this.item = item;
         this.expired = expired;
         this.sellerUuid = sellerUuid;
-        this.uuid = uuid;
+        this.uniqueName = uniqueName;
         this.deleteVia = deleteVia;
     }
 
-    public CUnsoldItem(String item, long expired, UUID sellerUuid, UUID uuid, long deleteVia, ItemStack itemStack) {
+    public CUnsoldItem(String item, long expired, UUID sellerUuid, UniqueName uniqueName, long deleteVia, ItemStack itemStack) {
         this.item = item;
         this.expired = expired;
         this.sellerUuid = sellerUuid;
-        this.uuid = uuid;
+        this.uniqueName = uniqueName;
         this.deleteVia = deleteVia;
         this.itemStack = itemStack;
     }
@@ -60,14 +68,55 @@ public class CUnsoldItem implements UnsoldItem {
         this.expired = expired;
         this.sellerUuid = sellerUuid;
         this.deleteVia = deleteVia;
-        uuid = UUID.randomUUID();
+        uniqueName = Main.getUniqueNameGenerator().getNextCombination();
     }
 
     public ItemStack getItemStack() {
-        if (itemStack == null){
+        if (itemStack == null) {
             itemStack = BLib.getApi().getItemStackSerialize().deserialize(item);
         }
         return itemStack;
+    }
+
+    public boolean isValid() {
+        return item != null &&
+                sellerUuid != null &&
+                uniqueName != null;
+    }
+
+    @Override
+    public byte[] getBytes() throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             DataOutputStream data = new DataOutputStream(out)) {
+            data.writeUTF(item);
+            data.writeLong(expired);
+            data.writeUTF(sellerUuid.toString());
+            data.writeUTF(uniqueName.getKey());
+            data.writeInt(uniqueName.getSeed());
+            data.writeLong(uniqueName.getPos());
+            data.writeLong(deleteVia);
+            data.flush();
+            return out.toByteArray();
+        }
+    }
+
+    public static CUnsoldItem fromBytes(byte[] arr) throws IOException {
+        try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
+
+            String item = in.readUTF();
+            long expired = in.readLong();
+            UUID sellerUuid = UUID.fromString(in.readUTF());
+            UniqueName uniqueName = new CUniqueName(
+                    in.readUTF(),
+                    in.readInt(), // seed
+                    in.readLong() // pos
+            );
+            long deleteVia = in.readLong();
+
+            return new CUnsoldItem(
+                    item, expired, sellerUuid, uniqueName, deleteVia
+            );
+        }
     }
 
     public String getItem() {
@@ -82,12 +131,17 @@ public class CUnsoldItem implements UnsoldItem {
         return sellerUuid;
     }
 
-    public UUID getUuid() {
-        return uuid;
+    public UniqueName getUniqueName() {
+        return uniqueName;
     }
 
     public long getDeleteVia() {
         return deleteVia;
+    }
+
+    @Override
+    public int hashCode() {
+        return uniqueName.hashCode();
     }
 
     @Override
@@ -103,7 +157,7 @@ public class CUnsoldItem implements UnsoldItem {
                 continue;
             }
             if (sb.indexOf("{id}") != -1) {
-                sb.replace(sb.indexOf("{id}"), sb.indexOf("{id}") + "{id}".length(), String.valueOf(uuid));
+                sb.replace(sb.indexOf("{id}"), sb.indexOf("{id}") + "{id}".length(), String.valueOf(uniqueName.getKey()));
                 continue;
             }
             if (sb.indexOf("{item_name}") != -1) {

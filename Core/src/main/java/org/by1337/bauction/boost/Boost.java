@@ -1,4 +1,4 @@
-package org.by1337.bauction.booost;
+package org.by1337.bauction.boost;
 
 import org.by1337.api.util.NameKey;
 

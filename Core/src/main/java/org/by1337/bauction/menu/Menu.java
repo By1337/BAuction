@@ -1,7 +1,6 @@
 package org.by1337.bauction.menu;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
@@ -10,9 +9,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.by1337.api.chat.Placeholderable;
-import org.by1337.bauction.Main;
 import org.by1337.bauction.menu.requirement.Requirements;
 
 import org.jetbrains.annotations.Nullable;
@@ -28,19 +25,22 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
     protected final int updateInterval;
     protected Requirements openRequirements;
     protected List<Placeholderable> customPlaceHolders = new ArrayList<>();
+    @Nullable
+    protected final Menu backMenu;
 
 
-    public Menu(MenuSetting setting, Player player) {
-        this(setting.getItems(), setting.getTitle(), setting.getSize(), setting.getUpdateInterval(), setting.getViewRequirement(), player, setting.getType());
+    public Menu(MenuSetting setting, Player player, @Nullable Menu backMenu) {
+        this(setting.getItems(), setting.getTitle(), setting.getSize(), setting.getUpdateInterval(), setting.getViewRequirement(), player, setting.getType(), backMenu);
     }
 
-    public Menu(List<CustomItemStack> items, String title, int size, int updateInterval, @Nullable Requirements viewRequirement, Player player, InventoryType type) {
+    public Menu(List<CustomItemStack> items, String title, int size, int updateInterval, @Nullable Requirements viewRequirement, Player player, InventoryType type, @Nullable Menu backMenu) {
         super(player, size, title, type);
         openRequirements = viewRequirement;
         this.items = items;
         this.title = title;
         this.size = size;
         this.updateInterval = updateInterval;
+        this.backMenu = backMenu;
     }
 
     public void open() {
@@ -144,4 +144,9 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
         customPlaceHolders.add(customPlaceHolder);
     }
     abstract public void reopen();
+
+    @Nullable
+    public Menu getBackMenu() {
+        return backMenu;
+    }
 }

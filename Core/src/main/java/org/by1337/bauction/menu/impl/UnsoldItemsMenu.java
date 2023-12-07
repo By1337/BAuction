@@ -10,11 +10,15 @@ import org.by1337.api.command.argument.ArgumentString;
 import org.by1337.api.command.argument.ArgumentStrings;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeUnsoldItemProcess;
+import org.by1337.bauction.auc.UnsoldItem;
+import org.by1337.bauction.auc.User;
 import org.by1337.bauction.db.kernel.CUnsoldItem;
 import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
+import org.by1337.bauction.util.CUniqueName;
+import org.by1337.bauction.util.UniqueName;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -26,19 +30,24 @@ public class UnsoldItemsMenu extends Menu {
 
     private final List<Integer> slots;
 
-    private final Command command;
-    private final CUser user;
-    private final Menu previous;
+    private final Command<Menu> command;
+    private final User user;
 
 
-    public UnsoldItemsMenu(Player player, CUser user, @Nullable Menu previous) {
-        super(Main.getCfg().getMenuManger().getUnsoldItems(), player);
+    public UnsoldItemsMenu(Player player, User user) {
+        this(player, user, null);
+    }
+
+    public UnsoldItemsMenu(Player player, User user, @Nullable Menu backMenu) {
+        super(Main.getCfg().getMenuManger().getUnsoldItems(), player, backMenu);
         this.user = user;
-        this.previous = previous;
         slots = Main.getCfg().getMenuManger().getUnsoldItemsSlots();
 
-        command = new Command("test")
-                .addSubCommand(new Command("[NEXT_PAGE]")
+        command = new Command<Menu>("test")
+                .addSubCommand(new Command<Menu>("[CLOSE]")
+                        .executor(((sender, args) -> viewer.closeInventory()))
+                )
+                .addSubCommand(new Command<Menu>("[NEXT_PAGE]")
                         .executor(((sender, args) -> {
                             if (currentPage < maxPage - 1) {
                                 currentPage++;
@@ -46,7 +55,7 @@ public class UnsoldItemsMenu extends Menu {
                             }
                         }))
                 )
-                .addSubCommand(new Command("[PREVIOUS_PAGE]")
+                .addSubCommand(new Command<Menu>("[PREVIOUS_PAGE]")
                         .executor(((sender, args) -> {
                             if (currentPage > 0) {
                                 currentPage--;
@@ -54,24 +63,25 @@ public class UnsoldItemsMenu extends Menu {
                             }
                         }))
                 )
-                .addSubCommand(new Command("[UPDATE]")
+                .addSubCommand(new Command<Menu>("[UPDATE]")
                         .executor(((sender, args) -> {
                             unsoldItems = null;
                             generate0();
                         }))
                 )
-                .addSubCommand(new Command("[BACK]")
-                        .executor(((sender, args) -> syncUtil(() -> Objects.requireNonNull(previous).reopen())))
+                .addSubCommand(new Command<Menu>("[BACK]")
+                        .executor(((sender, args) -> syncUtil(() -> Objects.requireNonNull(backMenu).reopen())))
                 )
-                .addSubCommand(new Command("[TAKE_ITEM]")
-                        .argument(new ArgumentString("uuid"))
-                        .argument(new ArgumentSetList("fast", List.of("fast")))
+                .addSubCommand(new Command<Menu>("[TAKE_ITEM]")
+                        .argument(new ArgumentString<>("uuid"))
+                        .argument(new ArgumentSetList<>("fast", List.of("fast")))
                         .executor(((sender, args) -> {
                             boolean fast = args.getOrDefault("fast", "").equals("fast");
                             String uuidS = (String) args.getOrThrow("uuid");
-                            UUID uuid = UUID.fromString(uuidS);
+                          //  UUID uuid = UUID.fromString(uuidS);
+                            UniqueName uuid = new CUniqueName(uuidS);
 
-                            CUnsoldItem unsoldItem = unsoldItems.stream().filter(i -> i.getUuid().equals(uuid)).findFirst().orElse(null);
+                            UnsoldItem unsoldItem = unsoldItems.stream().filter(i -> i.getUniqueName().equals(uuid)).findFirst().orElse(null);
 
                             if (unsoldItem == null) {
                                 Main.getMessage().sendMsg(player, Lang.getMessages("item_no_longer_exists"));
@@ -82,15 +92,15 @@ public class UnsoldItemsMenu extends Menu {
                             new TakeUnsoldItemProcess(unsoldItem, user, this, player, fast).process();
                         }))
                 )
-                .addSubCommand(new Command("[CONSOLE]")
-                        .argument(new ArgumentStrings("cmd"))
+                .addSubCommand(new Command<Menu>("[CONSOLE]")
+                        .argument(new ArgumentStrings<>("cmd"))
                         .executor(((sender, args) -> {
                             String cmd = (String) args.getOrThrow("cmd");
                             Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd);
                         }))
                 )
-                .addSubCommand(new Command("[PLAYER]")
-                        .argument(new ArgumentStrings("cmd"))
+                .addSubCommand(new Command<Menu>("[PLAYER]")
+                        .argument(new ArgumentStrings<>("cmd"))
                         .executor(((sender, args) -> {
                             String cmd = (String) args.getOrThrow("cmd");
                             viewer.performCommand(cmd);
@@ -99,7 +109,7 @@ public class UnsoldItemsMenu extends Menu {
         ;
     }
 
-    private ArrayList<CUnsoldItem> unsoldItems = null;
+    private ArrayList<UnsoldItem> unsoldItems = null;
     private int lastPage = -1;
 
     @Override
@@ -108,7 +118,7 @@ public class UnsoldItemsMenu extends Menu {
 
             lastPage = currentPage;
 
-            unsoldItems = new ArrayList<>(Main.getStorage().getUnsoldItemsByOwner(user.getUuid()));
+            unsoldItems = new ArrayList<>(Main.getStorage().getUnsoldItemsByUser(user.getUuid()));
 
             maxPage = (int) Math.ceil((double) unsoldItems.size() / slots.size());
 
@@ -124,7 +134,7 @@ public class UnsoldItemsMenu extends Menu {
             Iterator<Integer> slotsIterator = slots.listIterator();
             customItemStacks.clear();
             for (int x = currentPage * slots.size(); x < unsoldItems.size(); x++) {
-                CUnsoldItem item = unsoldItems.get(x);
+                UnsoldItem item = unsoldItems.get(x);
 
                 if (slotsIterator.hasNext()) {
                     int slot = slotsIterator.next();

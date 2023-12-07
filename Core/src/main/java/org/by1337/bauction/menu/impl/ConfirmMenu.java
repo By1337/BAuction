@@ -6,9 +6,8 @@ import org.by1337.api.chat.Placeholderable;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
-import org.by1337.bauction.menu.MenuFactory;
-import org.by1337.bauction.menu.MenuSetting;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +20,10 @@ public class ConfirmMenu extends Menu {
     private int itemSlot;
 
     public ConfirmMenu(@NotNull CallBack<Optional<Result>> callBack, ItemStack itemStack, Player player) {
-        super(Main.getCfg().getMenuManger().getMenuConfirm(), player);
+        this(callBack, itemStack, player, null);
+    }
+    public ConfirmMenu(@NotNull CallBack<Optional<Result>> callBack, ItemStack itemStack, Player player, @Nullable Menu backMenu) {
+        super(Main.getCfg().getMenuManger().getMenuConfirm(), player, backMenu);
         itemSlot = Main.getCfg().getMenuManger().getConfirmMenuItemSlot();
         this.callBack = callBack;
 
@@ -53,7 +55,7 @@ public class ConfirmMenu extends Menu {
 
     @Override
     public String replace(String string) {
-        String str = Main.getMessage().messageBuilder(string, getPlayer());
+        String str = Main.getMessage().messageBuilder(string, viewer);
         for (Placeholderable val : customPlaceHolders) {
             str = val.replace(str);
         }

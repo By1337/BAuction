@@ -169,11 +169,11 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
         };
         ClickType clickType1 = ClickType.adapter(e);
         if (clickType1 == null) return;
-        IClick click = clicks.getOrDefault(clickType1, null);
+        IClick click = clicks.get(clickType1);
         if (click != null) {
             click.run(menu, holder1);
         }
-        IClick click1 = clicks.getOrDefault(ClickType.ANY_CLICK, null);
+        IClick click1 = clicks.get(ClickType.ANY_CLICK);
         if (click1 != null) {
             click1.run(menu, holder1);
         }

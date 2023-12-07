@@ -163,7 +163,7 @@ public abstract class AsyncClickListener implements Listener {
      *
      * @param runnable The Runnable task to be executed.
      */
-    protected void syncUtil(Runnable runnable) {
+    public static void syncUtil(Runnable runnable) {
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), runnable, 0);
     }
 }

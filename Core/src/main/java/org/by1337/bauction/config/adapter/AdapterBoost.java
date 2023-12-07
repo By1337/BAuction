@@ -4,9 +4,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.by1337.api.configuration.YamlContext;
 import org.by1337.api.configuration.adapter.ClassAdapter;
 import org.by1337.api.util.NameKey;
-import org.by1337.bauction.booost.Boost;
+import org.by1337.bauction.boost.Boost;
 import org.by1337.bauction.util.NumberUtil;
-import org.by1337.bauction.util.TimeUtil;
 
 public class AdapterBoost implements ClassAdapter<Boost> {
     @Override

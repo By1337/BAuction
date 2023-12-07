@@ -2,84 +2,72 @@ package org.by1337.bauction.db.kernel;
 
 import org.by1337.bauction.Main;
 import org.by1337.bauction.auc.User;
+import org.by1337.bauction.util.CUniqueName;
+import org.by1337.bauction.util.UniqueName;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.*;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class CUser implements User {
     final String nickName;
     final UUID uuid;
-    List<UUID> unsoldItems = new ArrayList<>();
-    List<UUID> itemForSale = new ArrayList<>();
     int dealCount;
     double dealSum;
-    private int externalSlots = 0;
-    private long externalSellTime = 0L;
+    private transient int externalSlots = 0;
+    private transient long externalSellTime = 0L;
+    private transient int lastHash;
 
-    public String toSql(String table) {
-        return String.format(
-                "INSERT INTO %s (uuid, name, unsold_items, item_for_sale, deal_count, deal_sum)" +
-                        "VALUES('%s', '%s', '%s', '%s', %s, %s)", table, uuid, nickName, listToString(unsoldItems), listToString(itemForSale), dealCount, dealSum
-        );
+    public boolean hasChanges() {
+        return Objects.hash(dealCount, dealSum) != lastHash;
     }
 
-    public String toSqlUpdate(String table) {
-        return String.format(
-                "UPDATE %s SET uuid = '%s', name = '%s', unsold_items = '%s', item_for_sale = '%s', deal_count = %s, deal_sum = %s WHERE uuid = '%s';", table, uuid, nickName, listToString(unsoldItems), listToString(itemForSale), dealCount, dealSum, uuid
-        );
+    public void updateHash() {
+        lastHash = Objects.hash(dealCount, dealSum);
     }
 
-    private static String listToString(Collection<?> collection) {
-        StringBuilder sb = new StringBuilder();
-        for (Object o : collection) {
-            sb.append(o).append(",");
-        }
-        if (!sb.isEmpty()) {
-            sb.setLength(sb.length() - 1);
-        }
-        return sb.toString();
-    }
 
-    public CUser(String nickName, UUID uuid, List<UUID> unsoldItems, List<UUID> itemForSale, int dealCount, double dealSum) {
+    public CUser(String nickName, UUID uuid, int dealCount, double dealSum) {
         this.nickName = nickName;
         this.uuid = uuid;
-        this.unsoldItems = unsoldItems;
-        this.itemForSale = itemForSale;
         this.dealCount = dealCount;
         this.dealSum = dealSum;
-
     }
+
 
     public CUser(@NotNull String nickName, @NotNull UUID uuid) {
         this.nickName = nickName;
         this.uuid = uuid;
     }
 
+    public String toSql(String table) {
+        return String.format(
+                "INSERT INTO %s (uuid, name, deal_count, deal_sum) VALUES ('%s', '%s', %s, %s)", table,
+                uuid, nickName, dealCount, dealSum
+        );
+    }
+
+    public String toSqlUpdate(String table) {
+        return String.format(
+                "UPDATE %s SET name = '%s', deal_count = %s, deal_sum = %s WHERE uuid = '%s'", table,
+                nickName, dealCount, dealSum, uuid
+        );
+    }
+
     public static CUser fromResultSet(ResultSet resultSet) throws SQLException {
         String nickName = resultSet.getString("name");
         UUID uuid = UUID.fromString(resultSet.getString("uuid"));
-        List<UUID> unsoldItems = parseUUIDList(resultSet.getString("unsold_items"));
-        List<UUID> itemForSale = parseUUIDList(resultSet.getString("item_for_sale"));
         int dealCount = resultSet.getInt("deal_count");
         double dealSum = resultSet.getDouble("deal_sum");
 
-        return new CUser(nickName, uuid, unsoldItems, itemForSale, dealCount, dealSum);
+        return new CUser(nickName, uuid, dealCount, dealSum);
     }
 
-    private static List<UUID> parseUUIDList(String uuidString) {
-        List<UUID> uuidList = new ArrayList<>();
-        if (!uuidString.isEmpty()) {
-            String[] uuidArray = uuidString.split(",");
-            for (String uuid : uuidArray) {
-                uuidList.add(UUID.fromString(uuid));
-            }
-        }
-        return uuidList;
+    public boolean isValid() {
+        return nickName != null && uuid != null;
     }
 
     public void setExternalSlots(int externalSlots) {
@@ -95,13 +83,37 @@ public class CUser implements User {
         return "CUser{" +
                 "nickName='" + nickName + '\'' +
                 ", uuid=" + uuid +
-                ", unsoldItemImpls=" + unsoldItems +
                 ", externalSlots=" + externalSlots +
                 ", externalSellTime=" + externalSellTime +
-                ", itemForSale=" + itemForSale +
                 ", dealCount=" + dealCount +
                 ", dealSum=" + dealSum +
                 '}';
+    }
+
+    @Override
+    public byte[] getBytes() throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             DataOutputStream data = new DataOutputStream(out)) {
+            data.writeUTF(nickName);
+            data.writeUTF(uuid.toString());
+            data.writeInt(dealCount);
+            data.writeDouble(dealSum);
+            data.flush();
+            return out.toByteArray();
+        }
+    }
+
+    public static CUser fromBytes(byte[] arr) throws IOException {
+        try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
+            String nickName = in.readUTF();
+            UUID uuid = UUID.fromString(in.readUTF());
+            int dealCount = in.readInt();
+            double dealSum = in.readDouble();
+
+            return new CUser(
+                    nickName, uuid, dealCount, dealSum
+            );
+        }
     }
 
     public String getNickName() {
@@ -110,14 +122,6 @@ public class CUser implements User {
 
     public UUID getUuid() {
         return uuid;
-    }
-
-    public List<UUID> getUnsoldItems() {
-        return unsoldItems;
-    }
-
-    public List<UUID> getItemForSale() {
-        return itemForSale;
     }
 
     public int getDealCount() {
@@ -153,11 +157,15 @@ public class CUser implements User {
                 continue;
             }
             if (sb.indexOf("{selling_item_count}") != -1) {
-                sb.replace(sb.indexOf("{selling_item_count}"), sb.indexOf("{selling_item_count}") + "{selling_item_count}".length(), String.valueOf(itemForSale.size()));
+                sb.replace(sb.indexOf("{selling_item_count}"), sb.indexOf("{selling_item_count}") + "{selling_item_count}".length(),
+                        String.valueOf(Main.getStorage().getSellItemsByUser(uuid).size())
+                );
                 continue;
             }
             if (sb.indexOf("{not_sold_item_count}") != -1) {
-                sb.replace(sb.indexOf("{not_sold_item_count}"), sb.indexOf("{not_sold_item_count}") + "{not_sold_item_count}".length(), String.valueOf(unsoldItems.size()));
+                sb.replace(sb.indexOf("{not_sold_item_count}"), sb.indexOf("{not_sold_item_count}") + "{not_sold_item_count}".length(),
+                        String.valueOf(Main.getStorage().getUnsoldItemsByUser(uuid).size())
+                );
                 continue;
             }
             if (sb.indexOf("{external_slots}") != -1) {

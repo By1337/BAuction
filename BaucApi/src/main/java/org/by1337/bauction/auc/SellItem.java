@@ -3,6 +3,8 @@ package org.by1337.bauction.auc;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.api.chat.Placeholderable;
+import org.by1337.bauction.serialize.SerializableToByteArray;
+import org.by1337.bauction.util.UniqueName;
 
 import java.util.Set;
 import java.util.UUID;
@@ -10,7 +12,7 @@ import java.util.UUID;
 /**
  * Interface defining properties and methods for items listed on an auction.
  */
-public interface SellItem extends Placeholderable {
+public interface SellItem extends Placeholderable, SerializableToByteArray {
 
     /**
      * Get the item available for sale as an ItemStack.
@@ -80,7 +82,7 @@ public interface SellItem extends Placeholderable {
      *
      * @return The UUID of the item.
      */
-    UUID getUuid();
+    UniqueName getUniqueName();
 
     /**
      * Get the material of the item.
@@ -102,4 +104,6 @@ public interface SellItem extends Placeholderable {
      * @return The price per unit of the item if sold in pieces, otherwise, the total price.
      */
     double getPriceForOne();
+
+    String toSql(String table);
 }

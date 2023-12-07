@@ -1,4 +1,4 @@
-version: 2 # НЕ МЕНЯТЬ
+version: 3 # НЕ МЕНЯТЬ
 db:
   type: json # json or mysql
   host: 'localhost'

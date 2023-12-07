@@ -1,14 +1,14 @@
 package org.by1337.bauction.auc;
 
 import org.by1337.api.chat.Placeholderable;
+import org.by1337.bauction.serialize.SerializableToByteArray;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
  * Interface representing the auction user.
  */
-public interface User extends Placeholderable {
+public interface User extends Placeholderable, SerializableToByteArray {
 
     /**
      * Get the nickname of the user.
@@ -23,20 +23,6 @@ public interface User extends Placeholderable {
      * @return The UUID of the user.
      */
     UUID getUuid();
-
-    /**
-     * Get a list of UUIDs representing unsold items associated with the user.
-     *
-     * @return List of UUIDs of unsold items.
-     */
-    List<UUID> getUnsoldItems();
-
-    /**
-     * Get a list of UUIDs representing items currently for sale by the user.
-     *
-     * @return List of UUIDs of items for sale.
-     */
-    List<UUID> getItemForSale();
 
     /**
      * Get the total count of completed deals involving the user.

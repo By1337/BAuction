@@ -5,6 +5,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.by1337.bauction.Main;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
@@ -219,6 +220,7 @@ public class Metrics {
             this.logResponseStatusText = logResponseStatusText;
             checkRelocation();
             if (enabled) {
+                Main.getMessage().logger("Starting Metrics. Opt-out using the global bStats config.");
                 // WARNING: Removing the option to opt-out will get your plugin banned from bStats
                 startSubmitting();
             }
@@ -300,7 +302,7 @@ public class Metrics {
             byte[] compressedData = compress(data.toString());
             connection.setRequestMethod("POST");
             connection.addRequestProperty("Accept", "application/json");
-            connection.addRequestProperty("Connection", "close");
+            connection.addRequestProperty("PacketConnection", "close");
             connection.addRequestProperty("Content-Encoding", "gzip");
             connection.addRequestProperty("Content-Length", String.valueOf(compressedData.length));
             connection.setRequestProperty("Content-Type", "application/json");

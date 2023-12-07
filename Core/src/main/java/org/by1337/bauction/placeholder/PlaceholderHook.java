@@ -48,7 +48,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
                                         })// player_deal_count
                                 )
                         )
-                        .addSubPlaceholder(new Placeholder("selling")
+/*                        .addSubPlaceholder(new Placeholder("selling")
                                 .addSubPlaceholder(new Placeholder("item")
                                         .addSubPlaceholder(new Placeholder("count")
                                                 .executor(player -> {
@@ -69,7 +69,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
                                                 )
                                         )
                                 )
-                        )
+                        )*/
                         .addSubPlaceholder(new Placeholder("external")
                                 .addSubPlaceholder(new Placeholder("slots")
                                         .addSubPlaceholder(new Placeholder("count")

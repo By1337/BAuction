@@ -1,12 +1,10 @@
 package org.by1337.bauction.config;
 
-import org.bukkit.configuration.file.FileConfiguration;
-
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.by1337.api.configuration.YamlContext;
 import org.by1337.api.util.NameKey;
-import org.by1337.bauction.booost.BoostManager;
+import org.by1337.bauction.boost.BoostManager;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.Sorting;
@@ -103,19 +101,13 @@ public class Config {
         }
         menuUnsoldItems = new YamlContext(YamlConfiguration.loadConfiguration(fileMenuUnsoldItems));
 
-        itemsDataFolder = new File(basedir + "/items");
-        if (!itemsDataFolder.exists()) {
-            itemsDataFolder.mkdir();
-        }
 
-      //  YamlContext context = new YamlContext(sorting);
         sortingMap = new LinkedHashMap<>();
         categoryMap = new LinkedHashMap<>();
         sorting.getMap("sorting", Sorting.class).values().stream().sorted(Sorting::compareTo).forEach(sorting1 -> sortingMap.put(sorting1.nameKey(), sorting1));
         sorting.getMap("categories", Category.class).values().stream().sorted(Category::compareTo).forEach(category -> categoryMap.put(category.nameKey(), category));
 
 
-       // YamlContext cfg = new YamlContext(config);
         maxSlots = config.getAsInteger("max-slots");
         defaultSellTime = NumberUtil.getTime(config.getAsString("default-offer-time"));
 

@@ -1,6 +1,7 @@
 package org.by1337.bauction.util;
 
 import org.by1337.api.util.NameKey;
+import org.by1337.bauction.auc.SellItem;
 import org.by1337.bauction.db.kernel.CSellItem;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +39,7 @@ public record Sorting(SortingType type, String value, String selectedName,
                 '}';
     }
 
-    public Comparator<CSellItem> getComparator(){
+    public Comparator<SellItem> getComparator(){
         if (type == Sorting.SortingType.COMPARE_MAX) {
             return  switch (value){
                 case "{price}" -> (item, item1) -> Double.compare(item1.getPrice(), item.getPrice());
@@ -48,10 +49,10 @@ public record Sorting(SortingType type, String value, String selectedName,
             };
         } else {
             return switch (value){
-                case "{price}" -> Comparator.comparingDouble(CSellItem::getPrice);
-                case "{price_for_one}" -> Comparator.comparingDouble(CSellItem::getPriceForOne);
+                case "{price}" -> Comparator.comparingDouble(SellItem::getPrice);
+                case "{price_for_one}" -> Comparator.comparingDouble(SellItem::getPriceForOne);
                 case "{sale_time}" ->
-                        Comparator.comparingDouble((CSellItem item) -> (double) item.getTimeListedForSale() / 1000);
+                        Comparator.comparingDouble((SellItem item) -> (double) item.getTimeListedForSale() / 1000);
                 default -> throw new IllegalArgumentException("unknown sorting type: " + this);
             };
         }

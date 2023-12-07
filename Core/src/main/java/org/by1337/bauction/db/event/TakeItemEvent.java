@@ -1,5 +1,7 @@
 package org.by1337.bauction.db.event;
 
+import org.by1337.bauction.auc.SellItem;
+import org.by1337.bauction.auc.User;
 import org.by1337.bauction.db.kernel.CSellItem;
 import org.by1337.bauction.db.kernel.CUser;
 import org.jetbrains.annotations.NotNull;
@@ -9,11 +11,11 @@ public class TakeItemEvent implements Validatable {
 
     private boolean valid;
     private String reason = null;
-    private final CUser user;
-    private final CSellItem sellItem;
+    private final User user;
+    private final SellItem sellItem;
 
 
-    public TakeItemEvent(@NotNull CUser user, @NotNull CSellItem sellItem) {
+    public TakeItemEvent(@NotNull User user, @NotNull SellItem sellItem) {
         this.user = user;
         this.sellItem = sellItem;
     }
@@ -39,12 +41,12 @@ public class TakeItemEvent implements Validatable {
     }
 
     @NotNull
-    public CUser getUser() {
+    public User getUser() {
         return user;
     }
 
     @NotNull
-    public CSellItem getSellItem() {
+    public SellItem getSellItem() {
         return sellItem;
     }
 }

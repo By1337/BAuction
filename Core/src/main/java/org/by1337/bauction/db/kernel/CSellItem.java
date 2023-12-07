@@ -1,5 +1,6 @@
 package org.by1337.bauction.db.kernel;
 
+import lombok.Builder;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -7,14 +8,18 @@ import org.by1337.api.BLib;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.auc.SellItem;
 import org.by1337.bauction.lang.Lang;
+import org.by1337.bauction.serialize.SerializeUtils;
+import org.by1337.bauction.util.CUniqueName;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.TagUtil;
+import org.by1337.bauction.util.UniqueName;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-
+@Builder
 public class CSellItem implements SellItem {
     final String item;
     final String sellerName;
@@ -24,7 +29,7 @@ public class CSellItem implements SellItem {
     final Set<String> tags;
     final long timeListedForSale;
     final long removalDate;
-    final UUID uuid;
+    final UniqueName uniqueName;
     final Material material;
     final int amount;
     final double priceForOne;
@@ -35,44 +40,38 @@ public class CSellItem implements SellItem {
         return new CSellItemBuilder();
     }
 
+    @Override
     public String toSql(String table) {
         return String.format(
                 "INSERT INTO %s (uuid, seller_uuid, item, seller_name, price, sale_by_the_piece, tags, time_listed_for_sale, removal_date, material, amount, price_for_one, sell_for)" +
-                        "VALUES('%s', '%s', '%s','%s', %s, %s, '%s', %s, %s, '%s', %s, %s, '%s')",
-                table,          uuid, sellerUuid, item, sellerName, price, saleByThePiece, listToString(tags),
-                timeListedForSale, removalDate, material.name(), amount, priceForOne, listToString(sellFor)
+                        "VALUES('%s', '%s', '%s', '%s', %s, %s, '%s', %s, %s, '%s', %s, %s, '%s')",
+                table, uniqueName.getKey(), sellerUuid, item, sellerName, price, saleByThePiece, listToString(tags), timeListedForSale, removalDate, material.name(),  amount, priceForOne, listToString(sellFor)
         );
     }
 
     public static CSellItem fromResultSet(ResultSet resultSet) throws SQLException {
         return CSellItem.builder()
-                .uuid(UUID.fromString(resultSet.getString("uuid")))
+                .uniqueName(new CUniqueName(resultSet.getString("uuid")))
                 .sellerUuid(UUID.fromString(resultSet.getString("seller_uuid")))
                 .item(resultSet.getString("item"))
                 .sellerName(resultSet.getString("seller_name"))
                 .price(resultSet.getDouble("price"))
                 .saleByThePiece(resultSet.getBoolean("sale_by_the_piece"))
-                .tags(new HashSet<>(Arrays.stream(resultSet.getString("tags").split(",")).toList()))
+                .tags(new HashSet<>(Arrays.asList(resultSet.getString("tags").split(","))))
                 .timeListedForSale(resultSet.getLong("time_listed_for_sale"))
                 .removalDate(resultSet.getLong("removal_date"))
                 .material(Material.valueOf(resultSet.getString("material")))
                 .amount(resultSet.getInt("amount"))
                 .priceForOne(resultSet.getDouble("price_for_one"))
-                .sellFor(new HashSet<>(Arrays.stream(resultSet.getString("sell_for").split(",")).toList()))
+                .sellFor(new HashSet<>(Arrays.asList(resultSet.getString("sell_for").split(","))))
                 .build();
     }
-    private static String listToString(Collection<?> collection) {
-        StringBuilder sb = new StringBuilder();
-        for (Object o : collection) {
-            sb.append(o).append(",");
-        }
-        if (!sb.isEmpty()) {
-            sb.setLength(sb.length() - 1);
-        }
-        return sb.toString();
+
+    private static String listToString(Collection<? extends CharSequence> collection) {
+        return String.join(",", collection);
     }
 
-    public CSellItem(String item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, UUID uuid, Material material, int amount, double priceForOne, Set<String> sellFor, ItemStack itemStack) {
+    public CSellItem(String item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, UniqueName uniqueName, Material material, int amount, double priceForOne, Set<String> sellFor, ItemStack itemStack) {
         this.item = item;
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
@@ -81,7 +80,7 @@ public class CSellItem implements SellItem {
         this.tags = tags;
         this.timeListedForSale = timeListedForSale;
         this.removalDate = removalDate;
-        this.uuid = uuid;
+        this.uniqueName = uniqueName;
         this.material = material;
         this.amount = amount;
         this.priceForOne = priceForOne;
@@ -89,7 +88,7 @@ public class CSellItem implements SellItem {
         this.itemStack = itemStack;
     }
 
-    public CSellItem(String item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, UUID uuid, Material material, int amount, double priceForOne, ItemStack itemStack) {
+    public CSellItem(String item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, UniqueName uniqueName, Material material, int amount, double priceForOne, ItemStack itemStack) {
         this.item = item;
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
@@ -98,7 +97,7 @@ public class CSellItem implements SellItem {
         this.tags = tags;
         this.timeListedForSale = timeListedForSale;
         this.removalDate = removalDate;
-        this.uuid = uuid;
+        this.uniqueName = uniqueName;
         this.material = material;
         this.amount = amount;
         this.priceForOne = priceForOne;
@@ -108,7 +107,7 @@ public class CSellItem implements SellItem {
 
     public CSellItem(String item, String sellerName, UUID sellerUuid,
                      double price, boolean saleByThePiece, Set<String> tags,
-                     long timeListedForSale, long removalDate, UUID uuid, Material material,
+                     long timeListedForSale, long removalDate, UniqueName uniqueName, Material material,
                      int amount, double priceForOne) {
         this.item = item;
         this.sellerName = sellerName;
@@ -118,7 +117,7 @@ public class CSellItem implements SellItem {
         this.tags = tags;
         this.timeListedForSale = timeListedForSale;
         this.removalDate = removalDate;
-        this.uuid = uuid;
+        this.uniqueName = uniqueName;
         this.material = material;
         this.amount = amount;
         this.priceForOne = priceForOne;
@@ -134,7 +133,7 @@ public class CSellItem implements SellItem {
         this.tags = Collections.unmodifiableSet(tags);
         this.timeListedForSale = System.currentTimeMillis();
         this.removalDate = System.currentTimeMillis() + saleDuration;
-        this.uuid = UUID.randomUUID();
+        this.uniqueName = Main.getUniqueNameGenerator().getNextCombination();
         this.material = material;
         this.amount = amount;
         priceForOne = price / amount;
@@ -154,12 +153,29 @@ public class CSellItem implements SellItem {
         tags = Collections.unmodifiableSet(TagUtil.getTags(itemStack));
         timeListedForSale = System.currentTimeMillis();
         this.removalDate = System.currentTimeMillis() + saleDuration;
-        this.uuid = UUID.randomUUID();
+        this.uniqueName = Main.getUniqueNameGenerator().getNextCombination();
         material = itemStack.getType();
         amount = itemStack.getAmount();
         priceForOne = saleByThePiece ? price / amount : price;
         sellFor = new HashSet<>();
     }
+
+    public CSellItem(String sellerName, UUID sellerUuid, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
+        item = BLib.getApi().getItemStackSerialize().serialize(itemStack);
+        this.sellerName = sellerName;
+        this.sellerUuid = sellerUuid;
+        this.price = price;
+        this.saleByThePiece = saleByThePiece;
+        tags = Collections.unmodifiableSet(TagUtil.getTags(itemStack));
+        timeListedForSale = System.currentTimeMillis();
+        this.removalDate = System.currentTimeMillis() + saleDuration;
+        this.uniqueName = Main.getUniqueNameGenerator().getNextCombination();
+        material = itemStack.getType();
+        amount = itemStack.getAmount();
+        priceForOne = saleByThePiece ? price / amount : price;
+        sellFor = new HashSet<>();
+    }
+
 
     static CSellItem parse(SellItem item) {
         return new CSellItem(
@@ -171,7 +187,7 @@ public class CSellItem implements SellItem {
                 item.getTags(),
                 item.getTimeListedForSale(),
                 item.getRemovalDate(),
-                item.getUuid(),
+                item.getUniqueName(),
                 item.getMaterial(),
                 item.getAmount(),
                 item.getPriceForOne()
@@ -183,6 +199,66 @@ public class CSellItem implements SellItem {
             itemStack = BLib.getApi().getItemStackSerialize().deserialize(item);
         }
         return itemStack;
+    }
+
+    public boolean isValid() {
+        return item != null &&
+                sellerName != null &&
+                sellerUuid != null &&
+                tags != null &&
+                uniqueName != null &&
+                material != null &&
+                sellFor != null;
+    }
+
+    @Override
+    public byte[] getBytes() throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             DataOutputStream data = new DataOutputStream(out)) {
+            data.writeUTF(item);
+            data.writeUTF(sellerName);
+            data.writeUTF(sellerUuid.toString());
+            data.writeDouble(price);
+            data.writeBoolean(saleByThePiece);
+            SerializeUtils.writeCollectionToStream(data, tags);
+            data.writeLong(timeListedForSale);
+            data.writeLong(removalDate);
+            data.writeUTF(uniqueName.getKey());
+            data.writeInt(uniqueName.getSeed());
+            data.writeLong(uniqueName.getPos());
+            data.writeUTF(material.name());
+            data.writeInt(amount);
+            data.writeDouble(priceForOne);
+            SerializeUtils.writeCollectionToStream(data, sellFor);
+            data.flush();
+            return out.toByteArray();
+        }
+    }
+
+    public static CSellItem fromBytes(byte[] arr) throws IOException {
+        try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
+            String item = in.readUTF();
+            String sellerName = in.readUTF();
+            UUID sellerUuid = UUID.fromString(in.readUTF());
+            double price = in.readDouble();
+            boolean saleByThePiece = in.readBoolean();
+            Set<String> tags = new HashSet<>(SerializeUtils.readCollectionFromStream(in));
+            long timeListedForSale = in.readLong();
+            long removalDate = in.readLong();
+            UniqueName uniqueName = new CUniqueName(
+                    in.readUTF(),
+                    in.readInt(), // seed
+                    in.readLong() // pos
+            );
+            Material material = Material.valueOf(in.readUTF());
+            int amount = in.readInt();
+            double priceForOne = in.readDouble();
+            Set<String> sellFor = new HashSet<>(SerializeUtils.readCollectionFromStream(in));
+
+            return new CSellItem(
+                    item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, null
+            );
+        }
     }
 
     public String getItem() {
@@ -217,8 +293,8 @@ public class CSellItem implements SellItem {
         return removalDate;
     }
 
-    public UUID getUuid() {
-        return uuid;
+    public UniqueName getUniqueName() {
+        return uniqueName;
     }
 
     public Material getMaterial() {
@@ -248,12 +324,24 @@ public class CSellItem implements SellItem {
                 ", tags=" + tags +
                 ", timeListedForSale=" + timeListedForSale +
                 ", removalDate=" + removalDate +
-                ", uuid=" + uuid +
+                ", uuid=" + uniqueName +
                 ", material=" + material +
                 ", amount=" + amount +
                 ", priceForOne=" + priceForOne +
                 ", sellFor=" + sellFor +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CSellItem sellItem)) return false;
+        return Double.compare(getPrice(), sellItem.getPrice()) == 0 && isSaleByThePiece() == sellItem.isSaleByThePiece() && getTimeListedForSale() == sellItem.getTimeListedForSale() && getRemovalDate() == sellItem.getRemovalDate() && getAmount() == sellItem.getAmount() && Double.compare(getPriceForOne(), sellItem.getPriceForOne()) == 0 && Objects.equals(getItem(), sellItem.getItem()) && Objects.equals(getSellerName(), sellItem.getSellerName()) && Objects.equals(getSellerUuid(), sellItem.getSellerUuid()) && Objects.equals(getTags(), sellItem.getTags()) && Objects.equals(getUniqueName(), sellItem.getUniqueName()) && getMaterial() == sellItem.getMaterial() && Objects.equals(sellFor, sellItem.sellFor) && Objects.equals(getItemStack(), sellItem.getItemStack());
+    }
+
+    @Override
+    public int hashCode() {
+        return uniqueName.hashCode();
     }
 
     @Override
@@ -293,7 +381,7 @@ public class CSellItem implements SellItem {
                 continue;
             }
             if (sb.indexOf("{id}") != -1) {
-                sb.replace(sb.indexOf("{id}"), sb.indexOf("{id}") + "{id}".length(), String.valueOf(uuid));
+                sb.replace(sb.indexOf("{id}"), sb.indexOf("{id}") + "{id}".length(), String.valueOf(uniqueName.getKey()));
                 continue;
             }
             if (sb.indexOf("{sale_time}") != -1) {
@@ -313,101 +401,4 @@ public class CSellItem implements SellItem {
         return sb.toString();
     }
 
-    public static class CSellItemBuilder {
-        private String item;
-        private String sellerName;
-        private UUID sellerUuid;
-        private double price;
-        private boolean saleByThePiece;
-        private Set<String> tags;
-        private long timeListedForSale;
-        private long removalDate;
-        private UUID uuid;
-        private Material material;
-        private int amount;
-        private double priceForOne;
-        private ItemStack itemStack;
-        private Set<String> sellFor;
-
-        CSellItemBuilder() {
-        }
-
-        public CSellItemBuilder item(String item) {
-            this.item = item;
-            return this;
-        }
-
-        public CSellItemBuilder sellerName(String sellerName) {
-            this.sellerName = sellerName;
-            return this;
-        }
-
-        public CSellItemBuilder sellerUuid(UUID sellerUuid) {
-            this.sellerUuid = sellerUuid;
-            return this;
-        }
-
-        public CSellItemBuilder price(double price) {
-            this.price = price;
-            return this;
-        }
-
-        public CSellItemBuilder saleByThePiece(boolean saleByThePiece) {
-            this.saleByThePiece = saleByThePiece;
-            return this;
-        }
-
-        public CSellItemBuilder tags(Set<String> tags) {
-            this.tags = tags;
-            return this;
-        }
-
-        public CSellItemBuilder timeListedForSale(long timeListedForSale) {
-            this.timeListedForSale = timeListedForSale;
-            return this;
-        }
-
-        public CSellItemBuilder removalDate(long removalDate) {
-            this.removalDate = removalDate;
-            return this;
-        }
-
-        public CSellItemBuilder uuid(UUID uuid) {
-            this.uuid = uuid;
-            return this;
-        }
-
-        public CSellItemBuilder material(Material material) {
-            this.material = material;
-            return this;
-        }
-
-        public CSellItemBuilder amount(int amount) {
-            this.amount = amount;
-            return this;
-        }
-
-        public CSellItemBuilder priceForOne(double priceForOne) {
-            this.priceForOne = priceForOne;
-            return this;
-        }
-
-        public CSellItemBuilder itemStack(ItemStack itemStack) {
-            this.itemStack = itemStack;
-            return this;
-        }
-
-        public CSellItem build() {
-            return new CSellItem(this.item, this.sellerName, this.sellerUuid, this.price, this.saleByThePiece, this.tags, this.timeListedForSale, this.removalDate, this.uuid, this.material, this.amount, this.priceForOne, this.itemStack);
-        }
-
-        public String toString() {
-            return "CSellItem.CSellItemBuilder(item=" + this.item + ", sellerName=" + this.sellerName + ", sellerUuid=" + this.sellerUuid + ", price=" + this.price + ", saleByThePiece=" + this.saleByThePiece + ", tags=" + this.tags + ", timeListedForSale=" + this.timeListedForSale + ", removalDate=" + this.removalDate + ", uuid=" + this.uuid + ", material=" + this.material + ", amount=" + this.amount + ", priceForOne=" + this.priceForOne + ", itemStack=" + this.itemStack + ")";
-        }
-
-        public CSellItemBuilder sellFor(Set<String> sellFor) {
-            this.sellFor = sellFor;
-            return this;
-        }
-    }
 }

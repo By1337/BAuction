@@ -10,11 +10,15 @@ import org.by1337.api.command.argument.ArgumentString;
 import org.by1337.api.command.argument.ArgumentStrings;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeItemProcess;
+import org.by1337.bauction.auc.SellItem;
+import org.by1337.bauction.auc.User;
 import org.by1337.bauction.db.kernel.CSellItem;
 import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
+import org.by1337.bauction.util.CUniqueName;
+import org.by1337.bauction.util.UniqueName;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -26,32 +30,37 @@ public class ItemsForSaleMenu extends Menu {
 
     private final List<Integer> slots;
 
-    private final Command command;
-    private final CUser user;
-    private final Menu previous;
+    private final Command<Menu> command;
+    private final User user;
 
-    public ItemsForSaleMenu(Player player, CUser user, @Nullable Menu previous) {
-        super(Main.getCfg().getMenuManger().getItemsForSaleMenu(), player);
+    public ItemsForSaleMenu(Player player, User user) {
+        this(player, user, null);
+    }
+
+    public ItemsForSaleMenu(Player player, User user, @Nullable Menu backMenu) {
+        super(Main.getCfg().getMenuManger().getItemsForSaleMenu(), player, backMenu);
         this.user = user;
-        this.previous = previous;
         slots = Main.getCfg().getMenuManger().getItemsForSaleSlots();
 
-        command = new Command("test")
-                .addSubCommand(new Command("[CONSOLE]")
-                        .argument(new ArgumentStrings("cmd"))
+        command = new Command<Menu>("test")
+                .addSubCommand(new Command<Menu>("[CLOSE]")
+                        .executor(((sender, args) -> viewer.closeInventory()))
+                )
+                .addSubCommand(new Command<Menu>("[CONSOLE]")
+                        .argument(new ArgumentStrings<>("cmd"))
                         .executor(((sender, args) -> {
                             String cmd = (String) args.getOrThrow("cmd");
                             Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd);
                         }))
                 )
-                .addSubCommand(new Command("[PLAYER]")
-                        .argument(new ArgumentStrings("cmd"))
+                .addSubCommand(new Command<Menu>("[PLAYER]")
+                        .argument(new ArgumentStrings<>("cmd"))
                         .executor(((sender, args) -> {
                             String cmd = (String) args.getOrThrow("cmd");
                             viewer.performCommand(cmd);
                         }))
                 )
-                .addSubCommand(new Command("[NEXT_PAGE]")
+                .addSubCommand(new Command<Menu>("[NEXT_PAGE]")
                         .executor(((sender, args) -> {
                             if (currentPage < maxPage - 1) {
                                 currentPage++;
@@ -59,7 +68,7 @@ public class ItemsForSaleMenu extends Menu {
                             }
                         }))
                 )
-                .addSubCommand(new Command("[PREVIOUS_PAGE]")
+                .addSubCommand(new Command<Menu>("[PREVIOUS_PAGE]")
                         .executor(((sender, args) -> {
                             if (currentPage > 0) {
                                 currentPage--;
@@ -67,22 +76,23 @@ public class ItemsForSaleMenu extends Menu {
                             }
                         }))
                 )
-                .addSubCommand(new Command("[UPDATE]")
+                .addSubCommand(new Command<Menu>("[UPDATE]")
                         .executor(((sender, args) -> {
                             sellItems = null;
                             generate0();
                         }))
                 )
-                .addSubCommand(new Command("[BACK]")
-                        .executor(((sender, args) -> syncUtil(() -> Objects.requireNonNull(previous).reopen())))
+                .addSubCommand(new Command<Menu>("[BACK]")
+                        .executor(((sender, args) -> syncUtil(() -> Objects.requireNonNull(backMenu).reopen())))
                 )
-                .addSubCommand(new Command("[TAKE_ITEM]")
-                        .argument(new ArgumentString("uuid"))
-                        .argument(new ArgumentSetList("fast", List.of("fast")))
+                .addSubCommand(new Command<Menu>("[TAKE_ITEM]")
+                        .argument(new ArgumentString<>("uuid"))
+                        .argument(new ArgumentSetList<>("fast", List.of("fast")))
                         .executor(((sender, args) -> {
                             boolean fast = args.getOrDefault("fast", "").equals("fast");
                             String uuidS = (String) args.getOrThrow("uuid");
-                            UUID uuid = UUID.fromString(uuidS);
+                         //   UUID uuid = UUID.fromString(uuidS);
+                            UniqueName uuid = new CUniqueName(uuidS);
 
                             if (!Main.getStorage().hasSellItem(uuid)) {
                                 Main.getMessage().sendMsg(player, Lang.getMessages("item_already_sold_or_removed"));
@@ -90,14 +100,14 @@ public class ItemsForSaleMenu extends Menu {
                                 generate0();
                                 return;
                             }
-                            CSellItem item = Main.getStorage().getSellItem(uuid);
+                            SellItem item = Main.getStorage().getSellItem(uuid);
                             new TakeItemProcess(item, user, this, player, fast).process();
                         }))
                 )
         ;
     }
 
-    private ArrayList<CSellItem> sellItems = null;
+    private ArrayList<SellItem> sellItems = null;
     private int lastPage = -1;
 
 
@@ -107,7 +117,7 @@ public class ItemsForSaleMenu extends Menu {
 
             lastPage = currentPage;
 
-            sellItems = new ArrayList<>(Main.getStorage().getSellItemsByOwner(user.getUuid()));
+            sellItems = new ArrayList<>(Main.getStorage().getSellItemsByUser(user.getUuid()));
 
             maxPage = (int) Math.ceil((double) sellItems.size() / slots.size());
 
@@ -123,7 +133,7 @@ public class ItemsForSaleMenu extends Menu {
             Iterator<Integer> slotsIterator = slots.listIterator();
             customItemStacks.clear();
             for (int x = currentPage * slots.size(); x < sellItems.size(); x++) {
-                CSellItem item = sellItems.get(x);
+                SellItem item = sellItems.get(x);
 
                 if (slotsIterator.hasNext()) {
                     int slot = slotsIterator.next();
@@ -164,19 +174,19 @@ public class ItemsForSaleMenu extends Menu {
         if (getPlayer() == null || !getPlayer().isOnline()) {
             throw new IllegalArgumentException();
         }
-       syncUtil(() -> {
-           reRegister();
-           if (!viewer.getOpenInventory().getTopInventory().equals(inventory))
-               viewer.openInventory(getInventory());
-           sendFakeTitle(replace(title));
-           sellItems = null;
-           generate0();
-       });
+        syncUtil(() -> {
+            reRegister();
+            if (!viewer.getOpenInventory().getTopInventory().equals(inventory))
+                viewer.openInventory(getInventory());
+            sendFakeTitle(replace(title));
+            sellItems = null;
+            generate0();
+        });
     }
 
     @Override
     public String replace(String s) {
-        StringBuilder sb = new StringBuilder(Main.getMessage().messageBuilder(s, getPlayer()));
+        StringBuilder sb = new StringBuilder(Main.getMessage().messageBuilder(s, viewer));
         while (true) {
             if (sb.indexOf("{max_page}") != -1) {
                 sb.replace(sb.indexOf("{max_page}"), sb.indexOf("{max_page}") + "{max_page}".length(), String.valueOf(maxPage == 0 ? 1 : maxPage));

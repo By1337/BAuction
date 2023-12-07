@@ -1,6 +1,7 @@
 package org.by1337.bauction.util;
 
 import org.by1337.api.util.NameKey;
+import org.by1337.bauction.auc.SellItem;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -57,6 +58,9 @@ public class Category implements Comparable<Category> {
         this.tags = tags;
     }
 
+    public boolean matches(SellItem sellItem){
+        return TagUtil.matchesCategory(this, sellItem);
+    }
     @Override
     public int hashCode() {
         return Objects.hash(selectedName, unselectedName, priority, tags, nameKey);
