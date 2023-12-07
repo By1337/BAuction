@@ -5,16 +5,16 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.by1337</groupId>
-    <artifactId>V1_18_2</artifactId>
+    <artifactId>V1_20_3</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <name>V1_18_2</name>
+    <name>V1_20_3</name>
 
     <properties>
         <java.version>16</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <server.version>1.18.2-R0.1-SNAPSHOT</server.version>
+        <server.version>1.20.3-R0.1-SNAPSHOT</server.version>
     </properties>
 
     <build>

@@ -14,7 +14,7 @@ Before compiling BAuction, ensure you have the following prerequisites installed
    java -jar BuildTools.jar --rev 1.16.5
    ```
 
-   Execute this operation for the following versions: 1.17.1, 1.18.2, 1.19.4, 1.20.1, but with an additional flag: `--remapped`.
+   Execute this operation for the following versions: 1.17.1, 1.18.2, 1.19.4, 1.20.1, 1.20.2, 1.20.3, but with an additional flag: `--remapped`.
 
 ## Compiling BAuction
 1. Clone this repository to your local machine:
