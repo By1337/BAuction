@@ -1,13 +1,10 @@
 package org.by1337.bauction.db.kernel;
 
-import lombok.Builder;
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.api.BLib;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.auc.UnsoldItem;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.serialize.SerializeUtils;
 import org.by1337.bauction.util.CUniqueName;
 import org.by1337.bauction.util.UniqueName;
 import org.jetbrains.annotations.NotNull;
@@ -15,11 +12,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
-@Builder
 public class CUnsoldItem implements UnsoldItem {
     final String item;
     final long expired;
@@ -27,6 +21,10 @@ public class CUnsoldItem implements UnsoldItem {
     final UniqueName uniqueName;
     final long deleteVia;
     private transient ItemStack itemStack;
+
+    public static CUnsoldItemBuilder builder() {
+        return new CUnsoldItemBuilder();
+    }
 
     public String toSql(String table) {
         return String.format(
@@ -171,5 +169,55 @@ public class CUnsoldItem implements UnsoldItem {
             break;
         }
         return sb.toString();
+    }
+
+    public static class CUnsoldItemBuilder {
+        private String item;
+        private long expired;
+        private UUID sellerUuid;
+        private UniqueName uniqueName;
+        private long deleteVia;
+        private ItemStack itemStack;
+
+        CUnsoldItemBuilder() {
+        }
+
+        public CUnsoldItemBuilder item(String item) {
+            this.item = item;
+            return this;
+        }
+
+        public CUnsoldItemBuilder expired(long expired) {
+            this.expired = expired;
+            return this;
+        }
+
+        public CUnsoldItemBuilder sellerUuid(UUID sellerUuid) {
+            this.sellerUuid = sellerUuid;
+            return this;
+        }
+
+        public CUnsoldItemBuilder uniqueName(UniqueName uniqueName) {
+            this.uniqueName = uniqueName;
+            return this;
+        }
+
+        public CUnsoldItemBuilder deleteVia(long deleteVia) {
+            this.deleteVia = deleteVia;
+            return this;
+        }
+
+        public CUnsoldItemBuilder itemStack(ItemStack itemStack) {
+            this.itemStack = itemStack;
+            return this;
+        }
+
+        public CUnsoldItem build() {
+            return new CUnsoldItem(this.item, this.expired, this.sellerUuid, this.uniqueName, this.deleteVia, this.itemStack);
+        }
+
+        public String toString() {
+            return "CUnsoldItem.CUnsoldItemBuilder(item=" + this.item + ", expired=" + this.expired + ", sellerUuid=" + this.sellerUuid + ", uniqueName=" + this.uniqueName + ", deleteVia=" + this.deleteVia + ", itemStack=" + this.itemStack + ")";
+        }
     }
 }
