@@ -48,12 +48,12 @@ public class PlaceholderHook extends PlaceholderExpansion {
                                         })// player_deal_count
                                 )
                         )
-/*                        .addSubPlaceholder(new Placeholder("selling")
+                        .addSubPlaceholder(new Placeholder("selling")
                                 .addSubPlaceholder(new Placeholder("item")
                                         .addSubPlaceholder(new Placeholder("count")
                                                 .executor(player -> {
                                                     if (player == null) return "player is null!";
-                                                    return String.valueOf(Main.getStorage().getUserOrCreate(player).getItemForSale().size());
+                                                    return String.valueOf(Main.getStorage().sellItemsCountByUser(player.getUniqueId()));
                                                 })//selling_item_count
                                         )
                                 )
@@ -64,12 +64,12 @@ public class PlaceholderHook extends PlaceholderExpansion {
                                                 .addSubPlaceholder(new Placeholder("count")
                                                         .executor(player -> {
                                                             if (player == null) return "player is null!";
-                                                            return String.valueOf(Main.getStorage().getUserOrCreate(player).getUnsoldItems().size());
+                                                            return String.valueOf(Main.getStorage().unsoldItemsCountByUser(player.getUniqueId()));
                                                         })//not_sold_item_count
                                                 )
                                         )
                                 )
-                        )*/
+                        )
                         .addSubPlaceholder(new Placeholder("external")
                                 .addSubPlaceholder(new Placeholder("slots")
                                         .addSubPlaceholder(new Placeholder("count")

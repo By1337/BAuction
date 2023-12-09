@@ -38,6 +38,9 @@ public class Config {
     private YamlContext menuUnsoldItems;
     private File fileMenuUnsoldItems;
 
+    private YamlContext menuPlayerItemsView;
+    private File fileMenuPlayerItemsView;
+
     private File itemsDataFolder;
 
     private Map<NameKey, Sorting> sortingMap;
@@ -100,6 +103,12 @@ public class Config {
             plugin.saveResource("unsoldItemList.yml", true);
         }
         menuUnsoldItems = new YamlContext(YamlConfiguration.loadConfiguration(fileMenuUnsoldItems));
+
+        fileMenuPlayerItemsView = new File(basedir + "/playerItemsView.yml");
+        if (!fileMenuPlayerItemsView.exists()) {
+            plugin.saveResource("playerItemsView.yml", true);
+        }
+        menuPlayerItemsView = new YamlContext(YamlConfiguration.loadConfiguration(fileMenuPlayerItemsView));
 
 
         sortingMap = new LinkedHashMap<>();
@@ -174,5 +183,13 @@ public class Config {
 
     public BoostManager getBoostManager() {
         return boostManager;
+    }
+
+    public YamlContext getMenuPlayerItemsView() {
+        return menuPlayerItemsView;
+    }
+
+    public File getFileMenuPlayerItemsView() {
+        return fileMenuPlayerItemsView;
     }
 }

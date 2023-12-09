@@ -1,26 +1,26 @@
 package org.by1337.bauction.menu.impl;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
 import org.by1337.api.command.argument.ArgumentSetList;
 import org.by1337.api.command.argument.ArgumentString;
-import org.by1337.api.command.argument.ArgumentStrings;
 import org.by1337.api.util.CyclicList;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeItemProcess;
 import org.by1337.bauction.auc.SellItem;
 import org.by1337.bauction.auc.User;
-import org.by1337.bauction.db.kernel.CSellItem;
-import org.by1337.bauction.db.kernel.CUser;
 
 import org.by1337.bauction.action.BuyItemCountProcess;
 import org.by1337.bauction.action.BuyItemProcess;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
+import org.by1337.bauction.menu.MenuSetting;
+import org.by1337.bauction.menu.command.DefaultMenuCommand;
+import org.by1337.bauction.menu.requirement.Requirements;
 import org.by1337.bauction.util.*;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,227 +28,52 @@ import java.util.*;
 
 public class MainMenu extends Menu {
 
-    private int currentPage = 0;
-    private int maxPage = 0;
+    protected int currentPage = 0;
+    protected int maxPage = 0;
 
-    private CyclicList<Sorting> sortings = new CyclicList<>();
-    private CyclicList<Category> categories = new CyclicList<>();
-    private Category custom;
+    protected CyclicList<Sorting> sortings = new CyclicList<>();
+    protected CyclicList<Category> categories = new CyclicList<>();
+    protected Category custom;
 
-    private List<Integer> slots;
+    protected List<Integer> slots;
 
-    private final Command<Menu> command;
-    private User user;
+    protected Command<Pair<Menu, Player>> command;
 
+    public MainMenu(MenuSetting setting, Player player, @Nullable Menu backMenu, User user, List<Integer> slots) {
+        super(setting, player, backMenu, user);
+        this.slots = slots;
+        sortings.addAll(Main.getCfg().getSortingMap().values());
+        categories.addAll(Main.getCfg().getCategoryMap().values());
+        initCommands();
+    }
+
+    protected MainMenu(List<CustomItemStack> items, String title, int size, int updateInterval, @Nullable Requirements viewRequirement, Player player, InventoryType type, @Nullable Menu backMenu, User user) {
+        super(items, title, size, updateInterval, viewRequirement, player, type, backMenu, user);
+        initCommands();
+    }
 
     public MainMenu(User user, Player player) {
         this(user, player, null);
     }
 
     public MainMenu(User user, Player player, @Nullable Menu backMenu) {
-        super(Main.getCfg().getMenuManger().getMainMenu(), player, backMenu);
-        this.user = user;
-        //registerPlaceholderable(user);
-
+        super(Main.getCfg().getMenuManger().getMainMenu(), player, backMenu, user);
         sortings.addAll(Main.getCfg().getSortingMap().values());
         categories.addAll(Main.getCfg().getCategoryMap().values());
 
         slots = Main.getCfg().getMenuManger().getMainMenuItemSlots();
-
-
-        command = new Command<Menu>("menu-commands")
-                //<editor-fold desc="commands" defaultstate="collapsed">
-                .addSubCommand(new Command<Menu>("[CLOSE]")
-                        .executor(((sender, args) -> viewer.closeInventory()))
-                )
-                .addSubCommand(new Command<Menu>("[CONSOLE]")
-                        .argument(new ArgumentStrings<>("cmd"))
-                        .executor(((sender, args) -> {
-                            String cmd = (String) args.getOrThrow("cmd");
-                            Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd);
-                        }))
-                )
-                .addSubCommand(new Command<Menu>("[PLAYER]")
-                        .argument(new ArgumentStrings<>("cmd"))
-                        .executor(((sender, args) -> {
-                            String cmd = (String) args.getOrThrow("cmd");
-                            viewer.performCommand(cmd);
-                        }))
-                )
-                .addSubCommand(new Command<Menu>("[OPEN_MENU]")
-                        .argument(new ArgumentString<>("menu"))
-                        .executor(((sender, args) -> {
-                            String menuId = (String) args.getOrThrow("menu");
-                            if (menuId.equals("selling-items")) {
-                                ItemsForSaleMenu items = new ItemsForSaleMenu(player, user, this);
-                                items.open();
-                            } else if (menuId.equals("unsold-items")) {
-                                UnsoldItemsMenu unsoldItemsMenu = new UnsoldItemsMenu(player, user, this);
-                                unsoldItemsMenu.open();
-                            } else {
-                                throw new CommandException("unknown menu id: " + menuId);
-                            }
-                        }))
-                )
-                .addSubCommand(new Command<Menu>("[NEXT_PAGE]")
-                        .executor(((sender, args) -> {
-                            if (currentPage < maxPage - 1) {
-                                currentPage++;
-                                generate0();
-                            }
-                        }))
-                )
-                .addSubCommand(new Command<Menu>("[PREVIOUS_PAGE]")
-                        .executor(((sender, args) -> {
-                            if (currentPage > 0) {
-                                currentPage--;
-                                generate0();
-                            }
-                        }))
-                )
-                .addSubCommand(new Command<Menu>("[UPDATE]")
-                        .executor(((sender, args) -> {
-                            sellItems = null;
-                            this.user = Main.getStorage().getUser(this.user.getUuid());
-                            generate0();
-                        }))
-                )
-                .addSubCommand(new Command<Menu>("[CATEGORIES_NEXT]")
-                        .executor(((sender, args) -> {
-                            categories.getNext();
-                            generate0();
-                        }))
-                )
-                .addSubCommand(new Command<Menu>("[CATEGORIES_PREVIOUS]")
-                        .executor(((sender, args) -> {
-                            categories.getPrevious();
-                            generate0();
-                        }))
-                )
-                .addSubCommand(new Command<Menu>("[SORTING_NEXT]")
-                        .executor(((sender, args) -> {
-                            sortings.getNext();
-                            generate0();
-                        }))
-                )
-                .addSubCommand(new Command<Menu>("[SORTING_PREVIOUS]")
-                        .executor(((sender, args) -> {
-                            sortings.getPrevious();
-                            generate0();
-                        }))
-                )
-                .addSubCommand(new Command<Menu>("[BUY_ITEM_FULL]")
-                        .argument(new ArgumentString<>("uuid"))
-                        .argument(new ArgumentSetList<>("fast", List.of("fast")))
-                        .executor(((sender, args) -> {
-                            boolean fast = args.getOrDefault("fast", "").equals("fast");
-                            String uuidS = (String) args.getOrThrow("uuid");
-                            UniqueName uuid = new CUniqueName(uuidS);
-                          //  UUID uuid = UUID.fromString(uuidS);
-
-                            if (!Main.getStorage().hasSellItem(uuid)) {
-                                Main.getMessage().sendMsg(player, Lang.getMessages("item_already_sold_or_removed"));
-                                sellItems = null;
-                                this.user = Main.getStorage().getUser(this.user.getUuid());
-                                generate0();
-                                return;
-                            }
-                            SellItem item = Main.getStorage().getSellItem(uuid);
-
-                            if (Main.getEcon().getBalance(getPlayer()) < item.getPrice()) {
-                                Main.getMessage().sendMsg(getPlayer(), Lang.getMessages("insufficient_balance"));
-                                return;
-                            }
-
-                            new BuyItemProcess(item, user, this, getPlayer(), fast).process();
-                        }))
-                )
-                .addSubCommand(new Command<Menu>("[BUY_ITEM_AMOUNT]")
-                        .argument(new ArgumentString<>("uuid"))
-                        .argument(new ArgumentSetList<>("fast", List.of("fast")))
-                        .executor(((sender, args) -> {
-                            boolean fast = args.getOrDefault("fast", "").equals("fast");
-                            String uuidS = (String) args.getOrThrow("uuid");
-
-                            UniqueName uuid = new CUniqueName(uuidS);
-
-                            if (!Main.getStorage().hasSellItem(uuid)) {
-                                Main.getMessage().sendMsg(player, Lang.getMessages("item_already_sold_or_removed"));
-                                sellItems = null;
-                                this.user = Main.getStorage().getUser(this.user.getUuid());
-                                generate0();
-                                return;
-                            }
-                            SellItem item = Main.getStorage().getSellItem(uuid);
-
-                            if (Main.getEcon().getBalance(getPlayer()) < item.getPriceForOne()) {
-                                Main.getMessage().sendMsg(getPlayer(), Lang.getMessages("insufficient_balance_for_purchase"));
-                                return;
-                            }
-
-                            new BuyItemCountProcess(item, user, player, this, fast).process();
-                        }))
-                )
-                .addSubCommand(new Command<Menu>("[TAKE_ITEM]")
-                        .argument(new ArgumentString<>("uuid"))
-                        .argument(new ArgumentSetList<>("fast", List.of("fast")))
-                        .executor(((sender, args) -> {
-                            boolean fast = args.getOrDefault("fast", "").equals("fast");
-                            String uuidS = (String) args.getOrThrow("uuid");
-                            UniqueName uuid = new CUniqueName(uuidS);
-
-                            if (!Main.getStorage().hasSellItem(uuid)) {
-                                Main.getMessage().sendMsg(player, Lang.getMessages("item_already_sold_or_removed"));
-                                sellItems = null;
-                                this.user = Main.getStorage().getUser(this.user.getUuid());
-                                generate0();
-                                return;
-                            }
-                            SellItem item = Main.getStorage().getSellItem(uuid);
-                            new TakeItemProcess(item, user, this, player, fast).process();
-                        }))
-                )
-        ;
-        //</editor-fold>
-
+        initCommands();
     }
 
-    private ArrayList<SellItem> sellItems = null;
-    private Category lastCategory = null;
-    private Sorting lastSorting = null;
-    private int lastPage = -1;
+    protected ArrayList<SellItem> sellItems = null;
+    protected Category lastCategory = null;
+    protected Sorting lastSorting = null;
+    protected int lastPage = -1;
 
     @Override
     protected void generate() {
         if (lastPage != currentPage || sellItems == null || lastCategory == null || lastSorting == null || !lastCategory.equals(categories.getCurrent()) || !lastSorting.equals(sortings.getCurrent())) {
-            lastCategory = categories.getCurrent();
-            boolean sortChanged = Objects.equals(lastSorting, sortings.getCurrent());
-            lastSorting = sortings.getCurrent();
-            lastPage = currentPage;
-
-            if (lastCategory == custom && (sortChanged || sellItems == null || sellItems.isEmpty())) {
-                sellItems = new ArrayList<>();
-                for (SellItem item : Main.getStorage().getAllSellItems()) {
-                    if (TagUtil.matchesCategory(custom, item)) {
-                        sellItems.add(item);
-                    }
-                }
-                sellItems.sort(lastSorting.getComparator());
-            } else {
-                sellItems = new ArrayList<>(Main.getStorage().getSellItemsBy(lastCategory.nameKey(), lastSorting.nameKey()));
-            }
-
-            maxPage = (int) Math.ceil((double) sellItems.size() / slots.size());
-
-            if (currentPage > maxPage) {
-                currentPage = maxPage - 1;
-                if (currentPage < 0) currentPage = 0;
-            }
-
-            if (currentPage * slots.size() >= sellItems.size()) {
-                maxPage = 0;
-            }
-
+            setSellItems();
             Iterator<Integer> slotsIterator = slots.listIterator();
             customItemStacks.clear();
             for (int x = currentPage * slots.size(); x < sellItems.size(); x++) {
@@ -270,7 +95,6 @@ public class MainMenu extends Menu {
                     customItemStack.setSlots(new int[]{slot});
                     customItemStack.registerPlaceholder(item);
                     customItemStack.setAmount(item.getAmount());
-                    //  customPlaceHolders.forEach(customItemStack::registerPlaceholder);
                     customItemStacks.add(customItemStack);
 
                 }
@@ -278,11 +102,50 @@ public class MainMenu extends Menu {
         }
     }
 
+    protected void setSellItems() {
+        lastCategory = categories.getCurrent();
+        boolean sortChanged = Objects.equals(lastSorting, sortings.getCurrent());
+        lastSorting = sortings.getCurrent();
+        lastPage = currentPage;
+
+        if (lastCategory == custom && (sortChanged || sellItems == null || sellItems.isEmpty())) {
+            sellItems = new ArrayList<>();
+            Main.getStorage().forEachSellItems(item -> {
+                if (TagUtil.matchesCategory(custom, item)) {
+                    sellItems.add(item);
+                }
+            });
+//            for (SellItem item : Main.getStorage().getAllSellItems()) {
+//                if (TagUtil.matchesCategory(custom, item)) {
+//                    sellItems.add(item);
+//                }
+//            }
+            sellItems.sort(lastSorting.getComparator());
+        } else {
+            sellItems = new ArrayList<>();
+            Main.getStorage().forEachSellItemsBy(item -> {
+                sellItems.add(item);
+            }, lastCategory.nameKey(), lastSorting.nameKey());
+            //sellItems = new ArrayList<>(Main.getStorage().getSellItemsBy());
+        }
+
+        maxPage = (int) Math.ceil((double) sellItems.size() / slots.size());
+
+        if (currentPage > maxPage) {
+            currentPage = maxPage - 1;
+            if (currentPage < 0) currentPage = 0;
+        }
+
+        if (currentPage * slots.size() >= sellItems.size()) {
+            maxPage = 0;
+        }
+    }
+
     @Override
     public void runCommand(Placeholderable holder, String... commands) {
         try {
             for (String cmd : commands) {
-                command.process(null, holder.replace(cmd).split(" "));
+                command.process(new Pair<>(this, viewer), holder.replace(cmd).split(" "));
             }
         } catch (CommandException e) {
             Main.getMessage().error(e);
@@ -377,5 +240,207 @@ public class MainMenu extends Menu {
 
     public CyclicList<Category> getCategories() {
         return categories;
+    }
+
+    public void setCurrentPage(int currentPage) {
+        this.currentPage = currentPage;
+    }
+
+    public void setMaxPage(int maxPage) {
+        this.maxPage = maxPage;
+    }
+
+    public void setSortings(CyclicList<Sorting> sortings) {
+        this.sortings = sortings;
+    }
+
+    public void setCategories(CyclicList<Category> categories) {
+        this.categories = categories;
+    }
+
+    public void setCustom(Category custom) {
+        this.custom = custom;
+    }
+
+    public void setSlots(List<Integer> slots) {
+        this.slots = slots;
+    }
+
+    public void setSellItems(ArrayList<SellItem> sellItems) {
+        this.sellItems = sellItems;
+    }
+
+    public void setLastCategory(Category lastCategory) {
+        this.lastCategory = lastCategory;
+    }
+
+    public void setLastSorting(Sorting lastSorting) {
+        this.lastSorting = lastSorting;
+    }
+
+    public void setLastPage(int lastPage) {
+        this.lastPage = lastPage;
+    }
+
+    public int getCurrentPage() {
+        return currentPage;
+    }
+
+    public int getMaxPage() {
+        return maxPage;
+    }
+
+    public Category getCustom() {
+        return custom;
+    }
+
+    public List<Integer> getSlots() {
+        return slots;
+    }
+
+    public Command<Pair<Menu, Player>> getCommand() {
+        return command;
+    }
+
+    public ArrayList<SellItem> getSellItems() {
+        return sellItems;
+    }
+
+    public Category getLastCategory() {
+        return lastCategory;
+    }
+
+    public Sorting getLastSorting() {
+        return lastSorting;
+    }
+
+    public int getLastPage() {
+        return lastPage;
+    }
+
+    protected void initCommands() {
+        command = new Command<Pair<Menu, Player>>("menu-commands")
+                //<editor-fold desc="commands" defaultstate="collapsed">
+                .addSubCommand(new Command<Pair<Menu, Player>>("[NEXT_PAGE]")
+                        .executor(((sender, args) -> {
+                            if (currentPage < maxPage - 1) {
+                                currentPage++;
+                                generate0();
+                            }
+                        }))
+                )
+                .addSubCommand(new Command<Pair<Menu, Player>>("[PREVIOUS_PAGE]")
+                        .executor(((sender, args) -> {
+                            if (currentPage > 0) {
+                                currentPage--;
+                                generate0();
+                            }
+                        }))
+                )
+                .addSubCommand(new Command<Pair<Menu, Player>>("[UPDATE]")
+                        .executor(((sender, args) -> {
+                            sellItems = null;
+                            this.user = Main.getStorage().getUser(this.user.getUuid());
+                            generate0();
+                        }))
+                )
+                .addSubCommand(new Command<Pair<Menu, Player>>("[CATEGORIES_NEXT]")
+                        .executor(((sender, args) -> {
+                            categories.getNext();
+                            generate0();
+                        }))
+                )
+                .addSubCommand(new Command<Pair<Menu, Player>>("[CATEGORIES_PREVIOUS]")
+                        .executor(((sender, args) -> {
+                            categories.getPrevious();
+                            generate0();
+                        }))
+                )
+                .addSubCommand(new Command<Pair<Menu, Player>>("[SORTING_NEXT]")
+                        .executor(((sender, args) -> {
+                            sortings.getNext();
+                            generate0();
+                        }))
+                )
+                .addSubCommand(new Command<Pair<Menu, Player>>("[SORTING_PREVIOUS]")
+                        .executor(((sender, args) -> {
+                            sortings.getPrevious();
+                            generate0();
+                        }))
+                )
+                .addSubCommand(new Command<Pair<Menu, Player>>("[BUY_ITEM_FULL]")
+                        .argument(new ArgumentString<>("uuid"))
+                        .argument(new ArgumentSetList<>("fast", List.of("fast")))
+                        .executor(((sender, args) -> {
+                            boolean fast = args.getOrDefault("fast", "").equals("fast");
+                            String uuidS = (String) args.getOrThrow("uuid");
+                            UniqueName uuid = new CUniqueName(uuidS);
+                            //  UUID uuid = UUID.fromString(uuidS);
+
+                            if (!Main.getStorage().hasSellItem(uuid)) {
+                                Main.getMessage().sendMsg(viewer, Lang.getMessages("item_already_sold_or_removed"));
+                                sellItems = null;
+                                this.user = Main.getStorage().getUser(this.user.getUuid());
+                                generate0();
+                                return;
+                            }
+                            SellItem item = Main.getStorage().getSellItem(uuid);
+
+                            if (Main.getEcon().getBalance(getPlayer()) < item.getPrice()) {
+                                Main.getMessage().sendMsg(getPlayer(), Lang.getMessages("insufficient_balance"));
+                                return;
+                            }
+
+                            new BuyItemProcess(item, user, this, getPlayer(), fast).process();
+                        }))
+                )
+                .addSubCommand(new Command<Pair<Menu, Player>>("[BUY_ITEM_AMOUNT]")
+                        .argument(new ArgumentString<>("uuid"))
+                        .argument(new ArgumentSetList<>("fast", List.of("fast")))
+                        .executor(((sender, args) -> {
+                            boolean fast = args.getOrDefault("fast", "").equals("fast");
+                            String uuidS = (String) args.getOrThrow("uuid");
+
+                            UniqueName uuid = new CUniqueName(uuidS);
+
+                            if (!Main.getStorage().hasSellItem(uuid)) {
+                                Main.getMessage().sendMsg(viewer, Lang.getMessages("item_already_sold_or_removed"));
+                                sellItems = null;
+                                this.user = Main.getStorage().getUser(this.user.getUuid());
+                                generate0();
+                                return;
+                            }
+                            SellItem item = Main.getStorage().getSellItem(uuid);
+
+                            if (Main.getEcon().getBalance(getPlayer()) < item.getPriceForOne()) {
+                                Main.getMessage().sendMsg(getPlayer(), Lang.getMessages("insufficient_balance_for_purchase"));
+                                return;
+                            }
+
+                            new BuyItemCountProcess(item, user, viewer, this, fast).process();
+                        }))
+                )
+                .addSubCommand(new Command<Pair<Menu, Player>>("[TAKE_ITEM]")
+                        .argument(new ArgumentString<>("uuid"))
+                        .argument(new ArgumentSetList<>("fast", List.of("fast")))
+                        .executor(((sender, args) -> {
+                            boolean fast = args.getOrDefault("fast", "").equals("fast");
+                            String uuidS = (String) args.getOrThrow("uuid");
+                            UniqueName uuid = new CUniqueName(uuidS);
+
+                            if (!Main.getStorage().hasSellItem(uuid)) {
+                                Main.getMessage().sendMsg(viewer, Lang.getMessages("item_already_sold_or_removed"));
+                                sellItems = null;
+                                this.user = Main.getStorage().getUser(this.user.getUuid());
+                                generate0();
+                                return;
+                            }
+                            SellItem item = Main.getStorage().getSellItem(uuid);
+                            new TakeItemProcess(item, user, this, viewer, fast).process();
+                        }))
+                )
+        ;
+        DefaultMenuCommand.command.getSubcommands().forEach((s, c) -> command.addSubCommand(c));
+        //</editor-fold>
     }
 }

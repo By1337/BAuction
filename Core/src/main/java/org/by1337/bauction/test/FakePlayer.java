@@ -1,5 +1,6 @@
 package org.by1337.bauction.test;
 
+import com.google.common.base.Charsets;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -16,20 +17,31 @@ import org.by1337.bauction.db.kernel.FileDataBase;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class FakePlayer {
     private final Random random = new Random();
     private final FileDataBase storage;
     private UUID uuid;
     private String nickName;
+    private int ahLimit;
 
-    public FakePlayer(FileDataBase core) {
+    public FakePlayer(FileDataBase storage) {
+        this(storage, Integer.MAX_VALUE);
+    }
+
+    public FakePlayer(FileDataBase core, int ahLimit) {
+        this.ahLimit = ahLimit;
         this.storage = core;
-        uuid = UUID.randomUUID();
-        nickName = uuid.toString().substring(30);
+        nickName = UUID.randomUUID().toString().substring(30);
+        uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + nickName).getBytes(Charsets.UTF_8));
     }
 
     public void randomAction() {
+        if (storage.getSellItemsCount() >= ahLimit) {
+            buyItem();
+            return;
+        }
         if (random.nextBoolean()) {
             buyItem();
         } else {
@@ -39,7 +51,9 @@ public class FakePlayer {
 
     private void buyItem() {
         if (storage.getSellItemsCount() == 0) return;
-        SellItem item = new ArrayList<>(storage.getAllSellItems()).get(random.nextInt(storage.getSellItemsCount()));
+
+        SellItem item = storage.getFirstSellItem();
+
         User user = storage.getUserOrCreate(nickName, uuid);
         BuyItemEvent event = new BuyItemEvent(user, item);
         Main.getStorage().validateAndRemoveItem(event);

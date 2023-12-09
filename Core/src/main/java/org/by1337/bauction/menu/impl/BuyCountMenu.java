@@ -11,18 +11,18 @@ import org.by1337.api.command.argument.ArgumentStrings;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.auc.SellItem;
 import org.by1337.bauction.auc.User;
-import org.by1337.bauction.db.kernel.CSellItem;
-import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
+import org.by1337.bauction.menu.command.DefaultMenuCommand;
 import org.by1337.bauction.util.NumberUtil;
+import org.by1337.bauction.util.Pair;
 
 import java.util.Optional;
 
 public class BuyCountMenu extends Menu {
 
-    private final Command<Menu> command;
+    private final Command<Pair<Menu, Player>> command;
     private final User user;
 
     private int count = 1;
@@ -31,10 +31,11 @@ public class BuyCountMenu extends Menu {
     private final CallBack<Optional<Integer>> callBack;
 
     public BuyCountMenu(User user, SellItem item, CallBack<Optional<Integer>> callBack, Player player) {
-     this(user, item, callBack, player, null);
+        this(user, item, callBack, player, null);
     }
+
     public BuyCountMenu(User user, SellItem item, CallBack<Optional<Integer>> callBack, Player player, Menu backMenu) {
-        super(Main.getCfg().getMenuManger().getMenuBuyCount(), player, backMenu);
+        super(Main.getCfg().getMenuManger().getMenuBuyCount(), player, backMenu, user);
         this.user = user;
         this.item = item;
         this.callBack = callBack;
@@ -46,25 +47,25 @@ public class BuyCountMenu extends Menu {
         registerPlaceholderable(user);
         registerPlaceholderable(item);
 
-        command = new Command<Menu>("")
-                .addSubCommand(new Command<Menu>("[CLOSE]")
+        command = new Command<Pair<Menu, Player>>("")
+                .addSubCommand(new Command<Pair<Menu, Player>>("[CLOSE]")
                         .executor(((sender, args) -> viewer.closeInventory()))
                 )
-                .addSubCommand(new Command<Menu>("[CONSOLE]")
+                .addSubCommand(new Command<Pair<Menu, Player>>("[CONSOLE]")
                         .argument(new ArgumentStrings<>("cmd"))
                         .executor(((sender, args) -> {
                             String cmd = (String) args.getOrThrow("cmd");
                             Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd);
                         }))
                 )
-                .addSubCommand(new Command<Menu>("[PLAYER]")
+                .addSubCommand(new Command<Pair<Menu, Player>>("[PLAYER]")
                         .argument(new ArgumentStrings<>("cmd"))
                         .executor(((sender, args) -> {
                             String cmd = (String) args.getOrThrow("cmd");
                             viewer.performCommand(cmd);
                         }))
                 )
-                .addSubCommand(new Command<Menu>("[ADD]")
+                .addSubCommand(new Command<Pair<Menu, Player>>("[ADD]")
                         .argument(new ArgumentInteger<>("count"))
                         .executor((sender, args) -> {
                             int x = (int) args.getOrThrow("count");
@@ -76,7 +77,7 @@ public class BuyCountMenu extends Menu {
                             generate0();
                         })
                 )
-                .addSubCommand(new Command<Menu>("[REMOVE]")
+                .addSubCommand(new Command<Pair<Menu, Player>>("[REMOVE]")
                         .argument(new ArgumentInteger<>("count"))
                         .executor((sender, args) -> {
                             int x = (int) args.getOrThrow("count");
@@ -88,7 +89,7 @@ public class BuyCountMenu extends Menu {
                             generate0();
                         })
                 )
-                .addSubCommand(new Command<Menu>("[BUY]")
+                .addSubCommand(new Command<Pair<Menu, Player>>("[BUY]")
                         .executor((sender, args) -> {
                             if (Main.getEcon().getBalance(getPlayer()) < (item.getPriceForOne() * count)) {
                                 Main.getMessage().sendMsg(getPlayer(), Lang.getMessages("insufficient_balance"));
@@ -98,12 +99,13 @@ public class BuyCountMenu extends Menu {
                             syncUtil(() -> callBack.result(Optional.of(count)));
                         })
                 )
-                .addSubCommand(new Command<Menu>("[CANCEL]")
+                .addSubCommand(new Command<Pair<Menu, Player>>("[CANCEL]")
                         .executor((sender, args) -> {
                             syncUtil(() -> callBack.result(Optional.empty()));
                             generate0();
                         })
                 );
+        DefaultMenuCommand.command.getSubcommands().forEach((s, c) -> command.addSubCommand(c));
     }
 
     @Override
@@ -121,7 +123,7 @@ public class BuyCountMenu extends Menu {
     public void runCommand(Placeholderable holder, String... commands) {
         try {
             for (String cmd : commands) {
-                command.process(null, holder.replace(cmd).split(" "));
+                command.process(new Pair<>(this, viewer), holder.replace(cmd).split(" "));
             }
         } catch (CommandException e) {
             Main.getMessage().error(e);
@@ -149,6 +151,7 @@ public class BuyCountMenu extends Menu {
         }
         return str;
     }
+
     public void reopen() {
         if (getPlayer() == null || !getPlayer().isOnline()) {
             throw new IllegalArgumentException();

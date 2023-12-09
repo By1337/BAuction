@@ -10,6 +10,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.by1337.api.chat.Placeholderable;
+import org.by1337.bauction.auc.User;
 import org.by1337.bauction.menu.requirement.Requirements;
 
 import org.jetbrains.annotations.Nullable;
@@ -27,13 +28,14 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
     protected List<Placeholderable> customPlaceHolders = new ArrayList<>();
     @Nullable
     protected final Menu backMenu;
+    protected User user;
 
 
-    public Menu(MenuSetting setting, Player player, @Nullable Menu backMenu) {
-        this(setting.getItems(), setting.getTitle(), setting.getSize(), setting.getUpdateInterval(), setting.getViewRequirement(), player, setting.getType(), backMenu);
+    public Menu(MenuSetting setting, Player player, @Nullable Menu backMenu, User user) {
+        this(setting.getItems(), setting.getTitle(), setting.getSize(), setting.getUpdateInterval(), setting.getViewRequirement(), player, setting.getType(), backMenu, user);
     }
 
-    public Menu(List<CustomItemStack> items, String title, int size, int updateInterval, @Nullable Requirements viewRequirement, Player player, InventoryType type, @Nullable Menu backMenu) {
+    public Menu(List<CustomItemStack> items, String title, int size, int updateInterval, @Nullable Requirements viewRequirement, Player player, InventoryType type, @Nullable Menu backMenu, User user) {
         super(player, size, title, type);
         openRequirements = viewRequirement;
         this.items = items;
@@ -41,6 +43,7 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
         this.size = size;
         this.updateInterval = updateInterval;
         this.backMenu = backMenu;
+        this.user = user;
     }
 
     public void open() {
@@ -69,12 +72,13 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
         list.addAll(items);
         list.addAll(customItemStacks);
         for (CustomItemStack customItemStack : list) {
-            if (customItemStack.getViewRequirement() == null || customItemStack.getViewRequirement().check(this, this)) {
-                for (int slot : customItemStack.getSlots()) {
-                    ItemStack item = customItemStack.getItem(this, this);
+            // if (customItemStack.getViewRequirement() == null || customItemStack.getViewRequirement().check(this, this)) {
+            for (int slot : customItemStack.getSlots()) {
+                ItemStack item = customItemStack.getItem(this, this);
+                if (item != null)
                     inventory.setItem(slot, item);
-                }
             }
+            //  }
         }
         sendFakeTitle(replace(title));
     }
@@ -127,6 +131,7 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
         }
         return null;
     }
+
     @Deprecated(forRemoval = true)
     public static List<ItemStack> giveItems(Player player, ItemStack... itemStack) {
         return new ArrayList<>(player.getInventory().addItem(itemStack).values());
@@ -143,10 +148,15 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
     public void registerPlaceholderable(Placeholderable customPlaceHolder) {
         customPlaceHolders.add(customPlaceHolder);
     }
+
     abstract public void reopen();
 
     @Nullable
     public Menu getBackMenu() {
         return backMenu;
+    }
+
+    public User getUser() {
+        return user;
     }
 }

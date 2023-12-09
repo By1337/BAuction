@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -22,15 +23,15 @@ import java.util.function.Supplier;
 public abstract class DataBaseCore {
 
     private final Map<UUID, CUser> users = new HashMap<>(); // main
-    private final ArrayList<CSellItem> sortedSellItems = new ArrayList<>(); // main
-    private final ArrayList<CUnsoldItem> sortedUnsoldItems = new ArrayList<>(); // main
+    private final TreeSet<CSellItem> sortedSellItems; // main
+    private final TreeSet<CUnsoldItem> sortedUnsoldItems; // main
 
     private final Map<UniqueName, CSellItem> sellItemsMap = new HashMap<>();
     private final Map<UniqueName, CUnsoldItem> unsoldItemsMap = new HashMap<>();
     private final Map<UUID, Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>>> itemsByOwner = new HashMap<>();
 
-    private final Comparator<CSellItem> sellItemComparator = Comparator.comparingLong(i -> i.removalDate);
-    private final Comparator<CUnsoldItem> unsoldItemComparator = Comparator.comparingLong(i -> i.deleteVia);
+//    private final Comparator<CSellItem> sellItemComparator = Comparator.comparingLong(i -> i.removalDate);
+//    private final Comparator<CUnsoldItem> unsoldItemComparator = Comparator.comparingLong(i -> i.deleteVia);
 
     private final Map<NameKey, Map<NameKey, SortingItems>> sortedItems = new HashMap<>();
 
@@ -42,6 +43,21 @@ public abstract class DataBaseCore {
     protected DataBaseCore(Map<NameKey, Category> categoryMap, Map<NameKey, Sorting> sortingMap) {
         this.categoryMap = categoryMap;
         this.sortingMap = sortingMap;
+
+        sortedSellItems = new TreeSet<>((o, o1) -> {
+            int res = Long.compare(o.removalDate, o1.removalDate);
+            if (res == 0) {
+                return Integer.compare(o.hashCode(), o1.hashCode());
+            }
+            return res;
+        });
+        sortedUnsoldItems = new TreeSet<>((o, o1) -> {
+            int res = Long.compare(o.deleteVia, o1.deleteVia);
+            if (res == 0) {
+                return Integer.compare(o.hashCode(), o1.hashCode());
+            }
+            return res;
+        });
 
         writeLock(() -> {
             for (Category category : categoryMap.values()) {
@@ -68,11 +84,12 @@ public abstract class DataBaseCore {
             throw new IllegalStateException("item already exist");
         }
         sellItemsMap.put(sellItem.uniqueName, sellItem);
-        int insertIndex = Collections.binarySearch(sortedSellItems, sellItem, sellItemComparator);
-        if (insertIndex < 0) {
-            insertIndex = -insertIndex - 1;
-        }
-        sortedSellItems.add(insertIndex, sellItem);
+//        int insertIndex = Collections.binarySearch(sortedSellItems, sellItem, sellItemComparator);
+//        if (insertIndex < 0) {
+//            insertIndex = -insertIndex - 1;
+//        }
+//        sortedSellItems.add(insertIndex, sellItem);
+        sortedSellItems.add(sellItem);
 
         Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, sellItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
         pair.getLeft().add(sellItem);
@@ -97,7 +114,8 @@ public abstract class DataBaseCore {
         Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, sellItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
         pair.getLeft().remove(sellItem);
         itemsByOwner.put(sellItem.sellerUuid, pair);
-        removeIf(i -> i.getUniqueName().equals(sellItem.getUniqueName()));
+        removeIf(sellItem);
+        // removeIf(i -> i.getUniqueName().equals(sellItem.getUniqueName()));
     }
 
     protected void addUnsoldItem0(CUnsoldItem unsoldItem) {
@@ -106,11 +124,12 @@ public abstract class DataBaseCore {
             throw new IllegalStateException("item already exist");
         }
         unsoldItemsMap.put(unsoldItem.uniqueName, unsoldItem);
-        int insertIndex = Collections.binarySearch(sortedUnsoldItems, unsoldItem, unsoldItemComparator);
-        if (insertIndex < 0) {
-            insertIndex = -insertIndex - 1;
-        }
-        sortedUnsoldItems.add(insertIndex, unsoldItem);
+//        int insertIndex = Collections.binarySearch(sortedUnsoldItems, unsoldItem, unsoldItemComparator);
+//        if (insertIndex < 0) {
+//            insertIndex = -insertIndex - 1;
+//        }
+//        sortedUnsoldItems.add(insertIndex, unsoldItem);
+        sortedUnsoldItems.add(unsoldItem);
 
         Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, unsoldItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
         pair.getRight().add(unsoldItem);
@@ -190,9 +209,9 @@ public abstract class DataBaseCore {
     }
 
 
-    private void removeIf(Predicate<SellItem> filter) {
+    private void removeIf(SellItem item) {
         isWriteLock();
-        sortedItems.values().forEach(map -> map.values().forEach(sortingItems -> sortingItems.removeIf(filter)));
+        sortedItems.values().forEach(map -> map.values().forEach(sortingItems -> sortingItems.remove(item)));
     }
 
     @Nullable
@@ -206,8 +225,12 @@ public abstract class DataBaseCore {
     }
 
     @NotNull
-    public Collection<? extends UnsoldItem> getAllUnsoldItems() {
+    protected Collection<? extends UnsoldItem> getAllUnsoldItems() {
         return readLock(() -> sortedUnsoldItems);
+    }
+
+    public void forEachUnsoldItems(Consumer<? super UnsoldItem> action) {
+        readLock(() -> sortedUnsoldItems.forEach(action));
     }
 
     @Nullable
@@ -228,9 +251,23 @@ public abstract class DataBaseCore {
         return readLock(() -> sellItemsMap.get(name));
     }
 
-    @NotNull
-    public Collection<? extends SellItem> getSellItemsBy(NameKey category, NameKey sorting) {
-        return readLock(() -> {
+//    @NotNull
+//    public Collection<? extends SellItem> getSellItemsBy(NameKey category, NameKey sorting) {
+//        return readLock(() -> {
+//            Map<NameKey, SortingItems> map = sortedItems.get(category);
+//            if (map == null) {
+//                throw new IllegalStateException("unknown category: " + category.getName());
+//            }
+//            SortingItems sortingItems = map.get(sorting);
+//            if (sortingItems == null) {
+//                throw new IllegalStateException("unknown sorting: " + sorting.getName());
+//            }
+//            return sortingItems.getItems();
+//        });
+//    }
+
+    public void forEachSellItemsBy(Consumer<? super SellItem> action, NameKey category, NameKey sorting) {
+        readLock(() -> {
             Map<NameKey, SortingItems> map = sortedItems.get(category);
             if (map == null) {
                 throw new IllegalStateException("unknown category: " + category.getName());
@@ -239,7 +276,7 @@ public abstract class DataBaseCore {
             if (sortingItems == null) {
                 throw new IllegalStateException("unknown sorting: " + sorting.getName());
             }
-            return sortingItems.getItems();
+            sortingItems.getItems().forEach(action);
         });
     }
 
@@ -252,23 +289,56 @@ public abstract class DataBaseCore {
     }
 
     @NotNull
-    public Collection<? extends SellItem> getAllSellItems() {
-        return readLock(() -> sortedSellItems);
+    protected Collection<? extends SellItem> getAllSellItems() {
+        return readLock(() -> new ArrayList<>(sortedSellItems));
     }
 
-    @NotNull
-    public Collection<? extends SellItem> getSellItemsByUser(@NotNull UUID uuid) {
-        return readLock(() -> {
+    public void forEachSellItems(Consumer<? super SellItem> action) {
+        readLock(() -> sortedSellItems.forEach(action));
+    }
+
+
+//    @NotNull
+//    public Collection<? extends SellItem> getSellItemsByUser(@NotNull UUID uuid) {
+//        return readLock(() -> {
+//            Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
+//            return pair.getKey();
+//        });
+//    }
+
+    //    @NotNull
+//    public Collection<? extends UnsoldItem> getUnsoldItemsByUser(@NotNull UUID uuid) {
+//        return readLock(() -> {
+//            Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
+//            return pair.getRight();
+//        });
+//    }
+
+    public void forEachSellItemsByUser(Consumer<? super SellItem> action, @NotNull UUID uuid) {
+        readLock(() -> {
             Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
-            return pair.getKey();
+            pair.getKey().forEach(action);
         });
     }
 
-    @NotNull
-    public Collection<? extends UnsoldItem> getUnsoldItemsByUser(@NotNull UUID uuid) {
+
+    public void forEachUnsoldItemsByUser(Consumer<? super CUnsoldItem> action, @NotNull UUID uuid) {
+        readLock(() -> {
+            Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
+            pair.getRight().forEach(action);
+        });
+    }
+
+    public int sellItemsCountByUser(@NotNull UUID uuid) {
         return readLock(() -> {
             Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
-            return pair.getRight();
+            return pair.getKey().size();
+        });
+    }
+    public int unsoldItemsCountByUser(@NotNull UUID uuid) {
+        return readLock(() -> {
+            Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
+            return pair.getRight().size();
         });
     }
 
@@ -281,6 +351,10 @@ public abstract class DataBaseCore {
         }
     }
 
+    public SellItem getFirstSellItem(){
+        return readLock(sortedSellItems::first);
+    }
+
     @NotNull
     public User getUserOrCreate(Player player) {
         return getUserOrCreate(player.getName(), player.getUniqueId());
@@ -291,7 +365,7 @@ public abstract class DataBaseCore {
     protected void load(List<CSellItem> items, List<CUser> users, List<CUnsoldItem> unsoldItems) {
         writeLock(() -> {
             Message message = Main.getMessage();
-           // long time = System.currentTimeMillis();
+            // long time = System.currentTimeMillis();
             users.removeIf(user -> {
                 if (user == null || !user.isValid()) {
                     message.error("cannot be load user %s", String.valueOf(user));
@@ -329,7 +403,7 @@ public abstract class DataBaseCore {
                     }
                 });
             });
-            sortedSellItems.sort(sellItemComparator);
+            // sortedSellItems.sort(sellItemComparator);
             unsoldItems.forEach(unsoldItem -> {
                 unsoldItemsMap.put(unsoldItem.uniqueName, unsoldItem);
                 sortedUnsoldItems.add(unsoldItem);
@@ -338,7 +412,7 @@ public abstract class DataBaseCore {
                 pair.getRight().add(unsoldItem);
                 itemsByOwner.put(unsoldItem.sellerUuid, pair);
             });
-            sortedUnsoldItems.sort(unsoldItemComparator);
+            // sortedUnsoldItems.sort(unsoldItemComparator);
 
 //            items.forEach(item -> {
 //                if (item.removalDate <= time) {
@@ -399,5 +473,17 @@ public abstract class DataBaseCore {
         } finally {
             lock.readLock().unlock();
         }
+    }
+
+    public void clear() {
+        writeLock(() -> {
+            users.clear();
+            itemsByOwner.clear();
+            sortedSellItems.clear();
+            sortedUnsoldItems.clear();
+            sellItemsMap.clear();
+            unsoldItemsMap.clear();
+            sortedItems.values().forEach(map -> map.values().forEach(SortingItems::clear));
+        });
     }
 }

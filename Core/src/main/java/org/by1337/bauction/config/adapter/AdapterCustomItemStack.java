@@ -116,12 +116,7 @@ public class AdapterCustomItemStack implements ClassAdapter<CustomItemStack> {
                 slots.add(context.getAsInteger("slot"));
             }
             if (context.getHandle().contains("slots")) {
-                //  Object slotsObject = map.get("slots");
-                //   if (slotsObject instanceof List<?> slotsList) {
                 for (String str : context.getList("slots", String.class)) {
-//                        if (obj instanceof Integer) {
-//                            slots.add((Integer) obj);
-//                        } else if (obj instanceof String str) {
                     if (str.contains("-")) {
                         String[] s = str.replace(" ", "").split("-");
                         int x = Integer.parseInt(s[0]);
@@ -133,9 +128,7 @@ public class AdapterCustomItemStack implements ClassAdapter<CustomItemStack> {
                         int x = Integer.parseInt(str.replace(" ", ""));
                         slots.add(x);
                     }
-                    //  }
                 }
-                //  }
             }
         } catch (Exception e) {
             Main.getMessage().error(e);

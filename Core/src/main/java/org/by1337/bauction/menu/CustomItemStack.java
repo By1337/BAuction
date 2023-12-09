@@ -13,19 +13,23 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.auc.SellItem;
+import org.by1337.bauction.auc.UnsoldItem;
 import org.by1337.bauction.menu.click.ClickType;
 import org.by1337.bauction.menu.click.IClick;
 import org.by1337.bauction.menu.requirement.Requirements;
 import org.by1337.bauction.menu.util.EnchantmentBuilder;
 
 import org.by1337.bauction.util.BaseHeadHook;
+import org.by1337.bauction.util.CUniqueName;
+import org.by1337.bauction.util.UniqueName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CustomItemStack implements Comparable<CustomItemStack> {
+public class CustomItemStack implements Comparable<CustomItemStack>, Placeholderable {
     public static final NamespacedKey MENU_ITEM_KEY = Objects.requireNonNull(NamespacedKey.fromString("bauc_menu_item"));
     private int[] slots;
     private List<String> lore;
@@ -47,7 +51,7 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
     private boolean unbreakable = false;
     private final int id;
     private final List<Placeholderable> holders = new ArrayList<>();
-    private final Map<String, Object> meta = new HashMap<>();
+    private String clone;
 
     public CustomItemStack(int[] slots, ItemStack itemStack) {
         this.slots = slots;
@@ -71,18 +75,12 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
 
     @Nullable
     public ItemStack getItem(Placeholderable holder, Menu menu) {
-        Placeholderable holder1 = s -> {
-            for (Placeholderable customPlaceHolder : getHolders()) {
-                s = customPlaceHolder.replace(s);
-            }
-            return holder.replace(s);
-        };
+        Placeholderable holder1 = s -> replace(holder.replace(s));
         if (viewRequirement != null && !viewRequirement.check(holder1, menu)) {
             return null;
         }
 
         ItemStack itemStack;
-
         if (this.itemStack == null) {
             String tmpMaterial = holder1.replace(material);
             if (tmpMaterial.startsWith("basehead-")) {
@@ -91,12 +89,38 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
                 itemStack = new ItemStack(Material.valueOf(holder1.replace(tmpMaterial)));
             }
         } else {
-            itemStack = this.itemStack.clone();
+/*            if (clone != null) {
+                if (clone.startsWith("sellitem-")) {
+                    UniqueName id = new CUniqueName(clone.replace("sellitem-", ""));
+                    SellItem sellItem = Main.getStorage().getSellItem(id);
+                    if (sellItem == null) {
+                        Main.getMessage().error("unknown sell item %s", id.getKey());
+                        itemStack = new ItemStack(Material.JIGSAW);
+                    } else {
+                        itemStack = sellItem.getItemStack();
+                        holder1 = s -> replace(holder.replace(sellItem.replace(s)));
+                    }
+                } else if (clone.startsWith("unsolditem-")) {
+                    UniqueName id = new CUniqueName(clone.replace("unsolditem-", ""));
+                    UnsoldItem unsoldItem = Main.getStorage().getUnsoldItem(id);
+                    if (unsoldItem == null) {
+                        Main.getMessage().error("unknown unsold item %s", id.getKey());
+                        itemStack = new ItemStack(Material.JIGSAW);
+                    } else {
+                        itemStack = unsoldItem.getItemStack();
+                        holder1 = s -> replace(holder.replace(unsoldItem.replace(s)));
+                    }
+                }else {
+                    Main.getMessage().error("unknown item %s", clone);
+                    itemStack = new ItemStack(Material.JIGSAW);
+                }
+            } else */
+                itemStack = this.itemStack.clone();
         }
 
         ItemMeta im = itemStack.getItemMeta();
 
-        if (im == null){
+        if (im == null) {
             Main.getMessage().error(new Throwable("ItemMeta is null! " + itemStack.getType()));
             itemStack = new ItemStack(Material.JIGSAW);
             im = itemStack.getItemMeta();
@@ -188,17 +212,6 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
         return Integer.compare(priority, o.getPriority());
     }
 
-    public void setMeta(String key, Object value) {
-        meta.put(key, value);
-    }
-
-    public Object getMeta(String key) {
-        return meta.get(key);
-    }
-
-    public boolean hasMeta(String key) {
-        return meta.containsKey(key);
-    }
 
     public int[] getSlots() {
         return this.slots;
@@ -358,5 +371,21 @@ public class CustomItemStack implements Comparable<CustomItemStack> {
 
     public void setItemStack(ItemStack itemStack) {
         this.itemStack = itemStack;
+    }
+
+    public String getClone() {
+        return clone;
+    }
+
+    public void setClone(String clone) {
+        this.clone = clone;
+    }
+
+    @Override
+    public String replace(String s) {
+        for (Placeholderable customPlaceHolder : getHolders()) {
+            s = customPlaceHolder.replace(s);
+        }
+        return s;
     }
 }

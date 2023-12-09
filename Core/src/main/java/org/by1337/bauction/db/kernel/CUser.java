@@ -141,9 +141,25 @@ public class CUser implements User {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CUser user)) return false;
+        return  Objects.equals(getNickName(), user.getNickName()) && Objects.equals(getUuid(), user.getUuid());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getNickName(), getUuid());
+    }
+
+    @Override
     public String replace(String s) {
         StringBuilder sb = new StringBuilder(s);
         while (true) {
+            if (sb.indexOf("{user_uuid}") != -1) {
+                sb.replace(sb.indexOf("{user_uuid}"), sb.indexOf("{user_uuid}") + "{user_uuid}".length(), String.valueOf(uuid));
+                continue;
+            }
             if (sb.indexOf("{deal_sum}") != -1) {
                 sb.replace(sb.indexOf("{deal_sum}"), sb.indexOf("{deal_sum}") + "{deal_sum}".length(), String.valueOf(dealSum));
                 continue;
@@ -158,13 +174,13 @@ public class CUser implements User {
             }
             if (sb.indexOf("{selling_item_count}") != -1) {
                 sb.replace(sb.indexOf("{selling_item_count}"), sb.indexOf("{selling_item_count}") + "{selling_item_count}".length(),
-                        String.valueOf(Main.getStorage().getSellItemsByUser(uuid).size())
+                        String.valueOf(Main.getStorage().sellItemsCountByUser(uuid))
                 );
                 continue;
             }
             if (sb.indexOf("{not_sold_item_count}") != -1) {
                 sb.replace(sb.indexOf("{not_sold_item_count}"), sb.indexOf("{not_sold_item_count}") + "{not_sold_item_count}".length(),
-                        String.valueOf(Main.getStorage().getUnsoldItemsByUser(uuid).size())
+                        String.valueOf(Main.getStorage().unsoldItemsCountByUser(uuid))
                 );
                 continue;
             }

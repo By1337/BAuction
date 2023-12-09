@@ -5,52 +5,54 @@
 # priority - в каком порядке будет список с выбором сортировки
 sorting:
   sorting-1:
-    name: sorting-1
-    type: COMPARE_MAX
-    value: '{price}'
-    selected-name: '&r  &6✔ Сначала дорогие'
-    unselected-name: '&r&7⏺ Сначала дорогие'
-    priority: 0
-
-  sorting-2:
-    name: sorting-2
-    type: COMPARE_MIN
-    value: '{price}'
-    selected-name: '&r  &6✔ Сначала не дорогие'
-    unselected-name: '&r&7⏺ Сначала не дорогие'
-    priority: 1
-
-  sorting-3:
-    name: sorting-3
-    type: COMPARE_MAX
-    value: '{price_for_one}'
-    selected-name: '&r  &6✔ Сначала дорогие за штуку'
-    unselected-name: '&r&7⏺ Сначала дорогие за штуку'
-    priority: 2
-
-  sorting-4:
-    name: sorting-4
-    type: COMPARE_MIN
-    value: '{price_for_one}'
-    selected-name: '&r  &6✔ Сначала не дорогие за штуку'
-    unselected-name: '&r&7⏺ Сначала не дорогие за штуку'
-    priority: 3
-
-  sorting-5:
     name: sorting-5
     type: COMPARE_MAX
     value: '{sale_time}'
     selected-name: '&r  &6✔ Сначала новые'
     unselected-name: '&r&7⏺ Сначала новые'
-    priority: 4
+    priority: 0
 
-  sorting-6:
+  sorting-2:
     name: sorting-6
     type: COMPARE_MIN
     value: '{sale_time}'
     selected-name: '&r  &6✔ Сначала старые'
     unselected-name: '&r&7⏺ Сначала старые'
+    priority: 1
+
+  sorting-3:
+    name: sorting-1
+    type: COMPARE_MAX
+    value: '{price}'
+    selected-name: '&r  &6✔ Сначала дорогие'
+    unselected-name: '&r&7⏺ Сначала дорогие'
+    priority: 2
+
+  sorting-4:
+    name: sorting-2
+    type: COMPARE_MIN
+    value: '{price}'
+    selected-name: '&r  &6✔ Сначала не дорогие'
+    unselected-name: '&r&7⏺ Сначала не дорогие'
+    priority: 3
+
+  sorting-5:
+    name: sorting-3
+    type: COMPARE_MAX
+    value: '{price_for_one}'
+    selected-name: '&r  &6✔ Сначала дорогие за штуку'
+    unselected-name: '&r&7⏺ Сначала дорогие за штуку'
+    priority: 4
+
+  sorting-6:
+    name: sorting-4
+    type: COMPARE_MIN
+    value: '{price_for_one}'
+    selected-name: '&r  &6✔ Сначала не дорогие за штуку'
+    unselected-name: '&r&7⏺ Сначала не дорогие за штуку'
     priority: 5
+
+
 
 # Каждый предмет получает теги для сортировки
 # Все теги указываются в нижнем регистре

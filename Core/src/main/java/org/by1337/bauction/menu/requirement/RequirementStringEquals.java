@@ -5,22 +5,21 @@ import org.by1337.bauction.menu.Menu;
 
 public class RequirementStringEquals implements IRequirement {
     private final String input;
+    private final String input1;
     private final String output;
 
-    public RequirementStringEquals(String input, String output) {
+    public RequirementStringEquals(String input, String input1, String output) {
         this.input = input;
+        this.input1 = input1;
         this.output = output;
     }
 
     @Override
     public boolean check(Placeholderable holder, Menu menu) {
         String replacesInput = holder.replace(input);
-        String replacesOutput = holder.replace(output);
+        String replacesInput1 = holder.replace(input1);
 
-        if ((replacesInput.equals("1") || replacesInput.equals("0")) && (replacesOutput.equals("true") || replacesOutput.equals("false"))) {
-            return parseBoolean(replacesInput) == parseBoolean(replacesOutput);
-        }
-        return replacesInput.equals(replacesOutput);
+        return String.valueOf(replacesInput.equals(replacesInput1)).equals(holder.replace(output));
     }
 
     @Override

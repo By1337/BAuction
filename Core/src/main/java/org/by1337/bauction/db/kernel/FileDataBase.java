@@ -78,7 +78,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
                 return;
             }
 
-            if (Main.getCfg().getMaxSlots() <= (getSellItemsByUser(user.uuid).size() - user.getExternalSlots())) {
+            if (Main.getCfg().getMaxSlots() <= (sellItemsCountByUser(user.uuid) - user.getExternalSlots())) {
                 event.setValid(false);
                 event.setReason(Lang.getMessages("auction_item_limit_reached"));
                 return;
@@ -366,5 +366,6 @@ public class FileDataBase extends DataBaseCore implements Listener {
 
     protected void update() {
     }
+
 
 }

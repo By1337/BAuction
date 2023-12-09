@@ -1,7 +1,9 @@
 package org.by1337.bauction;
 
+import com.google.common.base.Charsets;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -33,10 +35,14 @@ import org.by1337.bauction.config.adapter.*;
 import org.by1337.bauction.datafix.UpdateManager;
 import org.by1337.bauction.db.kernel.CSellItem;
 import org.by1337.bauction.db.kernel.FileDataBase;
+import org.by1337.bauction.db.kernel.MysqlDb;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
+import org.by1337.bauction.menu.impl.CallBack;
+import org.by1337.bauction.menu.impl.ConfirmMenu;
 import org.by1337.bauction.menu.impl.MainMenu;
 import org.by1337.bauction.db.event.SellItemEvent;
+import org.by1337.bauction.menu.impl.PlayerItemsView;
 import org.by1337.bauction.menu.requirement.IRequirement;
 import org.by1337.bauction.menu.requirement.Requirements;
 import org.by1337.bauction.placeholder.PlaceholderHook;
@@ -50,7 +56,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.*;
 import java.util.*;
 
-public final class Main extends JavaPlugin   {
+public final class Main extends JavaPlugin {
     private static Message message;
     private static Plugin instance;
     private static Config cfg;
@@ -71,6 +77,7 @@ public final class Main extends JavaPlugin   {
 
     @Override
     public void onEnable() {
+
         message = new Message(getLogger());
         if (!loadDbCfg()) {
             message.error("failed to load dbCfg.yml!");
@@ -242,21 +249,47 @@ public final class Main extends JavaPlugin   {
                 )
                 .requires(new RequiresPermission<>("bauc.use"))
                 .addSubCommand(new Command<CommandSender>("admin")
+                        .addSubCommand(new Command<CommandSender>("clear")
+                                .requires(new RequiresPermission<>("bauc.admin.clear"))
+                                .requires(s -> !(storage instanceof MysqlDb))
+                                .executor(((sender, args) -> {
+                                    if (!(sender instanceof Player player))
+                                        throw new CommandException(Lang.getMessages("must_be_player"));
+                                    CallBack<Optional<ConfirmMenu.Result>> callBack = (res) -> {
+                                        if (res.isPresent()) {
+                                            if (res.get() == ConfirmMenu.Result.ACCEPT) {
+                                                storage.clear();
+                                                message.sendMsg(player, "&aАукцион очищен!");
+                                            }
+                                        }
+                                        player.closeInventory();
+                                    };
+                                    ItemStack itemStack = new ItemStack(Material.JIGSAW);
+                                    ItemMeta im = itemStack.getItemMeta();
+                                    im.setDisplayName(message.messageBuilder("&cВы уверены что хотите очистить аукцион?"));
+                                    itemStack.setItemMeta(im);
+                                    ConfirmMenu menu = new ConfirmMenu(callBack, itemStack, player);
+                                    menu.open();
+                                }))
+                        )
                         .requires(new RequiresPermission<>("bauc.admin"))
                         .addSubCommand(new Command<CommandSender>("stress")
                                         //<editor-fold desc="stress" defaultstate="collapsed">
-                                        .requires(new RequiresPermission<>("bauc.admin.addTag"))
+                                        .requires(new RequiresPermission<>("bauc.admin.stress"))
                                         .argument(new ArgumentIntegerAllowedMatch<>("count", List.of("[количество]")))
                                         .argument(new ArgumentIntegerAllowedMatch<>("repeat", List.of("[repeat]")))
                                         .argument(new ArgumentIntegerAllowedMatch<>("cd", List.of("[cd]")))
+                                        .argument(new ArgumentIntegerAllowedMatch<>("limit", List.of("[limit]")))
                                         .executor((sender, args) -> {
                                             int count = (int) args.getOrDefault("count", 1);
                                             int repeat = (int) args.getOrDefault("repeat", 1);
                                             int cd = (int) args.getOrDefault("cd", 1);
+                                            int limit = (int) args.getOrDefault("limit", Integer.MAX_VALUE);
                                             TimeCounter timeCounter = new TimeCounter();
-                                            FakePlayer fakePlayer = new FakePlayer(storage);
+                                            FakePlayer fakePlayer = new FakePlayer(storage, limit);
                                             new BukkitRunnable() {
                                                 int x = 0;
+                                                List<Long> list = new ArrayList<>();
 
                                                 @Override
                                                 public void run() {
@@ -265,8 +298,22 @@ public final class Main extends JavaPlugin   {
                                                     for (int i = 0; i < count; i++) {
                                                         fakePlayer.randomAction();
                                                     }
-                                                    message.sendMsg(sender, "Выполнено за %s мс. цикл:%s", timeCounter.getTime(), x);
+                                                    long time = timeCounter.getTime();
+                                                    message.sendMsg(sender, "Выполнено за %s мс. цикл:%s", time, x);
+                                                    list.add(time);
                                                     if (x >= repeat) {
+                                                        long l = 0;
+                                                        for (Long l1 : list) {
+                                                            l += l1;
+                                                        }
+                                                        l /= list.size();
+
+                                                        String s = "сделок в секунду " + count * 20 +
+                                                                " в среднем " + l + " ms. " +
+                                                                "всего было совершено " + count * repeat + " сделок " +
+                                                                "предметов на аукционе " + storage.getSellItemsCount();
+                                                        message.logger(s);
+                                                        message.sendMsg(sender, s);
                                                         cancel();
                                                     }
                                                 }
@@ -474,6 +521,38 @@ public final class Main extends JavaPlugin   {
                                     menu.open();
                                 })
                         //</editor-fold>
+                )
+                .addSubCommand(new Command<CommandSender>("view")
+                        .requires(new RequiresPermission<>("bauc.view"))
+                        .argument(new ArgumentString<>("player", () -> List.of(Bukkit.getOnlinePlayers().stream().map(Player::getName).toArray(String[]::new))))
+                        .executor(((sender, args) -> {
+                            if (!(sender instanceof Player senderP))
+                                throw new CommandException(Lang.getMessages("must_be_player"));
+
+                            String player = (String) args.get("player");
+                            if (player == null) {
+                                message.sendMsg(sender, "&cВы должны указать игрока!");
+                                return;
+                            }
+                            UUID uuid;
+                            if (UUIDUtils.isUUID(player)) {
+                                uuid = UUID.fromString(player);
+                            } else {
+                                Player p = Bukkit.getPlayer(player);
+                                if (p != null) {
+                                    uuid = p.getUniqueId();
+                                } else {
+                                    uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + player).getBytes(Charsets.UTF_8));
+                                }
+                            }
+                            if (!storage.hasUser(uuid)) {
+                                message.sendMsg(sender, "&cИгрок не найден!");
+                                return;
+                            }
+                            User user = storage.getUserOrCreate(senderP);
+                            PlayerItemsView menu = new PlayerItemsView(user, senderP, uuid, player);
+                            menu.open();
+                        }))
                 )
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))

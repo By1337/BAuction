@@ -12,12 +12,12 @@ import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeItemProcess;
 import org.by1337.bauction.auc.SellItem;
 import org.by1337.bauction.auc.User;
-import org.by1337.bauction.db.kernel.CSellItem;
-import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
+import org.by1337.bauction.menu.command.DefaultMenuCommand;
 import org.by1337.bauction.util.CUniqueName;
+import org.by1337.bauction.util.Pair;
 import org.by1337.bauction.util.UniqueName;
 
 import javax.annotation.Nullable;
@@ -30,7 +30,7 @@ public class ItemsForSaleMenu extends Menu {
 
     private final List<Integer> slots;
 
-    private final Command<Menu> command;
+    private final Command<Pair<Menu, Player>> command;
     private final User user;
 
     public ItemsForSaleMenu(Player player, User user) {
@@ -38,29 +38,12 @@ public class ItemsForSaleMenu extends Menu {
     }
 
     public ItemsForSaleMenu(Player player, User user, @Nullable Menu backMenu) {
-        super(Main.getCfg().getMenuManger().getItemsForSaleMenu(), player, backMenu);
+        super(Main.getCfg().getMenuManger().getItemsForSaleMenu(), player, backMenu, user);
         this.user = user;
         slots = Main.getCfg().getMenuManger().getItemsForSaleSlots();
 
-        command = new Command<Menu>("test")
-                .addSubCommand(new Command<Menu>("[CLOSE]")
-                        .executor(((sender, args) -> viewer.closeInventory()))
-                )
-                .addSubCommand(new Command<Menu>("[CONSOLE]")
-                        .argument(new ArgumentStrings<>("cmd"))
-                        .executor(((sender, args) -> {
-                            String cmd = (String) args.getOrThrow("cmd");
-                            Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd);
-                        }))
-                )
-                .addSubCommand(new Command<Menu>("[PLAYER]")
-                        .argument(new ArgumentStrings<>("cmd"))
-                        .executor(((sender, args) -> {
-                            String cmd = (String) args.getOrThrow("cmd");
-                            viewer.performCommand(cmd);
-                        }))
-                )
-                .addSubCommand(new Command<Menu>("[NEXT_PAGE]")
+        command = new Command<Pair<Menu, Player>>("test")
+                .addSubCommand(new Command<Pair<Menu, Player>>("[NEXT_PAGE]")
                         .executor(((sender, args) -> {
                             if (currentPage < maxPage - 1) {
                                 currentPage++;
@@ -68,7 +51,7 @@ public class ItemsForSaleMenu extends Menu {
                             }
                         }))
                 )
-                .addSubCommand(new Command<Menu>("[PREVIOUS_PAGE]")
+                .addSubCommand(new Command<Pair<Menu, Player>>("[PREVIOUS_PAGE]")
                         .executor(((sender, args) -> {
                             if (currentPage > 0) {
                                 currentPage--;
@@ -76,16 +59,13 @@ public class ItemsForSaleMenu extends Menu {
                             }
                         }))
                 )
-                .addSubCommand(new Command<Menu>("[UPDATE]")
+                .addSubCommand(new Command<Pair<Menu, Player>>("[UPDATE]")
                         .executor(((sender, args) -> {
                             sellItems = null;
                             generate0();
                         }))
                 )
-                .addSubCommand(new Command<Menu>("[BACK]")
-                        .executor(((sender, args) -> syncUtil(() -> Objects.requireNonNull(backMenu).reopen())))
-                )
-                .addSubCommand(new Command<Menu>("[TAKE_ITEM]")
+                .addSubCommand(new Command<Pair<Menu, Player>>("[TAKE_ITEM]")
                         .argument(new ArgumentString<>("uuid"))
                         .argument(new ArgumentSetList<>("fast", List.of("fast")))
                         .executor(((sender, args) -> {
@@ -105,6 +85,7 @@ public class ItemsForSaleMenu extends Menu {
                         }))
                 )
         ;
+        DefaultMenuCommand.command.getSubcommands().forEach((s, c) -> command.addSubCommand(c));
     }
 
     private ArrayList<SellItem> sellItems = null;
@@ -117,7 +98,9 @@ public class ItemsForSaleMenu extends Menu {
 
             lastPage = currentPage;
 
-            sellItems = new ArrayList<>(Main.getStorage().getSellItemsByUser(user.getUuid()));
+            sellItems = new ArrayList<>();
+            Main.getStorage().forEachSellItemsByUser(sellItems::add, user.getUuid());
+          //  sellItems = new ArrayList<>(Main.getStorage().getSellItemsByUser(user.getUuid()));
 
             maxPage = (int) Math.ceil((double) sellItems.size() / slots.size());
 
@@ -163,7 +146,7 @@ public class ItemsForSaleMenu extends Menu {
     public void runCommand(Placeholderable holder, String... commands) {
         try {
             for (String cmd : commands) {
-                command.process(null, holder.replace(cmd).split(" "));
+                command.process(new Pair<>(this, viewer), holder.replace(cmd).split(" "));
             }
         } catch (CommandException e) {
             Main.getMessage().error(e);

@@ -23,7 +23,7 @@ public class ConfirmMenu extends Menu {
         this(callBack, itemStack, player, null);
     }
     public ConfirmMenu(@NotNull CallBack<Optional<Result>> callBack, ItemStack itemStack, Player player, @Nullable Menu backMenu) {
-        super(Main.getCfg().getMenuManger().getMenuConfirm(), player, backMenu);
+        super(Main.getCfg().getMenuManger().getMenuConfirm(), player, backMenu, null);
         itemSlot = Main.getCfg().getMenuManger().getConfirmMenuItemSlot();
         this.callBack = callBack;
 

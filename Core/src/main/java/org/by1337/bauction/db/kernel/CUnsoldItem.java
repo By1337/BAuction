@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class CUnsoldItem implements UnsoldItem {
@@ -73,7 +74,7 @@ public class CUnsoldItem implements UnsoldItem {
         if (itemStack == null) {
             itemStack = BLib.getApi().getItemStackSerialize().deserialize(item);
         }
-        return itemStack;
+        return itemStack.clone();
     }
 
     public boolean isValid() {
@@ -139,7 +140,7 @@ public class CUnsoldItem implements UnsoldItem {
 
     @Override
     public int hashCode() {
-        return uniqueName.hashCode();
+        return Arrays.hashCode(uniqueName.getKey().toCharArray());
     }
 
     @Override

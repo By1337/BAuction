@@ -10,7 +10,7 @@ import java.util.function.Predicate;
 
 public class SortingItems {
 
-    private List<SellItem> items = new ArrayList<>();
+    private TreeSet<SellItem> items;
     private final NameKey sortingName;
     private final Sorting sorting;
     private final Comparator<SellItem> comparator;
@@ -19,26 +19,26 @@ public class SortingItems {
         sortingName = sorting.nameKey();
         this.sorting = sorting;
         comparator = sorting.getComparator();
+        items = new TreeSet<>((o1, o2) -> {
+            int res = comparator.compare(o1, o2);
+            if (res == 0) return Arrays.compare(o1.getUniqueName().getKey().toCharArray(), o2.getUniqueName().getKey().toCharArray());
+            return res;
+        });
     }
 
     public void addItem(SellItem sellItem) {
-        int insertIndex = Collections.binarySearch(items, sellItem, comparator);
-        if (insertIndex < 0) {
-            insertIndex = -insertIndex - 1;
-        }
-        items.add(insertIndex, sellItem);
-
+        items.add(sellItem);
     }
 
-    public void sort() {
-        items.sort(comparator);
+    public void remove(SellItem sellItem) {
+        items.remove(sellItem);
     }
 
-    public void removeIf(Predicate<SellItem> filter) {
-        items.removeIf(filter);
+    public void clear() {
+        items.clear();
     }
 
-    public List<SellItem> getItems() {
+    public Collection<SellItem> getItems() {
         return items;
     }
 

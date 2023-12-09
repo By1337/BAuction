@@ -197,7 +197,7 @@ public class CSellItem implements SellItem {
         if (itemStack == null) {
             itemStack = BLib.getApi().getItemStackSerialize().deserialize(item);
         }
-        return itemStack;
+        return itemStack.clone();
     }
 
     public boolean isValid() {
@@ -340,13 +340,17 @@ public class CSellItem implements SellItem {
 
     @Override
     public int hashCode() {
-        return uniqueName.hashCode();
+        return Arrays.hashCode(uniqueName.getKey().toCharArray());
     }
 
     @Override
     public String replace(String s) {
         StringBuilder sb = new StringBuilder(s);
         while (true) {
+            if (sb.indexOf("{seller_uuid}") != -1) {
+                sb.replace(sb.indexOf("{seller_uuid}"), sb.indexOf("{seller_uuid}") + "{seller_uuid}".length(), sellerUuid.toString());
+                continue;
+            }
             if (sb.indexOf("{seller_name}") != -1) {
                 sb.replace(sb.indexOf("{seller_name}"), sb.indexOf("{seller_name}") + "{seller_name}".length(), sellerName);
                 continue;
