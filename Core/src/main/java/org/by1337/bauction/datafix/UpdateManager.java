@@ -6,6 +6,7 @@ import org.bukkit.plugin.Plugin;
 import org.by1337.api.configuration.YamlContext;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.datafix.config.Messages107;
+import org.by1337.bauction.datafix.config.TagUtil107;
 import org.by1337.bauction.datafix.db.DBUpdate107;
 
 import java.io.File;
@@ -56,6 +57,7 @@ public class UpdateManager {
         } else if (version == 2){
             new DBUpdate107().update();
             new Messages107().update();
+            new TagUtil107().update();
             version++;
             run(version, config);
         }

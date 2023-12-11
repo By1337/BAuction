@@ -16,7 +16,6 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.by1337.api.BLib;
 import org.by1337.api.chat.util.Message;
@@ -54,6 +53,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.sql.SQLException;
 import java.util.*;
 
 public final class Main extends JavaPlugin {
@@ -69,6 +69,7 @@ public final class Main extends JavaPlugin {
     private static UniqueNameGenerator uniqueNameGenerator;
     private static YamlConfig dbCfg;
     private boolean loaded;
+    public boolean isHead;
 
     @Override
     public void onLoad() {
@@ -90,66 +91,69 @@ public final class Main extends JavaPlugin {
         dbCfg.trySave();
 
         registerAdapters();
-
         UpdateManager.checkUpdate();
-
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
         econ = rsp.getProvider();
-
-
         Lang.load(this);
         cfg = new Config(this);
         timeUtil = new TimeUtil();
-
-        new Thread(() -> {
-            TimeCounter timeCounter = new TimeCounter();
-            storage = new FileDataBase(cfg.getCategoryMap(), cfg.getSortingMap());
-            try {
-                storage.load();
-                loaded = true;
-            } catch (IOException e) {
-                message.error("failed to load db!", e);
-                instance.getServer().getPluginManager().disablePlugin(instance);
-            }
-            message.logger(Lang.getMessages("successful_loading"), storage.getSellItemsCount(), timeCounter.getTime());
-            getCommand("bauc").setTabCompleter(this::onTabComplete0);
-            getCommand("bauc").setExecutor(this::onCommand0);
-        }).start();
-
-//        new Thread(() -> {
-//            TimeCounter timeCounter = new TimeCounter();
-//            try {
-//                storage = new MysqlDb(cfg.getCategoryMap(), cfg.getSortingMap(),
-//                        "localhost",
-//                        "auction",
-//                        "root",
-//                        "",
-//                        3306
-//                );
-//            } catch (SQLException e) {
-//                throw new RuntimeException(e);
-//            }
-//            try {
-//                storage.load();
-//                loaded = true;
-//            } catch (IOException e) {
-//                message.error("failed to load db!", e);
-//            }
-//            message.logger(Lang.getMessages("successful_loading"), storage.getSellItemsCount(), timeCounter.getTime());
-//            getCommand("bauc").setTabCompleter(this::onTabComplete0);
-//            getCommand("bauc").setExecutor(this::onCommand0);
-//        }).start();
-
         initCommand();
-
         new Metrics(this, 20300);
         trieManager = new TrieManager(this);
         TagUtil.loadAliases(this);
         placeholderHook = new PlaceholderHook();
         placeholderHook.register();
 
+        loadDb();
+
     }
 
+    private void loadDb() {
+        String dbType = dbCfg.getContext().getAsString("db-type");
+        if ("mysql".equals(dbType)) {
+            new Thread(() -> {
+                TimeCounter timeCounter = new TimeCounter();
+
+                try {
+                    storage = new MysqlDb(cfg.getCategoryMap(), cfg.getSortingMap(),
+                            dbCfg.getContext().getAsString("mysql-settings.host"),
+                            dbCfg.getContext().getAsString("mysql-settings.db-name"),
+                            dbCfg.getContext().getAsString("mysql-settings.user"),
+                            dbCfg.getContext().getAsString("mysql-settings.password"),
+                            dbCfg.getContext().getAsInteger("mysql-settings.port")
+                    );
+                    storage.load();
+                    loaded = true;
+                } catch (IOException | SQLException e) {
+                    message.error("failed to load db!", e);
+                    instance.getServer().getPluginManager().disablePlugin(instance);
+                }
+                message.logger(Lang.getMessages("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
+
+                getCommand("bauc").setTabCompleter(this::onTabComplete0);
+                getCommand("bauc").setExecutor(this::onCommand0);
+            }).start();
+        } else {
+            if (!"file".equals(dbType)) {
+                dbCfg.getContext().set("db-type", "file");
+                dbCfg.trySave();
+            }
+            new Thread(() -> {
+                TimeCounter timeCounter = new TimeCounter();
+                storage = new FileDataBase(cfg.getCategoryMap(), cfg.getSortingMap());
+                try {
+                    storage.load();
+                    loaded = true;
+                } catch (IOException e) {
+                    message.error("failed to load db!", e);
+                    instance.getServer().getPluginManager().disablePlugin(instance);
+                }
+                message.logger(Lang.getMessages("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
+                getCommand("bauc").setTabCompleter(this::onTabComplete0);
+                getCommand("bauc").setExecutor(this::onCommand0);
+            }).start();
+        }
+    }
 
     @Override
     public void onDisable() {
@@ -311,7 +315,7 @@ public final class Main extends JavaPlugin {
                                                         String s = "сделок в секунду " + count * 20 +
                                                                 " в среднем " + l + " ms. " +
                                                                 "всего было совершено " + count * repeat + " сделок " +
-                                                                "предметов на аукционе " + storage.getSellItemsCount();
+                                                                "предметов на аукционе " + storage.getSellItemsSize();
                                                         message.logger(s);
                                                         message.sendMsg(sender, s);
                                                         cancel();

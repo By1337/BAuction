@@ -14,10 +14,8 @@ import org.by1337.bauction.db.kernel.CSellItem;
 import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.db.kernel.FileDataBase;
 
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 public class FakePlayer {
     private final Random random = new Random();
@@ -38,7 +36,7 @@ public class FakePlayer {
     }
 
     public void randomAction() {
-        if (storage.getSellItemsCount() >= ahLimit) {
+        if (storage.getSellItemsSize() >= ahLimit) {
             buyItem();
             return;
         }
@@ -50,7 +48,7 @@ public class FakePlayer {
     }
 
     private void buyItem() {
-        if (storage.getSellItemsCount() == 0) return;
+        if (storage.getSellItemsSize() == 0) return;
 
         SellItem item = storage.getFirstSellItem();
 

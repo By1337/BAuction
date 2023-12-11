@@ -43,7 +43,72 @@ public class FileDataBase extends DataBaseCore implements Listener {
             public void run() {
                 Bukkit.getOnlinePlayers().forEach(player -> boostCheck(player.getUniqueId()));
             }
-        }.runTaskTimerAsynchronously(Main.getInstance(), 20 * 30, 20 * 30);
+        }.runTaskTimerAsynchronously(Main.getInstance(), 20 * 5, 20 * 5);
+
+        expiredChecker();
+        unsoldItemRemover();
+    }
+
+    protected Runnable sellItemRemChecker;
+    protected BukkitTask sellItemRemCheckerTask;
+    protected Runnable unsoldItemRemChecker;
+    protected BukkitTask unsoldItemRemCheckerTask;
+
+
+    protected void expiredChecker() {
+        sellItemRemChecker = () -> {
+            long time = System.currentTimeMillis();
+            try {
+                long sleep = 50L * 5;
+                int removed = 0;
+                while (getSellItemsSize() > 0) {
+                    SellItem sellItem = getFirstSellItem();
+                    if (sellItem.getRemovalDate() < time) {
+                        expiredItem(sellItem);
+                        removed++;
+                        if (removed >= 30)
+                            break;
+                    } else {
+                        sleep = Math.min((sellItem.getRemovalDate() - time) + 50, 50L * 100); // 100 ticks
+                        break;
+                    }
+                }
+                if (sellItemRemCheckerTask.isCancelled()) return;
+                sellItemRemCheckerTask = Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), sellItemRemChecker, sleep / 50);
+            } catch (Exception e) {
+                Main.getMessage().error(e);
+            }
+        };
+        sellItemRemCheckerTask = Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), sellItemRemChecker, 0);
+    }
+
+    protected void unsoldItemRemover() {
+        if (removeExpiredItems) {
+            unsoldItemRemChecker = () -> {
+                long time = System.currentTimeMillis();
+                try {
+                    long sleep = 50L * 5;
+                    int removed = 0;
+                    while (getUnsoldItemsSize() > 0) {
+                        UnsoldItem unsoldItem = getFirstUnsoldItem();
+                        if (unsoldItem.getDeleteVia() < time) {
+                            removeUnsoldItem(unsoldItem.getUniqueName());
+                            removed++;
+                            if (removed >= 30)
+                                break;
+                        } else {
+                            sleep = Math.min((unsoldItem.getDeleteVia() - time) + 50, 50L * 100); // 100 ticks
+                            break;
+                        }
+                    }
+                    if (unsoldItemRemCheckerTask.isCancelled()) return;
+                    unsoldItemRemCheckerTask = Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), unsoldItemRemChecker, sleep / 50);
+                } catch (Exception e) {
+                    Main.getMessage().error(e);
+                }
+            };
+            unsoldItemRemCheckerTask = Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), unsoldItemRemChecker, 0);
+        }
     }
 
     @EventHandler
@@ -52,9 +117,9 @@ public class FileDataBase extends DataBaseCore implements Listener {
     }
 
     @Override
-    protected void expiredItem(CSellItem item) {
-        removeSellItem(item.uniqueName);
-        CUnsoldItem unsoldItem = new CUnsoldItem(item.item, item.sellerUuid, item.removalDate, item.removalDate + removeTime);
+    protected void expiredItem(SellItem item) {
+        removeSellItem(item.getUniqueName());
+        CUnsoldItem unsoldItem = new CUnsoldItem(item.getItem(), item.getSellerUuid(), item.getRemovalDate(), item.getRemovalDate() + removeTime);
         addUnsoldItem(unsoldItem);
     }
 
@@ -171,10 +236,9 @@ public class FileDataBase extends DataBaseCore implements Listener {
     public void validateAndRemoveItem(BuyItemEvent event) {
         update();
         if (!hasUser(event.getUser().getUuid())) {
-            throw new IllegalStateException("user non-exist: " + event.getUser());
-        }
-        if (!hasSellItem(event.getSellItem().getUniqueName())) {
-            throw new IllegalStateException("sell item non-exist: " + event.getSellItem());
+            event.setValid(false);
+            event.setReason(Lang.getMessages("error_occurred"));
+            return;
         }
         CUser user = (CUser) getUser(event.getUser().getUuid());
         SellItem sellItem = getSellItem(event.getSellItem().getUniqueName());
@@ -190,12 +254,6 @@ public class FileDataBase extends DataBaseCore implements Listener {
             event.setReason(Lang.getMessages("item_owner"));
             return;
         }
-//        if (!hasSellItem(sellItem.getUniqueName())) {
-//            event.setValid(false);
-//            event.setReason(Lang.getMessages("item_already_sold_or_removed"));
-//            return;
-//        }
-
         try {
             removeSellItem(sellItem.getUniqueName());
             if (hasUser(sellItem.getSellerUuid())) {
@@ -215,23 +273,20 @@ public class FileDataBase extends DataBaseCore implements Listener {
     }
 
     public void validateAndRemoveItem(BuyItemCountEvent event) {
-        update();
-        if (!hasUser(event.getUser().getUuid())) {
-            throw new IllegalStateException("user non-exist: " + event.getUser());
-        }
-        if (!hasSellItem(event.getSellItem().getUniqueName())) {
-            throw new IllegalStateException("sell item non-exist: " + event.getSellItem());
-        }
-        CUser buyer = (CUser) getUser(event.getUser().getUuid());
-        CSellItem sellItem = (CSellItem) getSellItem(event.getSellItem().getUniqueName());
-
-        if (buyer.getUuid().equals(sellItem.getSellerUuid())) {
-            event.setValid(false);
-            event.setReason(Lang.getMessages("item_owner"));
-            return;
-        }
-
         try {
+            update();
+            if (!hasUser(event.getUser().getUuid())) {
+                throw new IllegalStateException("user non-exist: " + event.getUser());
+            }
+            CUser buyer = (CUser) getUser(event.getUser().getUuid());
+            CSellItem sellItem = (CSellItem) getSellItem(event.getSellItem().getUniqueName());
+
+            if (buyer.getUuid().equals(sellItem.getSellerUuid())) {
+                event.setValid(false);
+                event.setReason(Lang.getMessages("item_owner"));
+                return;
+            }
+
             if (!hasSellItem(sellItem.getUniqueName())) {
                 event.setValid(false);
                 event.setReason(Lang.getMessages("item_already_sold_or_removed"));
@@ -248,8 +303,10 @@ public class FileDataBase extends DataBaseCore implements Listener {
             buyer.dealCount++;
             buyer.dealSum += updated.priceForOne * event.getCount();
             CUser owner = (CUser) getUser(updated.sellerUuid);
-            owner.dealCount++;
-            owner.dealSum += updated.priceForOne * event.getCount();
+            if (owner != null){
+                owner.dealCount++;
+                owner.dealSum += updated.priceForOne * event.getCount();
+            }
             int newCount = updated.getAmount() - event.getCount();
             ItemStack itemStack = updated.getItemStack().clone();
             itemStack.setAmount(newCount);
@@ -331,9 +388,9 @@ public class FileDataBase extends DataBaseCore implements Listener {
         Collection<? extends UnsoldItem> unsoldItems = getAllUnsoldItems();
 
         for (File file : List.of(fItems, fUsers, fUnsoldItems)) {
-            if (!file.exists()){
+            if (!file.exists()) {
                 file.createNewFile();
-            }else {
+            } else {
                 file.delete();
                 file.createNewFile();
             }
@@ -361,11 +418,12 @@ public class FileDataBase extends DataBaseCore implements Listener {
     @Override
     public void close() {
         boostTask.cancel();
+        sellItemRemCheckerTask.cancel();
+        if (unsoldItemRemChecker != null)
+            unsoldItemRemCheckerTask.cancel();
         HandlerList.unregisterAll(this);
     }
 
     protected void update() {
     }
-
-
 }

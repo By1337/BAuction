@@ -10,6 +10,8 @@ import org.by1337.bauction.auc.UnsoldItem;
 import org.by1337.bauction.auc.User;
 import org.by1337.bauction.db.action.Action;
 import org.by1337.bauction.db.action.ActionType;
+import org.by1337.bauction.db.event.BuyItemCountEvent;
+import org.by1337.bauction.db.event.BuyItemEvent;
 import org.by1337.bauction.network.PacketConnection;
 import org.by1337.bauction.network.PacketIn;
 import org.by1337.bauction.network.PacketListener;
@@ -19,6 +21,7 @@ import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.Sorting;
 import org.by1337.bauction.util.UniqueName;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.sql.*;
@@ -40,8 +43,10 @@ public class MysqlDb extends FileDataBase implements PacketListener {
 
     private final ConcurrentLinkedQueue<String> sqlQueue = new ConcurrentLinkedQueue<>();
     private final BukkitTask sqlExecuteTask;
+    @Nullable
     private final BukkitTask logClearTask;
     private final BukkitTask updateTask;
+    private final boolean isHead;
 
     private long lastLogCheck;
 
@@ -52,6 +57,7 @@ public class MysqlDb extends FileDataBase implements PacketListener {
         this.user = user;
         this.password = password;
         this.port = port;
+        isHead = Main.getDbCfg().getContext().getAsBoolean("mysql-settings.is-head");
         packetConnection = new PacketConnection(this);
 
         connection = DriverManager.getConnection(
@@ -118,7 +124,7 @@ CREATE TABLE IF NOT EXISTS logs (
                     @Override
                     public void run() {
                         String sql = null;
-                        for (int i = 0; i < 100; i++) {
+                        for (int i = 0; i < 200; i++) {
                             sql = sqlQueue.poll();
                             if (sql == null) {
                                 break;
@@ -130,7 +136,7 @@ CREATE TABLE IF NOT EXISTS logs (
                             }
                         }
                         if (sql != null) {
-                            Main.getMessage().warning("the number of sql requests is more than 100!");
+                            Main.getMessage().warning("the number of sql requests is more than 200!");
                         }
                     }
 
@@ -138,19 +144,59 @@ CREATE TABLE IF NOT EXISTS logs (
         //</editor-fold>
 
 
-        logClearTask = Bukkit.getScheduler().runTaskTimerAsynchronously(
-                Main.getInstance(),
-                () -> sqlQueue.offer("DELETE FROM logs WHERE time < " + (System.currentTimeMillis() - 3600000L / 2)),
-                500, 3600000L / 2
-        );
+        if (isHead) {
+            logClearTask = Bukkit.getScheduler().runTaskTimerAsynchronously(
+                    Main.getInstance(),
+                    () -> sqlQueue.offer("DELETE FROM logs WHERE time < " + (System.currentTimeMillis() - 3600000L / 2)),
+                    500, 3600000L / 2
+            );
+        } else {
+            logClearTask = null;
+        }
         updateTask = Bukkit.getScheduler().runTaskTimerAsynchronously(Main.getInstance(), () -> update(), 40, 40);
-
     }
 
+    @Override
+    protected void unsoldItemRemover() {
+        if (removeExpiredItems) {
+            unsoldItemRemChecker = () -> {
+                long time = System.currentTimeMillis();
+                try {
+                    long sleep = 50L * 5;
+                    int removed = 0;
+                    while (getUnsoldItemsSize() > 0) {
+                        UnsoldItem unsoldItem = getFirstUnsoldItem();
+                        if (unsoldItem.getDeleteVia() < time) {
+                            if (isHead) {
+                                removeUnsoldItem(unsoldItem.getUniqueName());
+                            } else {
+                                super.removeUnsoldItem(unsoldItem.getUniqueName());
+                            }
+                            removed++;
+                            if (removed >= 30)
+                                break;
+                        } else {
+                            sleep = Math.min((unsoldItem.getDeleteVia() - time) + 50, 50L * 100); // 100 ticks
+                            break;
+                        }
+                    }
+                    if (unsoldItemRemCheckerTask.isCancelled()) return;
+                    unsoldItemRemCheckerTask = Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), unsoldItemRemChecker, sleep / 50);
+                } catch (Exception e) {
+                    Main.getMessage().error(e);
+                }
+            };
+            unsoldItemRemCheckerTask = Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), unsoldItemRemChecker, 0);
+        }
+    }
 
     @Override
-    protected void expiredItem(CSellItem sellItem) {
-
+    protected void expiredItem(SellItem item) {
+        if (isHead) {
+            super.expiredItem(item);
+        } else {
+            super.removeSellItem(item.getUniqueName());
+        }
     }
 
     @Override
@@ -176,6 +222,38 @@ CREATE TABLE IF NOT EXISTS logs (
         log(new Action(ActionType.UPDATE_USER, user.getUuid(), null, server));
         packetConnection.saveSend(new PlayOutUpdateUserPacket(user));
         return user;
+    }
+
+    private void updateUsers(UUID user, UUID user1){
+        CUser buyer = (CUser) getUser(user);
+        CUser owner = (CUser) getUser(user1);
+
+        if (buyer != null){
+            execute(buyer.toSql("users"));
+            log(new Action(ActionType.UPDATE_USER, buyer.getUuid(), null, server));
+            packetConnection.saveSend(new PlayOutUpdateUserPacket(buyer));
+        }
+
+        if (owner != null){
+            execute(owner.toSql("users"));
+            log(new Action(ActionType.UPDATE_USER, owner.getUuid(), null, server));
+            packetConnection.saveSend(new PlayOutUpdateUserPacket(owner));
+        }
+    }
+    @Override
+    public void validateAndRemoveItem(BuyItemEvent event) {// hook
+        super.validateAndRemoveItem(event);
+        if (event.isValid()){
+            updateUsers(event.getUser().getUuid(), event.getSellItem().getSellerUuid());
+        }
+    }
+
+    @Override
+    public void validateAndRemoveItem(BuyItemCountEvent event) { // hook
+        super.validateAndRemoveItem(event);
+        if (event.isValid()){
+            updateUsers(event.getUser().getUuid(), event.getSellItem().getSellerUuid());
+        }
     }
 
     @Override
@@ -315,6 +393,7 @@ CREATE TABLE IF NOT EXISTS logs (
                             } else {
                                 writeLock(() -> super.addUser(user));
                             }
+                            boostCheck(user.uuid);
                         }
                     }
                     case ADD_UNSOLD_ITEM -> {
@@ -348,9 +427,12 @@ CREATE TABLE IF NOT EXISTS logs (
         } catch (SQLException e) {
             Main.getMessage().error(e);
         }
+        packetConnection.close();
         sqlExecuteTask.cancel();
-        logClearTask.cancel();
+        if (logClearTask != null)
+            logClearTask.cancel();
         updateTask.cancel();
+        super.close();
     }
 
     @Override
@@ -366,7 +448,7 @@ CREATE TABLE IF NOT EXISTS logs (
 
     @Override
     public void update(PacketIn packetIn) {
-        switch (packetIn.getType()){
+        switch (packetIn.getType()) {
             case ADD_SELL_ITEM -> {
                 SellItem sellItem = ((PlayInAddSellItemPacket) packetIn).getSellItem();
                 if (hasSellItem(sellItem.getUniqueName())) break;
@@ -379,6 +461,7 @@ CREATE TABLE IF NOT EXISTS logs (
                 } else {
                     writeLock(() -> super.addUser(user));
                 }
+                boostCheck(user.uuid);
             }
             case ADD_UNSOLD_ITEM -> {
                 CUnsoldItem unsoldItem = ((PlayInAddUnsoldItemPacket) packetIn).getUnsoldItem();
@@ -400,12 +483,11 @@ CREATE TABLE IF NOT EXISTS logs (
 
     @Override
     public void connectionLost() {
-
     }
 
     @Override
     public void connectionRestored() {
-        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> applyLogs(parseLogs()), 0);
+        Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), () -> applyLogs(parseLogs()), 0);
     }
 
     public PacketConnection getPacketConnection() {

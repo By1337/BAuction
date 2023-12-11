@@ -23,7 +23,7 @@ public class TrieManager {
         Map<String, String> map = context.getMap("translate", String.class);
 
         for (Map.Entry<String, String> entry : map.entrySet()) {
-            trie.insert(entry.getValue(), entry.getKey());
+            trie.insert(entry.getKey(), entry.getValue());
         }
 
     }

@@ -3,6 +3,7 @@ package org.by1337.bauction.network;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -20,7 +21,7 @@ public class PacketConnection implements Listener, PluginMessageListener {
     private final PacketListener listener;
     private final Plugin plugin;
     private final Message message;
-    private final String channelName = "BungeeCord";
+    private final String channelName = "bauction:main";
     private boolean hasConnection;
 
     public PacketConnection(PacketListener listener) {
@@ -30,6 +31,7 @@ public class PacketConnection implements Listener, PluginMessageListener {
         plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, channelName);
         plugin.getServer().getMessenger().registerIncomingPluginChannel(plugin, channelName, this);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+
         hasConnection = !Bukkit.getOnlinePlayers().isEmpty();
     }
 
@@ -121,5 +123,11 @@ public class PacketConnection implements Listener, PluginMessageListener {
             hasConnection = false;
             listener.connectionLost();
         }
+    }
+
+    public void close() {
+        HandlerList.unregisterAll(this);
+        plugin.getServer().getMessenger().unregisterOutgoingPluginChannel(plugin, channelName);
+        plugin.getServer().getMessenger().unregisterIncomingPluginChannel(plugin, channelName);
     }
 }

@@ -16,7 +16,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 @ThreadSafe
@@ -29,9 +28,6 @@ public abstract class DataBaseCore {
     private final Map<UniqueName, CSellItem> sellItemsMap = new HashMap<>();
     private final Map<UniqueName, CUnsoldItem> unsoldItemsMap = new HashMap<>();
     private final Map<UUID, Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>>> itemsByOwner = new HashMap<>();
-
-//    private final Comparator<CSellItem> sellItemComparator = Comparator.comparingLong(i -> i.removalDate);
-//    private final Comparator<CUnsoldItem> unsoldItemComparator = Comparator.comparingLong(i -> i.deleteVia);
 
     private final Map<NameKey, Map<NameKey, SortingItems>> sortedItems = new HashMap<>();
 
@@ -107,7 +103,7 @@ public abstract class DataBaseCore {
     protected void removeSellItem0(CSellItem sellItem) {
         isWriteLock();
         if (!hasSellItem(sellItem.uniqueName)) {
-            throw new IllegalStateException("item non-exist");
+            throw new IllegalStateException("item " + sellItem.uniqueName + " non-exist");
         }
         sellItemsMap.remove(sellItem.uniqueName);
         sortedSellItems.remove(sellItem);
@@ -124,11 +120,6 @@ public abstract class DataBaseCore {
             throw new IllegalStateException("item already exist");
         }
         unsoldItemsMap.put(unsoldItem.uniqueName, unsoldItem);
-//        int insertIndex = Collections.binarySearch(sortedUnsoldItems, unsoldItem, unsoldItemComparator);
-//        if (insertIndex < 0) {
-//            insertIndex = -insertIndex - 1;
-//        }
-//        sortedUnsoldItems.add(insertIndex, unsoldItem);
         sortedUnsoldItems.add(unsoldItem);
 
         Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, unsoldItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
@@ -138,8 +129,8 @@ public abstract class DataBaseCore {
 
     protected void removeUnsoldItem0(CUnsoldItem unsoldItem) {
         isWriteLock();
-        if (hasUnsoldItem(unsoldItem.uniqueName)) {
-            throw new IllegalStateException("item non-exist");
+        if (!hasUnsoldItem(unsoldItem.uniqueName)) {
+            throw new IllegalStateException("unsold item " + unsoldItem.getUniqueName() + " non-exist");
         }
         unsoldItemsMap.remove(unsoldItem.uniqueName);
         sortedUnsoldItems.remove(unsoldItem);
@@ -229,6 +220,10 @@ public abstract class DataBaseCore {
         return readLock(() -> sortedUnsoldItems);
     }
 
+    public int getUnsoldItemsSize() {
+        return readLock(sortedUnsoldItems::size);
+    }
+
     public void forEachUnsoldItems(Consumer<? super UnsoldItem> action) {
         readLock(() -> sortedUnsoldItems.forEach(action));
     }
@@ -284,7 +279,7 @@ public abstract class DataBaseCore {
         return readLock(() -> users.containsKey(uuid));
     }
 
-    public int getSellItemsCount() {
+    public int getSellItemsSize() {
         return readLock(sortedSellItems::size);
     }
 
@@ -292,6 +287,7 @@ public abstract class DataBaseCore {
     protected Collection<? extends SellItem> getAllSellItems() {
         return readLock(() -> new ArrayList<>(sortedSellItems));
     }
+
 
     public void forEachSellItems(Consumer<? super SellItem> action) {
         readLock(() -> sortedSellItems.forEach(action));
@@ -335,6 +331,7 @@ public abstract class DataBaseCore {
             return pair.getKey().size();
         });
     }
+
     public int unsoldItemsCountByUser(@NotNull UUID uuid) {
         return readLock(() -> {
             Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
@@ -351,8 +348,12 @@ public abstract class DataBaseCore {
         }
     }
 
-    public SellItem getFirstSellItem(){
+    public SellItem getFirstSellItem() {
         return readLock(sortedSellItems::first);
+    }
+
+    public UnsoldItem getFirstUnsoldItem() {
+        return readLock(sortedUnsoldItems::first);
     }
 
     @NotNull
@@ -360,7 +361,7 @@ public abstract class DataBaseCore {
         return getUserOrCreate(player.getName(), player.getUniqueId());
     }
 
-    protected abstract void expiredItem(CSellItem sellItem);
+    protected abstract void expiredItem(SellItem sellItem);
 
     protected void load(List<CSellItem> items, List<CUser> users, List<CUnsoldItem> unsoldItems) {
         writeLock(() -> {

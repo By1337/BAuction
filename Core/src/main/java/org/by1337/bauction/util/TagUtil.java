@@ -45,28 +45,32 @@ public class TagUtil {
         Material material = itemStack.getType();
         list.add(material.name());
         ItemMeta im = itemStack.getItemMeta();
-        itemStack.getEnchantments().keySet().forEach(e -> list.add(e.getKey().getKey()));
+        itemStack.getEnchantments().forEach((e, i) -> {
+            list.add(e.getKey().getKey());
+            list.add(e.getKey().getKey() + ":" + i);
+        });
         list.addAll(getTags(material));
 
         if (im != null) {
             if (im instanceof PotionMeta potionMeta) {
-                for (PotionEffect potionEffect : potionMeta.getCustomEffects()) {
+                potionMeta.getCustomEffects().forEach(potionEffect -> {
                     list.add(potionEffect.getType().getName());
-                }
+                    list.add(potionEffect.getType().getName() + ":" + potionEffect.getAmplifier());
+                });
                 list.add(potionMeta.getBasePotionData().getType().name());
+                if (potionMeta.getBasePotionData().isUpgraded()){
+                    list.add(potionMeta.getBasePotionData().getType().name() + ":1");
+                }
             }
-            for (NamespacedKey key : im.getPersistentDataContainer().getKeys()) {
-               // list.add(key.getKey());
-                list.addAll(ParsePDCTagsMagager.parseTags(im.getPersistentDataContainer()));
-            }
+            list.addAll(ParsePDCTagsMagager.parseTags(im.getPersistentDataContainer()));
             if (im instanceof EnchantmentStorageMeta enchantmentStorageMeta) {
                 enchantmentStorageMeta.getStoredEnchants().keySet().forEach(e -> list.add(e.getKey().getKey()));
             }
         }
 
-        for (String str : new ArrayList<>(list)) {
+        for (String str : list.toArray(new String[0])) {
             String s = tagAliases.get(str);
-            if (s != null){
+            if (s != null) {
                 list.add(s);
             }
         }
@@ -77,7 +81,6 @@ public class TagUtil {
 
     public static List<String> getTags(Material material) {
         List<String> list = new ArrayList<>();
-
         if (material.isFlammable()) list.add(Tags.IS_FLAMMABLE.getTag());
         if (material.isBurnable()) list.add(Tags.IS_BURNABLE.getTag());
         if (material.isFuel()) list.add(Tags.IS_FUEL.getTag());

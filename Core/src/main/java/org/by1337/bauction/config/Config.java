@@ -110,6 +110,10 @@ public class Config {
         }
         menuPlayerItemsView = new YamlContext(YamlConfiguration.loadConfiguration(fileMenuPlayerItemsView));
 
+        File readMe = new File(basedir + "/README.yml");
+        if (!readMe.exists()) {
+            plugin.saveResource("README.yml", true);
+        }
 
         sortingMap = new LinkedHashMap<>();
         categoryMap = new LinkedHashMap<>();
