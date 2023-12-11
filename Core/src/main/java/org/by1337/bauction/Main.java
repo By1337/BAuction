@@ -253,79 +253,84 @@ public final class Main extends JavaPlugin {
                 )
                 .requires(new RequiresPermission<>("bauc.use"))
                 .addSubCommand(new Command<CommandSender>("admin")
-                        .addSubCommand(new Command<CommandSender>("clear")
-                                .requires(new RequiresPermission<>("bauc.admin.clear"))
-                                .requires(s -> !(storage instanceof MysqlDb))
-                                .executor(((sender, args) -> {
-                                    if (!(sender instanceof Player player))
-                                        throw new CommandException(Lang.getMessages("must_be_player"));
-                                    CallBack<Optional<ConfirmMenu.Result>> callBack = (res) -> {
-                                        if (res.isPresent()) {
-                                            if (res.get() == ConfirmMenu.Result.ACCEPT) {
-                                                storage.clear();
-                                                message.sendMsg(player, "&aАукцион очищен!");
-                                            }
-                                        }
-                                        player.closeInventory();
-                                    };
-                                    ItemStack itemStack = new ItemStack(Material.JIGSAW);
-                                    ItemMeta im = itemStack.getItemMeta();
-                                    im.setDisplayName(message.messageBuilder("&cВы уверены что хотите очистить аукцион?"));
-                                    itemStack.setItemMeta(im);
-                                    ConfirmMenu menu = new ConfirmMenu(callBack, itemStack, player);
-                                    menu.open();
-                                }))
-                        )
                         .requires(new RequiresPermission<>("bauc.admin"))
-                        .addSubCommand(new Command<CommandSender>("stress")
-                                        //<editor-fold desc="stress" defaultstate="collapsed">
-                                        .requires(new RequiresPermission<>("bauc.admin.stress"))
-                                        .argument(new ArgumentIntegerAllowedMatch<>("count", List.of("[количество]")))
-                                        .argument(new ArgumentIntegerAllowedMatch<>("repeat", List.of("[repeat]")))
-                                        .argument(new ArgumentIntegerAllowedMatch<>("cd", List.of("[cd]")))
-                                        .argument(new ArgumentIntegerAllowedMatch<>("limit", List.of("[limit]")))
-                                        .executor((sender, args) -> {
-                                            int count = (int) args.getOrDefault("count", 1);
-                                            int repeat = (int) args.getOrDefault("repeat", 1);
-                                            int cd = (int) args.getOrDefault("cd", 1);
-                                            int limit = (int) args.getOrDefault("limit", Integer.MAX_VALUE);
-                                            TimeCounter timeCounter = new TimeCounter();
-                                            FakePlayer fakePlayer = new FakePlayer(storage, limit);
-                                            new BukkitRunnable() {
-                                                int x = 0;
-                                                List<Long> list = new ArrayList<>();
-
-                                                @Override
-                                                public void run() {
-                                                    timeCounter.reset();
-                                                    x++;
-                                                    for (int i = 0; i < count; i++) {
-                                                        fakePlayer.randomAction();
-                                                    }
-                                                    long time = timeCounter.getTime();
-                                                    message.sendMsg(sender, "Выполнено за %s мс. цикл:%s", time, x);
-                                                    list.add(time);
-                                                    if (x >= repeat) {
-                                                        long l = 0;
-                                                        for (Long l1 : list) {
-                                                            l += l1;
-                                                        }
-                                                        l /= list.size();
-
-                                                        String s = "сделок в секунду " + count * 20 +
-                                                                " в среднем " + l + " ms. " +
-                                                                "всего было совершено " + count * repeat + " сделок " +
-                                                                "предметов на аукционе " + storage.getSellItemsSize();
-                                                        message.logger(s);
-                                                        message.sendMsg(sender, s);
-                                                        cancel();
+                        .addSubCommand(new Command<CommandSender>("debug")
+                                //<editor-fold desc="debug" defaultstate="collapsed">
+                                .requires(new RequiresPermission<>("bauc.admin.debug"))
+                                .addSubCommand(new Command<CommandSender>("clear")
+                                        .requires(new RequiresPermission<>("bauc.admin.debug.clear"))
+                                        .requires(s -> !(storage instanceof MysqlDb))
+                                        .executor(((sender, args) -> {
+                                            if (!(sender instanceof Player player))
+                                                throw new CommandException(Lang.getMessages("must_be_player"));
+                                            CallBack<Optional<ConfirmMenu.Result>> callBack = (res) -> {
+                                                if (res.isPresent()) {
+                                                    if (res.get() == ConfirmMenu.Result.ACCEPT) {
+                                                        storage.clear();
+                                                        message.sendMsg(player, Lang.getMessages("auc-cleared"));
                                                     }
                                                 }
-                                            }.runTaskTimerAsynchronously(instance, 0, cd);
+                                                player.closeInventory();
+                                            };
+                                            ItemStack itemStack = new ItemStack(Material.JIGSAW);
+                                            ItemMeta im = itemStack.getItemMeta();
+                                            im.setDisplayName(message.messageBuilder(Lang.getMessages("auc-clear-confirm")));
+                                            itemStack.setItemMeta(im);
+                                            ConfirmMenu menu = new ConfirmMenu(callBack, itemStack, player);
+                                            menu.open();
+                                        }))
+                                )
+                                .addSubCommand(new Command<CommandSender>("stress")
+                                                .requires(new RequiresPermission<>("bauc.admin.debug.stress"))
+                                                .argument(new ArgumentIntegerAllowedMatch<>("count", List.of("[count]")))
+                                                .argument(new ArgumentIntegerAllowedMatch<>("repeat", List.of("[repeat]")))
+                                                .argument(new ArgumentIntegerAllowedMatch<>("cd", List.of("[cd]")))
+                                                .argument(new ArgumentIntegerAllowedMatch<>("limit", List.of("[limit]")))
+                                                .executor((sender, args) -> {
+                                                    int count = (int) args.getOrDefault("count", 1);
+                                                    int repeat = (int) args.getOrDefault("repeat", 1);
+                                                    int cd = (int) args.getOrDefault("cd", 1);
+                                                    int limit = (int) args.getOrDefault("limit", Integer.MAX_VALUE);
+                                                    TimeCounter timeCounter = new TimeCounter();
+                                                    FakePlayer fakePlayer = new FakePlayer(storage, limit);
+                                                    new BukkitRunnable() {
+                                                        int x = 0;
+                                                        List<Long> list = new ArrayList<>();
 
-                                        })
+                                                        @Override
+                                                        public void run() {
+                                                            timeCounter.reset();
+                                                            x++;
+                                                            for (int i = 0; i < count; i++) {
+                                                                fakePlayer.randomAction();
+                                                            }
+                                                            long time = timeCounter.getTime();
+                                                            message.sendMsg(sender, "Completed in %s ms. %s", time, x);
+                                                            list.add(time);
+                                                            if (x >= repeat) {
+                                                                long l = 0;
+                                                                for (Long l1 : list) {
+                                                                    l += l1;
+                                                                }
+                                                                l /= list.size();
+
+                                                                String s = String.format("Deals per second: %s. Average duration: %s ms. Total deals made: %s. Items on auction: %s.",
+                                                                        count * (20 / cd),
+                                                                        l,
+                                                                        count * repeat,
+                                                                        storage.getSellItemsSize()
+                                                                );
+                                                                message.logger(s);
+                                                                message.sendMsg(sender, s);
+                                                                cancel();
+                                                            }
+                                                        }
+                                                    }.runTaskTimerAsynchronously(instance, 0, cd);
+                                                })
+                                )
                                 //</editor-fold>
                         )
+
                         .addSubCommand(new Command<CommandSender>("addTag")
                                         //<editor-fold desc="addTag" defaultstate="collapsed">
                                         .requires(new RequiresPermission<>("bauc.admin.addTag"))
@@ -527,6 +532,7 @@ public final class Main extends JavaPlugin {
                         //</editor-fold>
                 )
                 .addSubCommand(new Command<CommandSender>("view")
+                        //<editor-fold desc="view" defaultstate="collapsed">
                         .requires(new RequiresPermission<>("bauc.view"))
                         .argument(new ArgumentString<>("player", () -> List.of(Bukkit.getOnlinePlayers().stream().map(Player::getName).toArray(String[]::new))))
                         .executor(((sender, args) -> {
@@ -535,7 +541,7 @@ public final class Main extends JavaPlugin {
 
                             String player = (String) args.get("player");
                             if (player == null) {
-                                message.sendMsg(sender, "&cВы должны указать игрока!");
+                                message.sendMsg(sender, Lang.getMessages("player-not-selected"));
                                 return;
                             }
                             UUID uuid;
@@ -550,13 +556,14 @@ public final class Main extends JavaPlugin {
                                 }
                             }
                             if (!storage.hasUser(uuid)) {
-                                message.sendMsg(sender, "&cИгрок не найден!");
+                                message.sendMsg(sender, Lang.getMessages("player-not-found"));
                                 return;
                             }
                             User user = storage.getUserOrCreate(senderP);
                             PlayerItemsView menu = new PlayerItemsView(user, senderP, uuid, player);
                             menu.open();
                         }))
+                        //</editor-fold>
                 )
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))

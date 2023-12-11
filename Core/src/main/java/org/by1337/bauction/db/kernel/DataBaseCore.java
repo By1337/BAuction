@@ -80,11 +80,6 @@ public abstract class DataBaseCore {
             throw new IllegalStateException("item already exist");
         }
         sellItemsMap.put(sellItem.uniqueName, sellItem);
-//        int insertIndex = Collections.binarySearch(sortedSellItems, sellItem, sellItemComparator);
-//        if (insertIndex < 0) {
-//            insertIndex = -insertIndex - 1;
-//        }
-//        sortedSellItems.add(insertIndex, sellItem);
         sortedSellItems.add(sellItem);
 
         Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, sellItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
@@ -111,7 +106,6 @@ public abstract class DataBaseCore {
         pair.getLeft().remove(sellItem);
         itemsByOwner.put(sellItem.sellerUuid, pair);
         removeIf(sellItem);
-        // removeIf(i -> i.getUniqueName().equals(sellItem.getUniqueName()));
     }
 
     protected void addUnsoldItem0(CUnsoldItem unsoldItem) {

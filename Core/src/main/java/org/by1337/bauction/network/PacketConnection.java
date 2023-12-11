@@ -21,7 +21,8 @@ public class PacketConnection implements Listener, PluginMessageListener {
     private final PacketListener listener;
     private final Plugin plugin;
     private final Message message;
-    private final String channelName = "bauction:main";
+    private final String channelName = "BungeeCord";
+    private final String subChannelName = "bauction:main";
     private boolean hasConnection;
 
     public PacketConnection(PacketListener listener) {
@@ -62,7 +63,7 @@ public class PacketConnection implements Listener, PluginMessageListener {
                      DataOutputStream out = new DataOutputStream(byteBuff)) {
                     out.writeUTF("Forward");
                     out.writeUTF("ALL");
-                    out.writeUTF(channelName);
+                    out.writeUTF(subChannelName);
                     out.writeShort(arr.length);
                     out.write(arr);
                     out.flush();
@@ -83,6 +84,7 @@ public class PacketConnection implements Listener, PluginMessageListener {
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
         try (DataInputStream in1 = new DataInputStream(new ByteArrayInputStream(message))) {
             String subChannel = in1.readUTF();
+            if (!subChannel.equals(subChannelName)) return;
             short len = in1.readShort();
             byte[] msgbytes = new byte[len];
             in1.readFully(msgbytes);

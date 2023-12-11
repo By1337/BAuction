@@ -164,10 +164,18 @@ public class FileDataBase extends DataBaseCore implements Listener {
             throw new IllegalStateException("user non-exist: " + event.getUser());
         }
         if (!hasSellItem(event.getSellItem().getUniqueName())) {
-            throw new IllegalStateException("sell item non-exist: " + event.getSellItem());
+            event.setValid(false);
+            event.setReason(Lang.getMessages("item_already_sold_or_removed"));
+            return;
         }
         User user = getUser(event.getUser().getUuid());
         SellItem sellItem = getSellItem(event.getSellItem().getUniqueName());
+
+        if (!user.getUuid().equals(sellItem.getSellerUuid())) {
+            event.setValid(false);
+            event.setReason(Lang.getMessages("not_item_owner"));
+            return;
+        }
 
         TakeItemProcess event1 = new TakeItemProcess(!SyncDetectorManager.isSync(), user, sellItem);
         Bukkit.getPluginManager().callEvent(event1);
@@ -177,18 +185,6 @@ public class FileDataBase extends DataBaseCore implements Listener {
             event.setReason(event1.getReason());
             return;
         }
-
-        if (!user.getUuid().equals(sellItem.getSellerUuid())) {
-            event.setValid(false);
-            event.setReason(Lang.getMessages("not_item_owner"));
-            return;
-        }
-        if (!hasSellItem(sellItem.getUniqueName())) {
-            event.setValid(false);
-            event.setReason(Lang.getMessages("item_already_sold_or_removed"));
-            return;
-        }
-
         try {
             removeSellItem(sellItem.getUniqueName());
             Bukkit.getPluginManager().callEvent(new org.by1337.bauction.event.TakeItemEvent(!SyncDetectorManager.isSync(), user, sellItem));

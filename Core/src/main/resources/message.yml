@@ -27,6 +27,10 @@ messages:
   insufficient_balance_for_purchase: "&cУ Вас не хватает баланса для покупки хотя бы одного предмета!"
   item_no_longer_exists: "&cКажется этого предмета больше не существует"
   has_no_external_time: 'нету'
+  player-not-found: '&cИгрок не найден!'
+  player-not-selected: '&cВы должны указать игрока!'
+  auc-clear-confirm: '&cВы уверены что хотите очистить аукцион?'
+  auc-cleared: '&aАукцион очищен!'
 time-format:
   ago: 'назад'
   in: 'через'

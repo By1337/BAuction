@@ -229,13 +229,13 @@ CREATE TABLE IF NOT EXISTS logs (
         CUser owner = (CUser) getUser(user1);
 
         if (buyer != null){
-            execute(buyer.toSql("users"));
+            execute(buyer.toSqlUpdate("users"));
             log(new Action(ActionType.UPDATE_USER, buyer.getUuid(), null, server));
             packetConnection.saveSend(new PlayOutUpdateUserPacket(buyer));
         }
 
         if (owner != null){
-            execute(owner.toSql("users"));
+            execute(owner.toSqlUpdate("users"));
             log(new Action(ActionType.UPDATE_USER, owner.getUuid(), null, server));
             packetConnection.saveSend(new PlayOutUpdateUserPacket(owner));
         }
