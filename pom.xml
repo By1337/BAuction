@@ -17,6 +17,7 @@
         <module>V1_20_1</module>
         <module>V1_20_2</module>
         <module>V1_20_3</module>
+        <module>V1_20_4</module>
     </modules>
     <build>
         <defaultGoal>clean install</defaultGoal>

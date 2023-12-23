@@ -15,8 +15,7 @@ import org.by1337.bauction.auc.SellItem;
 import org.by1337.bauction.auc.UnsoldItem;
 import org.by1337.bauction.auc.User;
 import org.by1337.bauction.db.event.*;
-import org.by1337.bauction.event.SellItemProcess;
-import org.by1337.bauction.event.TakeItemProcess;
+import org.by1337.bauction.event.*;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.serialize.FileUtil;
 import org.by1337.bauction.util.*;
@@ -150,7 +149,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             }
             addSellItem(sellItem);
             event.setValid(true);
-            Bukkit.getPluginManager().callEvent(new org.by1337.bauction.event.SellItemEvent(!SyncDetectorManager.isSync(), user, sellItem));
+            Bukkit.getPluginManager().callEvent(new EventSellItem(!SyncDetectorManager.isSync(), user, sellItem));
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
@@ -187,7 +186,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
         }
         try {
             removeSellItem(sellItem.getUniqueName());
-            Bukkit.getPluginManager().callEvent(new org.by1337.bauction.event.TakeItemEvent(!SyncDetectorManager.isSync(), user, sellItem));
+            Bukkit.getPluginManager().callEvent(new EventTakeItem(!SyncDetectorManager.isSync(), user, sellItem));
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
@@ -209,6 +208,15 @@ public class FileDataBase extends DataBaseCore implements Listener {
             User user = getUser(event.getUser().getUuid());
             UnsoldItem unsoldItem = getUnsoldItem(event.getUnsoldItem().getUniqueName());
 
+            TakeUnsoldItemProcess event1 = new TakeUnsoldItemProcess(!SyncDetectorManager.isSync(), user, unsoldItem);
+            Bukkit.getPluginManager().callEvent(event1);
+
+            if (event1.isCancelled()) {
+                event.setValid(false);
+                event.setReason(event1.getReason());
+                return;
+            }
+
             if (!user.getUuid().equals(unsoldItem.getSellerUuid())) {
                 event.setValid(false);
                 event.setReason(Lang.getMessages("not_item_owner"));
@@ -220,8 +228,8 @@ public class FileDataBase extends DataBaseCore implements Listener {
             }
 
             removeUnsoldItem(unsoldItem.getUniqueName());
-
             event.setValid(true);
+            Bukkit.getPluginManager().callEvent(new EventTakeUnsoldItem(!SyncDetectorManager.isSync(), user, unsoldItem));
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
@@ -250,6 +258,14 @@ public class FileDataBase extends DataBaseCore implements Listener {
             event.setReason(Lang.getMessages("item_owner"));
             return;
         }
+        BuyItemProcess event1 = new BuyItemProcess(!SyncDetectorManager.isSync(), user, sellItem);
+        Bukkit.getPluginManager().callEvent(event1);
+
+        if (event1.isCancelled()) {
+            event.setValid(false);
+            event.setReason(event1.getReason());
+            return;
+        }
         try {
             removeSellItem(sellItem.getUniqueName());
             if (hasUser(sellItem.getSellerUuid())) {
@@ -259,6 +275,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             }
             user.dealCount++;
             user.dealSum += sellItem.getPrice();
+            Bukkit.getPluginManager().callEvent(new EventBuyItem(!SyncDetectorManager.isSync(), user, sellItem));
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
@@ -295,6 +312,14 @@ public class FileDataBase extends DataBaseCore implements Listener {
                 event.setReason(Lang.getMessages("quantity_limit_exceeded"));
                 return;
             }
+            BuyItemCountProcess event1 = new BuyItemCountProcess(!SyncDetectorManager.isSync(), buyer, sellItem, event.getCount());
+            Bukkit.getPluginManager().callEvent(event1);
+            if (event1.isCancelled()) {
+                event.setValid(false);
+                event.setReason(event1.getReason());
+                return;
+            }
+
             removeSellItem(sellItem.getUniqueName());
             buyer.dealCount++;
             buyer.dealSum += updated.priceForOne * event.getCount();
@@ -325,7 +350,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
 
                 addSellItem(newItem);
             }
-
+            Bukkit.getPluginManager().callEvent(new EventBuyItemCount(!SyncDetectorManager.isSync(), buyer, sellItem, event.getCount()));
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);

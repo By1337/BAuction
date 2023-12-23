@@ -8,7 +8,7 @@
     <artifactId>BAuction</artifactId>
     <!--  for release MAJOR.MINOR.PATCH -->
     <!--  for beta MAJOR.MINOR.PATCH-<alpha/beta/stable/pre-release>-->
-    <version>1.0.7-beta</version>
+    <version>1.0.8</version>
     <packaging>jar</packaging>
 
     <name>Core</name>
@@ -98,7 +98,7 @@
             <artifactId>Api</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>${basedir}/lib/Api-1.0.jar</systemPath>
+            <systemPath>${basedir}/lib/BLib-Api-1.0.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.by1337</groupId>

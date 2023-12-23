@@ -120,7 +120,7 @@ public class DBUpdate107 {
     }
     // в 1.16.5 отсутствует метод JsonArray#asList
     private List<JsonElement> toList(JsonArray array){
-        List<JsonElement> list = new ArrayList<>();
+        List<JsonElement> list = new ArrayList<>(array.size());
         for (JsonElement jsonElement : array) {
             list.add(jsonElement);
         }

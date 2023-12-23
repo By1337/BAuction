@@ -14,8 +14,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.java.JavaPluginLoader;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.by1337.api.BLib;
 import org.by1337.api.chat.util.Message;
@@ -29,6 +31,7 @@ import org.by1337.api.configuration.adapter.impl.primitive.AdapterEnum;
 import org.by1337.api.util.NameKey;
 import org.by1337.bauction.auc.User;
 import org.by1337.bauction.boost.Boost;
+import org.by1337.bauction.command.argument.ArgumentFullOrCount;
 import org.by1337.bauction.config.Config;
 import org.by1337.bauction.config.adapter.*;
 import org.by1337.bauction.datafix.UpdateManager;
@@ -53,8 +56,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.logging.Level;
 
 public final class Main extends JavaPlugin {
     private static Message message;
@@ -69,7 +74,6 @@ public final class Main extends JavaPlugin {
     private static UniqueNameGenerator uniqueNameGenerator;
     private static YamlConfig dbCfg;
     private boolean loaded;
-    public boolean isHead;
 
     @Override
     public void onLoad() {
@@ -103,9 +107,7 @@ public final class Main extends JavaPlugin {
         TagUtil.loadAliases(this);
         placeholderHook = new PlaceholderHook();
         placeholderHook.register();
-
         loadDb();
-
     }
 
     private void loadDb() {
@@ -165,7 +167,6 @@ public final class Main extends JavaPlugin {
             message.error("failed to save db", e);
         }
         AdapterRegistry.unregisterPrimitiveAdapter(Sorting.SortingType.class);
-        AdapterRegistry.unregisterPrimitiveAdapter(ItemFlag.class);
         AdapterRegistry.unregisterPrimitiveAdapter(InventoryType.class);
         AdapterRegistry.unregisterAdapter(Sorting.class);
         AdapterRegistry.unregisterAdapter(Category.class);
@@ -178,7 +179,6 @@ public final class Main extends JavaPlugin {
 
     private void registerAdapters() {
         AdapterRegistry.registerPrimitiveAdapter(Sorting.SortingType.class, new AdapterEnum<>(Sorting.SortingType.class));
-        AdapterRegistry.registerPrimitiveAdapter(ItemFlag.class, new AdapterEnum<>(ItemFlag.class));
         AdapterRegistry.registerPrimitiveAdapter(InventoryType.class, new AdapterEnum<>(InventoryType.class));
         AdapterRegistry.registerAdapter(Sorting.class, new AdapterSortingType());
         AdapterRegistry.registerAdapter(Category.class, new AdapterCategory());
@@ -255,32 +255,32 @@ public final class Main extends JavaPlugin {
                 .addSubCommand(new Command<CommandSender>("admin")
                         .requires(new RequiresPermission<>("bauc.admin"))
                         .addSubCommand(new Command<CommandSender>("debug")
-                                //<editor-fold desc="debug" defaultstate="collapsed">
-                                .requires(new RequiresPermission<>("bauc.admin.debug"))
-                                .addSubCommand(new Command<CommandSender>("clear")
-                                        .requires(new RequiresPermission<>("bauc.admin.debug.clear"))
-                                        .requires(s -> !(storage instanceof MysqlDb))
-                                        .executor(((sender, args) -> {
-                                            if (!(sender instanceof Player player))
-                                                throw new CommandException(Lang.getMessages("must_be_player"));
-                                            CallBack<Optional<ConfirmMenu.Result>> callBack = (res) -> {
-                                                if (res.isPresent()) {
-                                                    if (res.get() == ConfirmMenu.Result.ACCEPT) {
-                                                        storage.clear();
-                                                        message.sendMsg(player, Lang.getMessages("auc-cleared"));
-                                                    }
-                                                }
-                                                player.closeInventory();
-                                            };
-                                            ItemStack itemStack = new ItemStack(Material.JIGSAW);
-                                            ItemMeta im = itemStack.getItemMeta();
-                                            im.setDisplayName(message.messageBuilder(Lang.getMessages("auc-clear-confirm")));
-                                            itemStack.setItemMeta(im);
-                                            ConfirmMenu menu = new ConfirmMenu(callBack, itemStack, player);
-                                            menu.open();
-                                        }))
-                                )
-                                .addSubCommand(new Command<CommandSender>("stress")
+                                        //<editor-fold desc="debug" defaultstate="collapsed">
+                                        .requires(new RequiresPermission<>("bauc.admin.debug"))
+                                        .addSubCommand(new Command<CommandSender>("clear")
+                                                .requires(new RequiresPermission<>("bauc.admin.debug.clear"))
+                                                .requires(s -> !(storage instanceof MysqlDb))
+                                                .executor(((sender, args) -> {
+                                                    if (!(sender instanceof Player player))
+                                                        throw new CommandException(Lang.getMessages("must_be_player"));
+                                                    CallBack<Optional<ConfirmMenu.Result>> callBack = (res) -> {
+                                                        if (res.isPresent()) {
+                                                            if (res.get() == ConfirmMenu.Result.ACCEPT) {
+                                                                storage.clear();
+                                                                message.sendMsg(player, Lang.getMessages("auc-cleared"));
+                                                            }
+                                                        }
+                                                        player.closeInventory();
+                                                    };
+                                                    ItemStack itemStack = new ItemStack(Material.JIGSAW);
+                                                    ItemMeta im = itemStack.getItemMeta();
+                                                    im.setDisplayName(message.messageBuilder(Lang.getMessages("auc-clear-confirm")));
+                                                    itemStack.setItemMeta(im);
+                                                    ConfirmMenu menu = new ConfirmMenu(callBack, itemStack, player);
+                                                    menu.open();
+                                                }))
+                                        )
+                                        .addSubCommand(new Command<CommandSender>("stress")
                                                 .requires(new RequiresPermission<>("bauc.admin.debug.stress"))
                                                 .argument(new ArgumentIntegerAllowedMatch<>("count", List.of("[count]")))
                                                 .argument(new ArgumentIntegerAllowedMatch<>("repeat", List.of("[repeat]")))
@@ -327,7 +327,7 @@ public final class Main extends JavaPlugin {
                                                         }
                                                     }.runTaskTimerAsynchronously(instance, 0, cd);
                                                 })
-                                )
+                                        )
                                 //</editor-fold>
                         )
 
@@ -377,7 +377,7 @@ public final class Main extends JavaPlugin {
 
                                             if (index == -1) {
                                                 message.sendMsg(sender, "unknown category %s", categoryS);
-                                                menu.unregister();
+                                                menu.close();
                                                 return;
                                             }
                                             menu.getCategories().current = index;
@@ -458,28 +458,26 @@ public final class Main extends JavaPlugin {
                                         cfg.getConfig().getAsInteger("offer-min-price", 1),
                                         cfg.getConfig().getAsInteger("offer-max-price", Integer.MAX_VALUE)
                                 ))
-                                .argument(new ArgumentSetList<>("full",
-                                                List.of(
-                                                        "full",
-                                                        "full:false"
-                                                ),
-                                                List.of(
-                                                        "full",
-                                                        "full:false"
-                                                )
-                                        )
-                                )
-                                .argument(new ArgumentInteger<>("amount", List.of(Lang.getMessages("quantity_tag")), 1, 64))
+                                .argument(new ArgumentFullOrCount("arg"))
                                 .executor(((sender, args) -> {
                                     if (!(sender instanceof Player player))
                                         throw new CommandException(Lang.getMessages("must_be_player"));
                                     int price = (int) args.getOrThrow("price", Lang.getMessages("price_not_specified"));
 
-                                    String fullS = (String) args.getOrDefault("full", "full:false");
+                                    String saleByThePieceS =  String.valueOf(args.getOrDefault("arg", "full:false"));
 
-                                    boolean full = !(fullS.equals("full"));
+                                    boolean saleByThePiece = !(saleByThePieceS.equals("full"));
 
-                                    int amount = (int) args.getOrDefault("amount", -1);
+
+                                    int amount = -1; //(int) args.getOrDefault("amount", -1);
+                                    if (!saleByThePieceS.startsWith("f")){
+                                        try {
+                                            amount = Integer.parseInt(saleByThePieceS);
+                                        }catch (NumberFormatException e){
+                                            message.sendMsg(sender, "&cУкажите число для продажи определённого количества предметов!");
+                                            return;
+                                        }
+                                    }
 
                                     ItemStack itemStack = player.getInventory().getItemInMainHand().clone();
                                     if (itemStack.getType().isAir()) {
@@ -495,7 +493,7 @@ public final class Main extends JavaPlugin {
                                     }
 
                                     User user = storage.getUserOrCreate(player);
-                                    CSellItem sellItem = new CSellItem(player, itemStack, price, cfg.getDefaultSellTime() + user.getExternalSellTime(), full);
+                                    CSellItem sellItem = new CSellItem(player, itemStack, price, cfg.getDefaultSellTime() + user.getExternalSellTime(), saleByThePiece);
                                     SellItemEvent event = new SellItemEvent(user, sellItem);
                                     storage.validateAndAddItem(event);
                                     if (event.isValid()) {
@@ -532,37 +530,37 @@ public final class Main extends JavaPlugin {
                         //</editor-fold>
                 )
                 .addSubCommand(new Command<CommandSender>("view")
-                        //<editor-fold desc="view" defaultstate="collapsed">
-                        .requires(new RequiresPermission<>("bauc.view"))
-                        .argument(new ArgumentString<>("player", () -> List.of(Bukkit.getOnlinePlayers().stream().map(Player::getName).toArray(String[]::new))))
-                        .executor(((sender, args) -> {
-                            if (!(sender instanceof Player senderP))
-                                throw new CommandException(Lang.getMessages("must_be_player"));
+                                //<editor-fold desc="view" defaultstate="collapsed">
+                                .requires(new RequiresPermission<>("bauc.view"))
+                                .argument(new ArgumentString<>("player", () -> List.of(Bukkit.getOnlinePlayers().stream().map(Player::getName).toArray(String[]::new))))
+                                .executor(((sender, args) -> {
+                                    if (!(sender instanceof Player senderP))
+                                        throw new CommandException(Lang.getMessages("must_be_player"));
 
-                            String player = (String) args.get("player");
-                            if (player == null) {
-                                message.sendMsg(sender, Lang.getMessages("player-not-selected"));
-                                return;
-                            }
-                            UUID uuid;
-                            if (UUIDUtils.isUUID(player)) {
-                                uuid = UUID.fromString(player);
-                            } else {
-                                Player p = Bukkit.getPlayer(player);
-                                if (p != null) {
-                                    uuid = p.getUniqueId();
-                                } else {
-                                    uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + player).getBytes(Charsets.UTF_8));
-                                }
-                            }
-                            if (!storage.hasUser(uuid)) {
-                                message.sendMsg(sender, Lang.getMessages("player-not-found"));
-                                return;
-                            }
-                            User user = storage.getUserOrCreate(senderP);
-                            PlayerItemsView menu = new PlayerItemsView(user, senderP, uuid, player);
-                            menu.open();
-                        }))
+                                    String player = (String) args.get("player");
+                                    if (player == null) {
+                                        message.sendMsg(sender, Lang.getMessages("player-not-selected"));
+                                        return;
+                                    }
+                                    UUID uuid;
+                                    if (UUIDUtils.isUUID(player)) {
+                                        uuid = UUID.fromString(player);
+                                    } else {
+                                        Player p = Bukkit.getPlayer(player);
+                                        if (p != null) {
+                                            uuid = p.getUniqueId();
+                                        } else {
+                                            uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + player).getBytes(Charsets.UTF_8));
+                                        }
+                                    }
+                                    if (!storage.hasUser(uuid)) {
+                                        message.sendMsg(sender, Lang.getMessages("player-not-found"));
+                                        return;
+                                    }
+                                    User user = storage.getUserOrCreate(senderP);
+                                    PlayerItemsView menu = new PlayerItemsView(user, senderP, uuid, player);
+                                    menu.open();
+                                }))
                         //</editor-fold>
                 )
                 .executor(((sender, args) -> {

@@ -6,14 +6,16 @@ import org.bukkit.plugin.Plugin;
 import org.by1337.api.configuration.YamlContext;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.datafix.config.Messages107;
+import org.by1337.bauction.datafix.config.Messages108;
 import org.by1337.bauction.datafix.config.TagUtil107;
 import org.by1337.bauction.datafix.db.DBUpdate107;
+import org.by1337.bauction.datafix.db.DBUpdate108;
 
 import java.io.File;
 import java.io.IOException;
 
 public class UpdateManager {
-    private final static int CURRENT_VERSION = 3;
+    private final static int CURRENT_VERSION = 4;
 
     public static void checkUpdate() {
         Plugin plugin = Main.getInstance();
@@ -34,7 +36,7 @@ public class UpdateManager {
 
         try {
             run(version, config);
-        }catch (Exception e) {
+        } catch (Exception e) {
             Main.getMessage().error(e);
         }
         config.set("version", CURRENT_VERSION);
@@ -44,6 +46,7 @@ public class UpdateManager {
             Main.getMessage().error(e);
         }
     }
+
     private static void run(int version, YamlContext config) throws Exception {
         if (version == 0) {
             Main.getMessage().error("It is impossible to update files with such an old version!");
@@ -54,10 +57,16 @@ public class UpdateManager {
             config.set("offer-max-price", 100000000);
             version++;
             run(version, config);
-        } else if (version == 2){
+        } else if (version == 2) {
             new DBUpdate107().update();
             new Messages107().update();
             new TagUtil107().update();
+            version++;
+            run(version, config);
+        } else if (version == 3) {
+            new DBUpdate108().update();
+            new Messages108().update();
+            config.set("allow-buy-count", true);
             version++;
             run(version, config);
         }

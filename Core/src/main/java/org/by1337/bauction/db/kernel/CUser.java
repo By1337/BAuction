@@ -2,6 +2,7 @@ package org.by1337.bauction.db.kernel;
 
 import org.by1337.bauction.Main;
 import org.by1337.bauction.auc.User;
+import org.by1337.bauction.serialize.SerializeUtils;
 import org.by1337.bauction.util.CUniqueName;
 import org.by1337.bauction.util.UniqueName;
 import org.jetbrains.annotations.NotNull;
@@ -95,7 +96,7 @@ public class CUser implements User {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
              DataOutputStream data = new DataOutputStream(out)) {
             data.writeUTF(nickName);
-            data.writeUTF(uuid.toString());
+            SerializeUtils.writeUUID(uuid, data);
             data.writeInt(dealCount);
             data.writeDouble(dealSum);
             data.flush();
@@ -106,7 +107,7 @@ public class CUser implements User {
     public static CUser fromBytes(byte[] arr) throws IOException {
         try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
             String nickName = in.readUTF();
-            UUID uuid = UUID.fromString(in.readUTF());
+            UUID uuid = SerializeUtils.readUUID(in);
             int dealCount = in.readInt();
             double dealSum = in.readDouble();
 

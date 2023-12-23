@@ -41,4 +41,6 @@ Feel free to contribute to the development of BAuction by submitting issues or p
 ## License
 This project is licensed under the [MIT License](LICENSE).
 
+## bStats
+[![](https://bstats.org/signatures/bukkit/BAuction.svg)](https://bstats.org/plugin/bukkit/BAuction)
 ---

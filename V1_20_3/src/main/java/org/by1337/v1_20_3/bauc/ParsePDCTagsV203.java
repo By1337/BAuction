@@ -1,4 +1,4 @@
-package org.by1337.v1_20_2.bauc;
+package org.by1337.v1_20_3.bauc;
 
 import net.minecraft.nbt.CompoundTag;
 import org.bukkit.craftbukkit.v1_20_R3.persistence.CraftPersistentDataContainer;

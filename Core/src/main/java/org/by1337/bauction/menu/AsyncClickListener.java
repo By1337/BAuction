@@ -17,10 +17,15 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.by1337.api.BLib;
 import org.by1337.bauction.Main;
 
+import java.io.Closeable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+
 /**
  * Abstract class representing an asynchronous click listener for inventories.
  */
-public abstract class AsyncClickListener implements Listener {
+public abstract class AsyncClickListener implements Listener, Closeable {
     /**
      * The inventory associated with this click listener.
      */
@@ -33,6 +38,8 @@ public abstract class AsyncClickListener implements Listener {
      * Cooldown time between clicks to prevent rapid clicking.
      */
     private long lastClick = 0;
+
+    private ExecutorService executor;
 
     /**
      * Constructor for the AsyncClickListener.
@@ -49,6 +56,7 @@ public abstract class AsyncClickListener implements Listener {
             inventory = Bukkit.createInventory(null, type, title);
         }
         Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
+        executor = Executors.newSingleThreadExecutor();
     }
 
     /**
@@ -81,7 +89,7 @@ public abstract class AsyncClickListener implements Listener {
     public void onClose0(InventoryCloseEvent e) {
         if (inventory.equals(e.getInventory())) {
             onClose(e);
-            unregister();
+            close();
             new BukkitRunnable() {
                 final Player player = (Player) e.getPlayer();
 
@@ -101,8 +109,10 @@ public abstract class AsyncClickListener implements Listener {
         }
     }
 
-    public void unregister() {
+    @Override
+    public void close() {
         HandlerList.unregisterAll(this);
+        executor.shutdown();
     }
 
     /**
@@ -119,7 +129,7 @@ public abstract class AsyncClickListener implements Listener {
             } else {
                 lastClick = System.currentTimeMillis() + 50;
             }
-            new Thread(() -> onClick(e)).start();
+            executor.execute(() -> onClick(e));
         }
     }
 
@@ -137,7 +147,7 @@ public abstract class AsyncClickListener implements Listener {
             } else {
                 lastClick = System.currentTimeMillis() + 50;
             }
-            new Thread(() -> onClick(e)).start();
+            executor.execute(() -> onClick(e));
         }
     }
 
@@ -146,6 +156,7 @@ public abstract class AsyncClickListener implements Listener {
      */
     protected void reRegister() {
         Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
+        executor = Executors.newSingleThreadExecutor();
     }
 
     /**

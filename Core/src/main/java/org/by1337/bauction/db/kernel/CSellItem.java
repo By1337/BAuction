@@ -223,8 +223,6 @@ public class CSellItem implements SellItem {
             data.writeLong(timeListedForSale);
             data.writeLong(removalDate);
             data.writeUTF(uniqueName.getKey());
-            data.writeInt(uniqueName.getSeed());
-            data.writeLong(uniqueName.getPos());
             data.writeUTF(material.name());
             data.writeInt(amount);
             data.writeDouble(priceForOne);
@@ -245,9 +243,7 @@ public class CSellItem implements SellItem {
             long timeListedForSale = in.readLong();
             long removalDate = in.readLong();
             UniqueName uniqueName = new CUniqueName(
-                    in.readUTF(),
-                    in.readInt(), // seed
-                    in.readLong() // pos
+                    in.readUTF()
             );
             Material material = Material.valueOf(in.readUTF());
             int amount = in.readInt();

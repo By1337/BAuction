@@ -74,8 +74,6 @@ public class CUniqueName implements UniqueName {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
              DataOutputStream data = new DataOutputStream(out)) {
             data.writeUTF(getKey());
-            data.writeInt(getSeed());
-            data.writeLong(getPos());
             data.flush();
             return out.toByteArray();
         }
@@ -84,9 +82,7 @@ public class CUniqueName implements UniqueName {
     public static UniqueName fromBytes(byte[] arr) throws IOException {
         try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
             return new CUniqueName(
-                    in.readUTF(),
-                    in.readInt(), // seed
-                    in.readLong() // pos
+                    in.readUTF()
             );
         }
     }

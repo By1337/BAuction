@@ -7,11 +7,11 @@ import org.by1337.bauction.auc.User;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This event is triggered when a player successfully removes an item from sale.
+ * This event is triggered when a player successfully lists an item for sale.
  *
  * <p>This event may be asynchronous.</p>
  */
-public class TakeItemEvent extends Event {
+public class EventSellItem extends Event {
     private static final HandlerList handlers = new HandlerList();
 
     @NotNull
@@ -20,24 +20,24 @@ public class TakeItemEvent extends Event {
     private final SellItem sellItem;
 
     /**
-     * Constructs a SellItemEvent with the specified user and item that has been successfully listed for sale.
+     * Constructs a EventSellItem with the specified user and item that has been successfully listed for sale.
      *
      * @param user     The player who successfully listed the item for sale.
      * @param sellItem The item that has been successfully listed for sale.
      */
-    public TakeItemEvent(@NotNull User user, @NotNull SellItem sellItem) {
+    public EventSellItem(@NotNull User user, @NotNull SellItem sellItem) {
         this.user = user;
         this.sellItem = sellItem;
     }
 
     /**
-     * Constructs a SellItemEvent with the specified user, item, and asynchronous flag.
+     * Constructs a EventSellItem with the specified user, item, and asynchronous flag.
      *
      * @param isAsync  – true indicates the event will fire asynchronously
      * @param user     The player who successfully listed the item for sale.
      * @param sellItem The item that has been successfully listed for sale.
      */
-    public TakeItemEvent(boolean isAsync, @NotNull User user, @NotNull SellItem sellItem) {
+    public EventSellItem(boolean isAsync, @NotNull User user, @NotNull SellItem sellItem) {
         super(isAsync);
         this.user = user;
         this.sellItem = sellItem;
@@ -84,3 +84,4 @@ public class TakeItemEvent extends Event {
         return handlers;
     }
 }
+

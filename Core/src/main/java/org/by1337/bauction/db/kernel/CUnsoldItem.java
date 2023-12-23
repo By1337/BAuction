@@ -91,8 +91,6 @@ public class CUnsoldItem implements UnsoldItem {
             data.writeLong(expired);
             data.writeUTF(sellerUuid.toString());
             data.writeUTF(uniqueName.getKey());
-            data.writeInt(uniqueName.getSeed());
-            data.writeLong(uniqueName.getPos());
             data.writeLong(deleteVia);
             data.flush();
             return out.toByteArray();
@@ -106,9 +104,7 @@ public class CUnsoldItem implements UnsoldItem {
             long expired = in.readLong();
             UUID sellerUuid = UUID.fromString(in.readUTF());
             UniqueName uniqueName = new CUniqueName(
-                    in.readUTF(),
-                    in.readInt(), // seed
-                    in.readLong() // pos
+                    in.readUTF()
             );
             long deleteVia = in.readLong();
 
