@@ -32,6 +32,8 @@ messages:
   auc-clear-confirm: '&cВы уверены что хотите очистить аукцион?'
   auc-cleared: '&aАукцион очищен!'
   count-req: '&cУкажите число для продажи определённого количества предметов!'
+  sale-by-the-piece-format-off: 'отключена'
+  sale-by-the-piece-format-on: 'включена'
 time-format:
   ago: 'назад'
   in: 'через'

@@ -89,32 +89,6 @@ public class CustomItemStack implements Comparable<CustomItemStack>, Placeholder
                 itemStack = new ItemStack(Material.valueOf(holder1.replace(tmpMaterial)));
             }
         } else {
-/*            if (clone != null) {
-                if (clone.startsWith("sellitem-")) {
-                    UniqueName id = new CUniqueName(clone.replace("sellitem-", ""));
-                    SellItem sellItem = Main.getStorage().getSellItem(id);
-                    if (sellItem == null) {
-                        Main.getMessage().error("unknown sell item %s", id.getKey());
-                        itemStack = new ItemStack(Material.JIGSAW);
-                    } else {
-                        itemStack = sellItem.getItemStack();
-                        holder1 = s -> replace(holder.replace(sellItem.replace(s)));
-                    }
-                } else if (clone.startsWith("unsolditem-")) {
-                    UniqueName id = new CUniqueName(clone.replace("unsolditem-", ""));
-                    UnsoldItem unsoldItem = Main.getStorage().getUnsoldItem(id);
-                    if (unsoldItem == null) {
-                        Main.getMessage().error("unknown unsold item %s", id.getKey());
-                        itemStack = new ItemStack(Material.JIGSAW);
-                    } else {
-                        itemStack = unsoldItem.getItemStack();
-                        holder1 = s -> replace(holder.replace(unsoldItem.replace(s)));
-                    }
-                }else {
-                    Main.getMessage().error("unknown item %s", clone);
-                    itemStack = new ItemStack(Material.JIGSAW);
-                }
-            } else */
                 itemStack = this.itemStack.clone();
         }
 

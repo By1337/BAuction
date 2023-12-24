@@ -8,6 +8,7 @@ import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
 import org.by1337.api.command.argument.ArgumentInteger;
 import org.by1337.api.command.argument.ArgumentStrings;
+import org.by1337.api.util.Pair;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.auc.SellItem;
 import org.by1337.bauction.auc.User;
@@ -16,7 +17,6 @@ import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.command.DefaultMenuCommand;
 import org.by1337.bauction.util.NumberUtil;
-import org.by1337.bauction.util.Pair;
 
 import java.util.Optional;
 

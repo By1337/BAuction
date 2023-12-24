@@ -17,7 +17,7 @@ import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.command.DefaultMenuCommand;
 import org.by1337.bauction.util.CUniqueName;
-import org.by1337.bauction.util.Pair;
+import org.by1337.api.util.Pair;
 import org.by1337.bauction.util.UniqueName;
 
 import javax.annotation.Nullable;

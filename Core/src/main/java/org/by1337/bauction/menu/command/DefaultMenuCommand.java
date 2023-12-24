@@ -20,7 +20,7 @@ import org.by1337.bauction.menu.impl.ItemsForSaleMenu;
 import org.by1337.bauction.menu.impl.MainMenu;
 import org.by1337.bauction.menu.impl.UnsoldItemsMenu;
 import org.by1337.bauction.util.CUniqueName;
-import org.by1337.bauction.util.Pair;
+import org.by1337.api.util.Pair;
 import org.by1337.bauction.util.UniqueName;
 
 import java.util.List;

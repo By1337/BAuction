@@ -360,7 +360,9 @@ public class CSellItem implements SellItem {
                 continue;
             }
             if (sb.indexOf("{sale_by_the_piece_format}") != -1) {
-                sb.replace(sb.indexOf("{sale_by_the_piece_format}"), sb.indexOf("{sale_by_the_piece_format}") + "{sale_by_the_piece_format}".length(), saleByThePiece ? "включена" : "отключена");
+                sb.replace(sb.indexOf("{sale_by_the_piece_format}"), sb.indexOf("{sale_by_the_piece_format}") + "{sale_by_the_piece_format}".length(), saleByThePiece ?
+                        Lang.getMessages("sale-by-the-piece-format-on") : Lang.getMessages("sale-by-the-piece-format-off")
+                );
                 continue;
             }
             if (sb.indexOf("{expires}") != -1) {
