@@ -5,6 +5,7 @@ import org.by1337.api.BLib;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.auc.UnsoldItem;
 import org.by1337.bauction.lang.Lang;
+import org.by1337.bauction.serialize.SerializeUtils;
 import org.by1337.bauction.util.CUniqueName;
 import org.by1337.bauction.util.UniqueName;
 import org.jetbrains.annotations.NotNull;
@@ -89,7 +90,7 @@ public class CUnsoldItem implements UnsoldItem {
              DataOutputStream data = new DataOutputStream(out)) {
             data.writeUTF(item);
             data.writeLong(expired);
-            data.writeUTF(sellerUuid.toString());
+            SerializeUtils.writeUUID(sellerUuid, data);
             data.writeUTF(uniqueName.getKey());
             data.writeLong(deleteVia);
             data.flush();
@@ -102,7 +103,7 @@ public class CUnsoldItem implements UnsoldItem {
 
             String item = in.readUTF();
             long expired = in.readLong();
-            UUID sellerUuid = UUID.fromString(in.readUTF());
+            UUID sellerUuid = SerializeUtils.readUUID(in);
             UniqueName uniqueName = new CUniqueName(
                     in.readUTF()
             );

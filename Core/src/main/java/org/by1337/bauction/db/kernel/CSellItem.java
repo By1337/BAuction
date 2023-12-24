@@ -216,7 +216,7 @@ public class CSellItem implements SellItem {
              DataOutputStream data = new DataOutputStream(out)) {
             data.writeUTF(item);
             data.writeUTF(sellerName);
-            data.writeUTF(sellerUuid.toString());
+            SerializeUtils.writeUUID(sellerUuid, data);
             data.writeDouble(price);
             data.writeBoolean(saleByThePiece);
             SerializeUtils.writeCollectionToStream(data, tags);
@@ -236,7 +236,7 @@ public class CSellItem implements SellItem {
         try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
             String item = in.readUTF();
             String sellerName = in.readUTF();
-            UUID sellerUuid = UUID.fromString(in.readUTF());
+            UUID sellerUuid = SerializeUtils.readUUID(in);
             double price = in.readDouble();
             boolean saleByThePiece = in.readBoolean();
             Set<String> tags = new HashSet<>(SerializeUtils.readCollectionFromStream(in));
