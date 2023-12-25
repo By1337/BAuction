@@ -9,9 +9,17 @@ import java.util.Map;
 
 public class TimeUtil {
 
-    private final Map<String, String> map;
+    private Map<String, String> map;
 
     public TimeUtil() {
+        load();
+    }
+
+    public void reload() {
+        load();
+    }
+
+    public void load() {
         map = new HashMap<>();
         YamlContext context = Main.getCfg().getMessage();
 
@@ -26,6 +34,7 @@ public class TimeUtil {
             }
         }
     }
+
     public String getFormat(long time) {
         return getFormat(time, true);
     }

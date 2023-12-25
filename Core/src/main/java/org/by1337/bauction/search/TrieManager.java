@@ -8,9 +8,18 @@ import java.io.File;
 import java.util.Map;
 
 public class TrieManager {
-    private Trie trie = new Trie();
+    private Trie trie;
 
     public TrieManager(Plugin plugin) {
+        load(plugin);
+    }
+
+    public void reload(Plugin plugin){
+        load(plugin);
+    }
+
+    public void load(Plugin plugin){
+        trie = new Trie();
         YamlContext context;
         File file;
 
@@ -25,7 +34,6 @@ public class TrieManager {
         for (Map.Entry<String, String> entry : map.entrySet()) {
             trie.insert(entry.getKey(), entry.getValue());
         }
-
     }
 
     public Trie getTrie() {

@@ -82,7 +82,6 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
-
         message = new Message(getLogger());
         if (!loadDbCfg()) {
             message.error("failed to load dbCfg.yml!");
@@ -242,11 +241,32 @@ public final class Main extends JavaPlugin {
                                 .requires(new RequiresPermission<>("bauc.reload"))
                                 .executor((sender, args) -> {
                                     TimeCounter timeCounter = new TimeCounter();
-                                    cfg = new Config(this);
-                                    timeUtil = new TimeUtil();
-                                    trieManager = new TrieManager(this);
-                                    TagUtil.loadAliases(this);
-                                    initCommand();
+
+                                    getCommand("bauc").setTabCompleter(instance);
+                                    getCommand("bauc").setExecutor(instance);
+
+                                    message.sendMsg(sender, "&fUnload db...");
+                                    try {
+                                        storage.save();
+                                        storage.close();
+                                    } catch (IOException e) {
+                                        message.error("failed to save db", e);
+                                    }
+                                    message.sendMsg(sender, "&fReload other files...");
+                                    loadDbCfg();
+                                    int seed = dbCfg.getContext().getAsInteger("name-generator.last-seed");
+                                    uniqueNameGenerator = new UniqueNameGenerator(seed);
+                                    dbCfg.getContext().set("name-generator.last-seed", seed + 1);
+                                    dbCfg.trySave();
+                                    UpdateManager.checkUpdate();
+                                    Lang.load(this);
+                                    cfg.reload(instance);
+                                    timeUtil.reload();
+                                    trieManager.reload(instance);
+                                    TagUtil.loadAliases(instance);
+                                    message.sendMsg(sender, "&fLoad db...");
+                                    loadDb();
+
                                     message.sendMsg(sender, Lang.getMessages("plugin_reload"), timeCounter.getTime());
                                 })
                         //</editor-fold>
@@ -574,7 +594,7 @@ public final class Main extends JavaPlugin {
     }
 
 
-    public boolean onCommand0(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String label, @NotNull String[] args) {
+    private boolean onCommand0(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String label, @NotNull String[] args) {
         try {
             command.process(sender, args);
             return true;
@@ -585,7 +605,7 @@ public final class Main extends JavaPlugin {
     }
 
     @Nullable
-    public List<String> onTabComplete0(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String alias, @NotNull String[] args) {
+    private List<String> onTabComplete0(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String alias, @NotNull String[] args) {
         if (args[0].equals("search") && sender.hasPermission("bauc.search")) {
             String last = args[args.length - 1];
             if (last.isEmpty()) return List.of(Lang.getMessages("start_entering_item_name"));

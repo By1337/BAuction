@@ -41,8 +41,6 @@ public class Config {
     private YamlContext menuPlayerItemsView;
     private File fileMenuPlayerItemsView;
 
-    private File itemsDataFolder;
-
     private Map<NameKey, Sorting> sortingMap;
     private Map<NameKey, Category> categoryMap;
 
@@ -54,6 +52,38 @@ public class Config {
     private MenuManger menuManger;
 
     public Config(Plugin plugin) {
+        loadConfigs(plugin);
+        sortingMap = new LinkedHashMap<>();
+        categoryMap = new LinkedHashMap<>();
+        sorting.getMap("sorting", Sorting.class).values().stream().sorted(Sorting::compareTo).forEach(sorting1 -> sortingMap.put(sorting1.nameKey(), sorting1));
+        sorting.getMap("categories", Category.class).values().stream().sorted(Category::compareTo).forEach(category -> categoryMap.put(category.nameKey(), category));
+
+
+        maxSlots = config.getAsInteger("max-slots");
+        defaultSellTime = NumberUtil.getTime(config.getAsString("default-offer-time"));
+
+        boostManager = new BoostManager(config);
+
+        menuManger = new MenuManger(this);
+    }
+
+    public void reload(Plugin plugin){
+        loadConfigs(plugin);
+        sortingMap = new LinkedHashMap<>();
+        categoryMap = new LinkedHashMap<>();
+        sorting.getMap("sorting", Sorting.class).values().stream().sorted(Sorting::compareTo).forEach(sorting1 -> sortingMap.put(sorting1.nameKey(), sorting1));
+        sorting.getMap("categories", Category.class).values().stream().sorted(Category::compareTo).forEach(category -> categoryMap.put(category.nameKey(), category));
+
+
+        maxSlots = config.getAsInteger("max-slots");
+        defaultSellTime = NumberUtil.getTime(config.getAsString("default-offer-time"));
+
+        boostManager = new BoostManager(config);
+
+        menuManger = new MenuManger(this);
+    }
+
+    public void loadConfigs(Plugin plugin){
         String basedir = plugin.getDataFolder().getPath();
 
         messageFile = new File(basedir + "/message.yml");
@@ -114,19 +144,6 @@ public class Config {
         if (!readMe.exists()) {
             plugin.saveResource("README.yml", true);
         }
-
-        sortingMap = new LinkedHashMap<>();
-        categoryMap = new LinkedHashMap<>();
-        sorting.getMap("sorting", Sorting.class).values().stream().sorted(Sorting::compareTo).forEach(sorting1 -> sortingMap.put(sorting1.nameKey(), sorting1));
-        sorting.getMap("categories", Category.class).values().stream().sorted(Category::compareTo).forEach(category -> categoryMap.put(category.nameKey(), category));
-
-
-        maxSlots = config.getAsInteger("max-slots");
-        defaultSellTime = NumberUtil.getTime(config.getAsString("default-offer-time"));
-
-        boostManager = new BoostManager(config);
-
-        menuManger = new MenuManger(this);
     }
 
     public YamlContext getMenuUnsoldItems() {
@@ -163,10 +180,6 @@ public class Config {
 
     public YamlContext getMenuBuyCount() {
         return menuBuyCount;
-    }
-
-    public File getItemsDataFolder() {
-        return itemsDataFolder;
     }
 
     public Map<NameKey, Sorting> getSortingMap() {
