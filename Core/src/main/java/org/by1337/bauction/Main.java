@@ -74,6 +74,7 @@ public final class Main extends JavaPlugin {
     private static UniqueNameGenerator uniqueNameGenerator;
     private static YamlConfig dbCfg;
     private boolean loaded;
+    public static Set<String> blackList = new HashSet<>();
 
     @Override
     public void onLoad() {
@@ -106,6 +107,7 @@ public final class Main extends JavaPlugin {
         TagUtil.loadAliases(this);
         placeholderHook = new PlaceholderHook();
         placeholderHook.register();
+        blackList = new HashSet<>(cfg.getConfig().getList("black-list", String.class, Collections.emptyList()));
         loadDb();
     }
 
@@ -264,6 +266,7 @@ public final class Main extends JavaPlugin {
                                     timeUtil.reload();
                                     trieManager.reload(instance);
                                     TagUtil.loadAliases(instance);
+                                    blackList = new HashSet<>(cfg.getConfig().getList("black-list", String.class, Collections.emptyList()));
                                     message.sendMsg(sender, "&fLoading db...");
                                     loadDb();
 
@@ -514,6 +517,14 @@ public final class Main extends JavaPlugin {
 
                                     User user = storage.getUserOrCreate(player);
                                     CSellItem sellItem = new CSellItem(player, itemStack, price, cfg.getDefaultSellTime() + user.getExternalSellTime(), saleByThePiece);
+
+                                    for (String tag : sellItem.getTags()) {
+                                        if (blackList.contains(tag)){
+                                            message.sendMsg(player, sellItem.replace(Lang.getMessages("item-in-black-list")));
+                                            return;
+                                        }
+                                    }
+
                                     SellItemEvent event = new SellItemEvent(user, sellItem);
                                     storage.validateAndAddItem(event);
                                     if (event.isValid()) {

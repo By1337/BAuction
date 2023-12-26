@@ -116,3 +116,7 @@ selling-item-only-full:
     - '[BUY_ITEM_FULL] {id} fast'
   shift_right_click_commands:
     - '[BUY_ITEM_FULL] {id} fast'
+
+# здесь необходимо указать теги
+black-list:
+  - 'debug_stick'

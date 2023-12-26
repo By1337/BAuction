@@ -34,6 +34,7 @@ messages:
   count-req: '&cУкажите число для продажи определённого количества предметов!'
   sale-by-the-piece-format-off: 'отключена'
   sale-by-the-piece-format-on: 'включена'
+  item-in-black-list: '&cВы не можете выставить "{item_name}" на продажу!'
 time-format:
   ago: 'назад'
   in: 'через'

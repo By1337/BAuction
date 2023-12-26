@@ -13,6 +13,7 @@ import org.by1337.bauction.datafix.db.DBUpdate108;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class UpdateManager {
     private final static int CURRENT_VERSION = 4;
@@ -67,6 +68,7 @@ public class UpdateManager {
             new DBUpdate108().update();
             new Messages108().update();
             config.set("allow-buy-count", true);
+            config.set("black-list", List.of("debug_stick"));
             version++;
             run(version, config);
         }

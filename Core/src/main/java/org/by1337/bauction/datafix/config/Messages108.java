@@ -45,6 +45,7 @@ public class Messages108 {
         file.getContext().set("messages.count-req", map.get("messages.count-req"));
         file.getContext().set("messages.sale-by-the-piece-format-on", map.get("messages.sale-by-the-piece-format-on"));
         file.getContext().set("messages.sale-by-the-piece-format-off", map.get("messages.sale-by-the-piece-format-off"));
+        file.getContext().set("messages.item-in-black-list", map.get("messages.item-in-black-list"));
         file.trySave();
     }
 }
