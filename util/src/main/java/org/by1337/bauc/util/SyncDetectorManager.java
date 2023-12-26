@@ -5,6 +5,7 @@ import org.by1337.bauction.SyncDetector;
 import org.by1337.v1_16_5.bauc.SyncDetectorV165;
 import org.by1337.v1_17_1.bauc.SyncDetectorV171;
 import org.by1337.v1_18_2.bauc.SyncDetectorV182;
+import org.by1337.v1_19_4.bauc.SyncDetectorV194;
 import org.by1337.v1_20_1.bauc.SyncDetectorV201;
 import org.by1337.v1_20_2.bauc.SyncDetectorV202;
 import org.by1337.v1_20_3.bauc.SyncDetectorV203;
@@ -18,6 +19,7 @@ public class SyncDetectorManager {
             case V1_16_5 -> new SyncDetectorV165();
             case V1_17_1 -> new SyncDetectorV171();
             case V1_18_2 -> new SyncDetectorV182();
+            case V1_19_4 -> new SyncDetectorV194();
             case V1_20_1 -> new SyncDetectorV201();
             case V1_20_2 -> new SyncDetectorV202();
             case V1_20_3 -> new SyncDetectorV203();

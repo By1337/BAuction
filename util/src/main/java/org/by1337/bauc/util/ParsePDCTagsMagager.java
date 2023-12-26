@@ -6,6 +6,7 @@ import org.by1337.bauction.ParsePDCTags;
 import org.by1337.v1_16_5.bauc.ParsePDCTagsV165;
 import org.by1337.v1_17_1.bauc.ParsePDCTagsV171;
 import org.by1337.v1_18_2.bauc.ParsePDCTagsV182;
+import org.by1337.v1_19_4.bauc.ParsePDCTagsV194;
 import org.by1337.v1_20_1.bauc.ParsePDCTagsV201;
 import org.by1337.v1_20_2.bauc.ParsePDCTagsV202;
 import org.by1337.v1_20_3.bauc.ParsePDCTagsV203;
@@ -25,6 +26,7 @@ public class ParsePDCTagsMagager {
             case V1_16_5 -> new ParsePDCTagsV165();
             case V1_17_1 -> new ParsePDCTagsV171();
             case V1_18_2 -> new ParsePDCTagsV182();
+            case V1_19_4 -> new ParsePDCTagsV194();
             case V1_20_1 -> new ParsePDCTagsV201();
             case V1_20_2 -> new ParsePDCTagsV202();
             case V1_20_3 -> new ParsePDCTagsV203();

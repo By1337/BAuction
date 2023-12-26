@@ -245,14 +245,14 @@ public final class Main extends JavaPlugin {
                                     getCommand("bauc").setTabCompleter(instance);
                                     getCommand("bauc").setExecutor(instance);
 
-                                    message.sendMsg(sender, "&fUnload db...");
+                                    message.sendMsg(sender, "&fUnloading db...");
                                     try {
                                         storage.save();
                                         storage.close();
                                     } catch (IOException e) {
                                         message.error("failed to save db", e);
                                     }
-                                    message.sendMsg(sender, "&fReload other files...");
+                                    message.sendMsg(sender, "&fReloading other files...");
                                     loadDbCfg();
                                     int seed = dbCfg.getContext().getAsInteger("name-generator.last-seed");
                                     uniqueNameGenerator = new UniqueNameGenerator(seed);
@@ -264,7 +264,7 @@ public final class Main extends JavaPlugin {
                                     timeUtil.reload();
                                     trieManager.reload(instance);
                                     TagUtil.loadAliases(instance);
-                                    message.sendMsg(sender, "&fLoad db...");
+                                    message.sendMsg(sender, "&fLoading db...");
                                     loadDb();
 
                                     message.sendMsg(sender, Lang.getMessages("plugin_reload"), timeCounter.getTime());

@@ -3,6 +3,7 @@ package org.by1337.bauction.network.in;
 import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.network.PacketIn;
 import org.by1337.bauction.network.PacketType;
+import org.by1337.bauction.serialize.SerializeUtils;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -16,7 +17,7 @@ public class PlayInSendMessagePacket extends PacketIn {
     public PlayInSendMessagePacket(DataInputStream in) throws IOException {
         super(PacketType.SEND_MESSAGE);
         message = in.readUTF();
-        receiver = UUID.fromString(in.readUTF());
+        receiver = SerializeUtils.readUUID(in);
     }
 
     public String getMessage() {
