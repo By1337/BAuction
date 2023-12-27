@@ -139,7 +139,7 @@ public class BuyCountMenu extends Menu {
                 continue;
             }
             if (sb.indexOf("{price_count}") != -1) {
-                sb.replace(sb.indexOf("{price_count}"), sb.indexOf("{price_count}") + "{price_count}".length(), NumberUtil.format(item.getPriceForOne() * count));
+                sb.replace(sb.indexOf("{price_count}"), sb.indexOf("{price_count}") + "{price_count}".length(), item == null ? "" : NumberUtil.format(item.getPriceForOne() * count));
                 continue;
             }
 

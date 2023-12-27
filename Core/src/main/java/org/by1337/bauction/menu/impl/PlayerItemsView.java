@@ -65,7 +65,7 @@ public class PlayerItemsView extends MainMenu {
         StringBuilder sb = new StringBuilder(s);
         while (true) {
             if (sb.indexOf("{user_name}") != -1) {
-                sb.replace(sb.indexOf("{user_name}"), sb.indexOf("{user_name}") + "{user_name}".length(), name);
+                sb.replace(sb.indexOf("{user_name}"), sb.indexOf("{user_name}") + "{user_name}".length(), String.valueOf(name));
                 continue;
             }
             break;

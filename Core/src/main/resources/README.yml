@@ -30,7 +30,7 @@ item:
   view_requirement:
     requirements:
       check_1:
-        type: string equals # sq
+        type: string equals # se
         input: 'str 1'
         input2: 'str 2'
         output: 'true' # если не указать, то будет true по умолчанию

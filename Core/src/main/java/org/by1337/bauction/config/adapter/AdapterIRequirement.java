@@ -16,7 +16,7 @@ public class AdapterIRequirement implements ClassAdapter<IRequirement> {
     @Override
     public IRequirement deserialize(YamlContext context) {
         String type = context.getAsString("type");
-        if (type.equalsIgnoreCase("string equals") || type.equalsIgnoreCase("sq")) {
+        if (type.equalsIgnoreCase("string equals") || type.equalsIgnoreCase("sq") || type.equalsIgnoreCase("se")) {
             String input = context.getAsString("input");
             String input2 = context.getAsString("input2");
             String output = context.getAsString("output", "true");

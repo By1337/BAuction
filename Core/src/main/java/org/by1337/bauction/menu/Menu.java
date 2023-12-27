@@ -36,7 +36,7 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
     }
 
     public Menu(List<CustomItemStack> items, String title, int size, int updateInterval, @Nullable Requirements viewRequirement, Player player, InventoryType type, @Nullable Menu backMenu, User user) {
-        super(player, size, title, type);
+        super(player);
         openRequirements = viewRequirement;
         this.items = items;
         this.title = title;
@@ -44,6 +44,7 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
         this.updateInterval = updateInterval;
         this.backMenu = backMenu;
         this.user = user;
+        createInventory(size, replace(title), type);
     }
 
     public void open() {

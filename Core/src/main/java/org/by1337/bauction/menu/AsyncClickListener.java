@@ -29,7 +29,7 @@ public abstract class AsyncClickListener implements Listener, Closeable {
     /**
      * The inventory associated with this click listener.
      */
-    protected final Inventory inventory;
+    protected Inventory inventory;
     /**
      * The player viewing the inventory.
      */
@@ -45,18 +45,19 @@ public abstract class AsyncClickListener implements Listener, Closeable {
      * Constructor for the AsyncClickListener.
      *
      * @param viewer The player viewing the inventory.
-     * @param size   The size of the inventory.
-     * @param title  The title of the inventory.
      */
-    public AsyncClickListener(Player viewer, int size, String title, InventoryType type) {
+    public AsyncClickListener(Player viewer) {
         this.viewer = viewer;
+        Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
+        executor = Executors.newSingleThreadExecutor();
+    }
+
+    protected void createInventory(int size, String title, InventoryType type){
         if (type == InventoryType.CHEST) {
             inventory = Bukkit.createInventory(null, size, title);
         } else {
             inventory = Bukkit.createInventory(null, type, title);
         }
-        Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
-        executor = Executors.newSingleThreadExecutor();
     }
 
     /**
