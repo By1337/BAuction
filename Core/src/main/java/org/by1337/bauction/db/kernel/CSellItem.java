@@ -33,7 +33,7 @@ public class CSellItem implements SellItem {
     final int amount;
     final double priceForOne;
     final Set<String> sellFor;
-    private transient ItemStack itemStack;
+    transient ItemStack itemStack;
 
     public static CSellItemBuilder builder() {
         return new CSellItemBuilder();

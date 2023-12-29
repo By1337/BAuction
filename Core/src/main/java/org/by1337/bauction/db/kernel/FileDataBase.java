@@ -324,7 +324,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             buyer.dealCount++;
             buyer.dealSum += updated.priceForOne * event.getCount();
             CUser owner = (CUser) getUser(updated.sellerUuid);
-            if (owner != null){
+            if (owner != null) {
                 owner.dealCount++;
                 owner.dealSum += updated.priceForOne * event.getCount();
             }
@@ -334,18 +334,20 @@ public class FileDataBase extends DataBaseCore implements Listener {
 
             if (newCount != 0) {
                 CSellItem newItem = CSellItem.builder()
-                        .sellerName(updated.getSellerName())
-                        .sellerUuid(updated.getSellerUuid())
+                        .item(updated.item)
+                        .sellerName(updated.sellerName)
+                        .sellerUuid(updated.sellerUuid)
                         .price(updated.priceForOne * newCount)
-                        .saleByThePiece(true)
-                        .tags(updated.getTags())
-                        .timeListedForSale(updated.getTimeListedForSale())
-                        .removalDate(updated.getRemovalDate())
-                        .uniqueName(updated.getUniqueName())
-                        .material(updated.getMaterial())
+                        .saleByThePiece(updated.saleByThePiece)
+                        .tags(updated.tags)
+                        .timeListedForSale(updated.timeListedForSale)
+                        .removalDate(updated.removalDate)
+                        .uniqueName(updated.uniqueName)
+                        .material(updated.material)
                         .amount(newCount)
                         .priceForOne(updated.priceForOne)
-                        .itemStack(itemStack)
+                        .sellFor(updated.sellFor)
+                        .itemStack(updated.itemStack)
                         .build();
 
                 addSellItem(newItem);
