@@ -11,11 +11,20 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.by1337.api.chat.util.Message;
+import org.by1337.api.util.Pair;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.network.in.PlayInPingRequestPacket;
+import org.by1337.bauction.network.in.PlayInPingResponsePacket;
 import org.by1337.bauction.network.in.PlayInSendMessagePacket;
+import org.by1337.bauction.network.out.PlayOutPingRequestPacket;
+import org.by1337.bauction.network.out.PlayOutPingResponsePacket;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 public class PacketConnection implements Listener, PluginMessageListener {
     private final PacketListener listener;
@@ -24,6 +33,7 @@ public class PacketConnection implements Listener, PluginMessageListener {
     private final String channelName = "BungeeCord";
     private final String subChannelName = "bauction:main";
     private boolean hasConnection;
+    private final Map<String, Map<PacketType<? extends PacketIn>, Listener<? extends PacketIn>>> packetListeners = new ConcurrentHashMap<>();
 
     public PacketConnection(PacketListener listener) {
         this.listener = listener;
@@ -34,7 +44,11 @@ public class PacketConnection implements Listener, PluginMessageListener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
         hasConnection = !Bukkit.getOnlinePlayers().isEmpty();
+
+        register("message", PacketType.SEND_MESSAGE, this::processSendMessagePacket);
+        register("pingListener", PacketType.PING_REQUEST, this::pingProcess);
     }
+
 
     public void saveSend(PacketOut packetOut) {
         try {
@@ -88,27 +102,55 @@ public class PacketConnection implements Listener, PluginMessageListener {
             short len = in1.readShort();
             byte[] msgbytes = new byte[len];
             in1.readFully(msgbytes);
-
-            try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(msgbytes))) {
-                PacketType type = PacketType.values()[in.readByte()];
-                PacketIn packetIn = type.getSuppler().get(in);
-
-                if (type == PacketType.SEND_MESSAGE) {
-                    processSendMessagePacket((PlayInSendMessagePacket) packetIn);
-                } else {
-                    listener.update(packetIn);
-                }
-            }
+            readAndProcess(msgbytes);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void processSendMessagePacket(PlayInSendMessagePacket packet) {
+    public <T extends PacketIn> @NotNull Pair<@NotNull PacketType<T>, @NotNull T> readBytes(byte[] msgbytes) {
+        try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(msgbytes))) {
+            PacketType<T> type = (PacketType<T>) PacketType.byId(in.readByte());
+            T packetIn = (T) type.getSuppler().get(in);
+            return new Pair<>(type, packetIn);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private <T extends PacketIn> void readAndProcess(byte[] msgbytes) {
+        Pair<PacketType<T>, T> pair = readBytes(msgbytes);
+        PacketType<T> type = pair.getKey();
+        T packetIn = pair.getValue();
+        for (Map<PacketType<? extends PacketIn>, Listener<? extends PacketIn>> map : packetListeners.values()) {
+            for (Map.Entry<PacketType<? extends PacketIn>, Listener<? extends PacketIn>> entry : map.entrySet()) {
+                if (packetIn == null) return;
+                PacketType<?> type1 = entry.getKey();
+                if (type1.equals(type)) {
+                    Listener<T> listener1 = (Listener<T>) entry.getValue();
+                    packetIn = listener1.accept(packetIn);
+                }
+            }
+        }
+        listener.update(packetIn);
+    }
+
+    public PlayInSendMessagePacket processSendMessagePacket(PlayInSendMessagePacket packet) {
         Player player1 = Bukkit.getPlayer(packet.getReceiver());
         if (player1 != null) {
             Main.getMessage().sendMsg(player1, packet.getMessage());
         }
+        return null;
+    }
+
+    public PlayInPingRequestPacket pingProcess(PlayInPingRequestPacket packet){
+        PlayOutPingResponsePacket packet1 = new PlayOutPingResponsePacket(
+                 (int)(System.currentTimeMillis() - packet.getTime()),
+                Main.getServerId(),
+                packet.getServer()
+        );
+        saveSend(packet1);
+        return null;
     }
 
     @EventHandler
@@ -131,5 +173,34 @@ public class PacketConnection implements Listener, PluginMessageListener {
         HandlerList.unregisterAll(this);
         plugin.getServer().getMessenger().unregisterOutgoingPluginChannel(plugin, channelName);
         plugin.getServer().getMessenger().unregisterIncomingPluginChannel(plugin, channelName);
+    }
+
+    public <T extends PacketIn> void register(String listenerName, PacketType<T> packetType, Listener<T> listener) {
+        Map<PacketType<? extends PacketIn>, Listener<? extends PacketIn>> listeners = packetListeners.getOrDefault(listenerName, new ConcurrentHashMap<>());
+        if (listeners.containsKey(packetType)) {
+            throw new IllegalStateException("listener for " + packetType.ordinal() + " already exist!");
+        }
+        listeners.put(packetType, listener);
+        packetListeners.put(listenerName, listeners);
+    }
+
+    public void unregister(String listenerName, PacketType<? extends PacketIn> packetType) {
+        Map<PacketType<? extends PacketIn>, Listener<? extends PacketIn>> listeners = packetListeners.get(listenerName);
+        if (listeners != null) {
+            listeners.remove(packetType);
+            if (listeners.isEmpty()) {
+                packetListeners.remove(listenerName);
+            }
+        }
+    }
+
+    public boolean hasListener(String listener){
+        return packetListeners.containsKey(listener);
+    }
+
+    @FunctionalInterface
+    public interface Listener<T extends PacketIn> {
+        @Nullable
+        T accept(T paket);
     }
 }

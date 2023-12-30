@@ -5,6 +5,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.by1337.api.configuration.YamlContext;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.datafix.config.DbCfg109;
 import org.by1337.bauction.datafix.config.Messages107;
 import org.by1337.bauction.datafix.config.Messages108;
 import org.by1337.bauction.datafix.config.TagUtil107;
@@ -16,7 +17,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class UpdateManager {
-    private final static int CURRENT_VERSION = 4;
+    private final static int CURRENT_VERSION = 5;
 
     public static void checkUpdate() {
         Plugin plugin = Main.getInstance();
@@ -69,6 +70,10 @@ public class UpdateManager {
             new Messages108().update();
             config.set("allow-buy-count", true);
             config.set("black-list", List.of("debug_stick"));
+            version++;
+            run(version, config);
+        } else if (version == 4) {
+            new DbCfg109().run();
             version++;
             run(version, config);
         }

@@ -15,6 +15,7 @@ import org.by1337.bauction.db.event.BuyItemEvent;
 import org.by1337.bauction.network.PacketConnection;
 import org.by1337.bauction.network.PacketIn;
 import org.by1337.bauction.network.PacketListener;
+import org.by1337.bauction.network.PacketType;
 import org.by1337.bauction.network.in.*;
 import org.by1337.bauction.network.out.*;
 import org.by1337.bauction.util.Category;
@@ -224,26 +225,27 @@ CREATE TABLE IF NOT EXISTS logs (
         return user;
     }
 
-    private void updateUsers(UUID user, UUID user1){
+    private void updateUsers(UUID user, UUID user1) {
         CUser buyer = (CUser) getUser(user);
         CUser owner = (CUser) getUser(user1);
 
-        if (buyer != null){
+        if (buyer != null) {
             execute(buyer.toSqlUpdate("users"));
             log(new Action(ActionType.UPDATE_USER, buyer.getUuid(), null, server));
             packetConnection.saveSend(new PlayOutUpdateUserPacket(buyer));
         }
 
-        if (owner != null){
+        if (owner != null) {
             execute(owner.toSqlUpdate("users"));
             log(new Action(ActionType.UPDATE_USER, owner.getUuid(), null, server));
             packetConnection.saveSend(new PlayOutUpdateUserPacket(owner));
         }
     }
+
     @Override
     public void validateAndRemoveItem(BuyItemEvent event) {// hook
         super.validateAndRemoveItem(event);
-        if (event.isValid()){
+        if (event.isValid()) {
             updateUsers(event.getUser().getUuid(), event.getSellItem().getSellerUuid());
         }
     }
@@ -251,7 +253,7 @@ CREATE TABLE IF NOT EXISTS logs (
     @Override
     public void validateAndRemoveItem(BuyItemCountEvent event) { // hook
         super.validateAndRemoveItem(event);
-        if (event.isValid()){
+        if (event.isValid()) {
             updateUsers(event.getUser().getUuid(), event.getSellItem().getSellerUuid());
         }
     }
@@ -448,36 +450,31 @@ CREATE TABLE IF NOT EXISTS logs (
 
     @Override
     public void update(PacketIn packetIn) {
-        switch (packetIn.getType()) {
-            case ADD_SELL_ITEM -> {
-                SellItem sellItem = ((PlayInAddSellItemPacket) packetIn).getSellItem();
-                if (hasSellItem(sellItem.getUniqueName())) break;
-                writeLock(() -> addSellItem0((CSellItem) sellItem));
+        int id = packetIn.getType().getId();
+        if (id == PacketType.ADD_SELL_ITEM.getId()) {
+            SellItem sellItem = ((PlayInAddSellItemPacket) packetIn).getSellItem();
+            if (hasSellItem(sellItem.getUniqueName())) return;
+            writeLock(() -> addSellItem0((CSellItem) sellItem));
+        } else if (id == PacketType.UPDATE_USER.getId()) {
+            CUser user = ((PlayInUpdateUserPacket) packetIn).getUser();
+            if (hasUser(user.uuid)) {
+                writeLock(() -> super.replaceUser(user));
+            } else {
+                writeLock(() -> super.addUser(user));
             }
-            case UPDATE_USER -> {
-                CUser user = ((PlayInUpdateUserPacket) packetIn).getUser();
-                if (hasUser(user.uuid)) {
-                    writeLock(() -> super.replaceUser(user));
-                } else {
-                    writeLock(() -> super.addUser(user));
-                }
-                boostCheck(user.uuid);
-            }
-            case ADD_UNSOLD_ITEM -> {
-                CUnsoldItem unsoldItem = ((PlayInAddUnsoldItemPacket) packetIn).getUnsoldItem();
-                if (hasUnsoldItem(unsoldItem.uniqueName)) break;
-                writeLock(() -> addUnsoldItem0(unsoldItem));
-            }
-            case REMOVE_SELL_ITEM -> {
-                UniqueName name = ((PlayInRemoveSellItemPacket) packetIn).getName();
-                if (!hasSellItem(name)) break;
-                super.removeSellItem(name);
-            }
-            case REMOVE_UNSOLD_ITEM -> {
-                UniqueName name = ((PlayInRemoveUnsoldItemPacket) packetIn).getName();
-                if (!hasUnsoldItem(name)) break;
-                super.removeUnsoldItem(name);
-            }
+            boostCheck(user.uuid);
+        } else if (id == PacketType.ADD_UNSOLD_ITEM.getId()) {
+            CUnsoldItem unsoldItem = ((PlayInAddUnsoldItemPacket) packetIn).getUnsoldItem();
+            if (hasUnsoldItem(unsoldItem.uniqueName)) return;
+            writeLock(() -> addUnsoldItem0(unsoldItem));
+        } else if (id == PacketType.REMOVE_SELL_ITEM.getId()) {
+            UniqueName name = ((PlayInRemoveSellItemPacket) packetIn).getName();
+            if (!hasSellItem(name)) return;
+            super.removeSellItem(name);
+        } else if (id == PacketType.REMOVE_UNSOLD_ITEM.getId()) {
+            UniqueName name = ((PlayInRemoveUnsoldItemPacket) packetIn).getName();
+            if (!hasUnsoldItem(name)) return;
+            super.removeUnsoldItem(name);
         }
     }
 

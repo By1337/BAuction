@@ -9,15 +9,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.java.JavaPluginLoader;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.by1337.api.BLib;
 import org.by1337.api.chat.util.Message;
@@ -47,6 +44,10 @@ import org.by1337.bauction.db.event.SellItemEvent;
 import org.by1337.bauction.menu.impl.PlayerItemsView;
 import org.by1337.bauction.menu.requirement.IRequirement;
 import org.by1337.bauction.menu.requirement.Requirements;
+import org.by1337.bauction.network.PacketConnection;
+import org.by1337.bauction.network.PacketType;
+import org.by1337.bauction.network.in.PlayInPingResponsePacket;
+import org.by1337.bauction.network.out.PlayOutPingRequestPacket;
 import org.by1337.bauction.placeholder.PlaceholderHook;
 import org.by1337.bauction.search.TrieManager;
 import org.by1337.bauction.test.FakePlayer;
@@ -56,10 +57,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.logging.Level;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class Main extends JavaPlugin {
     private static Message message;
@@ -74,7 +74,8 @@ public final class Main extends JavaPlugin {
     private static UniqueNameGenerator uniqueNameGenerator;
     private static YamlConfig dbCfg;
     private boolean loaded;
-    public static Set<String> blackList = new HashSet<>();
+    private static Set<String> blackList = new HashSet<>();
+    private static String serverId;
 
     @Override
     public void onLoad() {
@@ -90,6 +91,7 @@ public final class Main extends JavaPlugin {
             return;
         }
         int seed = dbCfg.getContext().getAsInteger("name-generator.last-seed");
+        serverId = dbCfg.getContext().getAsString("server-id");
         uniqueNameGenerator = new UniqueNameGenerator(seed);
         dbCfg.getContext().set("name-generator.last-seed", seed + 1);
         dbCfg.trySave();
@@ -280,6 +282,52 @@ public final class Main extends JavaPlugin {
                         .addSubCommand(new Command<CommandSender>("debug")
                                         //<editor-fold desc="debug" defaultstate="collapsed">
                                         .requires(new RequiresPermission<>("bauc.admin.debug"))
+                                        .addSubCommand(new Command<CommandSender>("ping")
+                                                .requires(new RequiresPermission<>("bauc.admin.ping"))
+                                                .requires((sender -> storage instanceof MysqlDb))
+                                                .executor(((sender, args) -> {
+                                                    new Thread(() -> {
+                                                        PacketConnection connection = ((MysqlDb) storage).getPacketConnection();
+                                                        if (!connection.hasConnection()){
+                                                            message.sendMsg(sender, "&cHas no connection!");
+                                                            return;
+                                                        }
+                                                        if (connection.hasListener("pingCmdListener")){
+                                                            message.sendMsg(sender, "&cPls wait...");
+                                                            return;
+                                                        }
+                                                        AtomicInteger response = new AtomicInteger();
+
+                                                        PacketConnection.Listener<PlayInPingResponsePacket> pingResponse = packet -> {
+                                                            if (packet.getTo().equals(serverId)){
+                                                                message.sendMsg(sender, "&aPing '%s' %s ms.", packet.getFrom(), packet.getPing());
+                                                                response.getAndIncrement();
+                                                                return null;
+                                                            }
+                                                            return packet;
+                                                        };
+                                                        connection.register("pingCmdListener", PacketType.PING_RESPONSE, pingResponse);
+                                                        int lost = 0;
+                                                        for (int i = 1; i <= 5; i++) {
+                                                            int last = response.get();
+                                                            message.sendMsg(sender, "&7Start pinging... try %s", i);
+                                                            PlayOutPingRequestPacket packet = new PlayOutPingRequestPacket(serverId);
+                                                            connection.saveSend(packet);
+                                                            try {
+                                                                Thread.sleep(2000);
+                                                            }catch (Exception e){
+                                                            }
+                                                            if (last - response.get() == 0){
+                                                                message.sendMsg(sender, "&cLost all");
+                                                                lost++;
+                                                            }
+                                                        }
+
+                                                        connection.unregister("pingCmdListener", PacketType.PING_RESPONSE);
+                                                        message.sendMsg(sender, "&7finish. Lost %s", lost);
+                                                    }).start();
+                                                }))
+                                        )
                                         .addSubCommand(new Command<CommandSender>("clear")
                                                 .requires(new RequiresPermission<>("bauc.admin.debug.clear"))
                                                 .requires(s -> !(storage instanceof MysqlDb))
@@ -487,16 +535,16 @@ public final class Main extends JavaPlugin {
                                         throw new CommandException(Lang.getMessages("must_be_player"));
                                     int price = (int) args.getOrThrow("price", Lang.getMessages("price_not_specified"));
 
-                                    String saleByThePieceS =  String.valueOf(args.getOrDefault("arg", "full:false"));
+                                    String saleByThePieceS = String.valueOf(args.getOrDefault("arg", "full:false"));
 
                                     boolean saleByThePiece = !(saleByThePieceS.equals("full"));
 
 
                                     int amount = -1; //(int) args.getOrDefault("amount", -1);
-                                    if (!saleByThePieceS.startsWith("f")){
+                                    if (!saleByThePieceS.startsWith("f")) {
                                         try {
                                             amount = Integer.parseInt(saleByThePieceS);
-                                        }catch (NumberFormatException e){
+                                        } catch (NumberFormatException e) {
                                             message.sendMsg(sender, "&cУкажите число для продажи определённого количества предметов!");
                                             return;
                                         }
@@ -519,7 +567,7 @@ public final class Main extends JavaPlugin {
                                     CSellItem sellItem = new CSellItem(player, itemStack, price, cfg.getDefaultSellTime() + user.getExternalSellTime(), saleByThePiece);
 
                                     for (String tag : sellItem.getTags()) {
-                                        if (blackList.contains(tag)){
+                                        if (blackList.contains(tag)) {
                                             message.sendMsg(player, sellItem.replace(Lang.getMessages("item-in-black-list")));
                                             return;
                                         }
@@ -623,5 +671,9 @@ public final class Main extends JavaPlugin {
             return trieManager.getTrie().getAllKeysWithPrefix(last);
         }
         return command.getTabCompleter(sender, args);
+    }
+
+    public static String getServerId() {
+        return serverId;
     }
 }

@@ -3,13 +3,13 @@ package org.by1337.bauction.network;
 import java.io.IOException;
 
 public abstract class PacketIn extends Packet {
-    private final PacketType type;
+    private final PacketType<?> type;
 
-    public PacketIn(PacketType type) {
+    public PacketIn(PacketType<?> type) {
         this.type = type;
     }
 
-    public PacketType getType() {
+    public PacketType<?> getType() {
         return type;
     }
 
