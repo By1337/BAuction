@@ -6,9 +6,7 @@
 
     <groupId>org.by1337</groupId>
     <artifactId>BAuction</artifactId>
-    <!--  for release MAJOR.MINOR.PATCH -->
-    <!--  for beta MAJOR.MINOR.PATCH-<alpha/beta/stable/pre-release>-->
-    <version>1.0.8.1</version>
+    <version>1.0.9</version>
     <packaging>jar</packaging>
 
     <name>Core</name>

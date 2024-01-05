@@ -144,7 +144,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
 
             if (Main.getCfg().getMaxSlots() <= (sellItemsCountByUser(user.uuid) - user.getExternalSlots())) {
                 event.setValid(false);
-                event.setReason(Lang.getMessages("auction_item_limit_reached"));
+                event.setReason(Lang.getMessage("auction_item_limit_reached"));
                 return;
             }
             addSellItem(sellItem);
@@ -153,7 +153,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
-            event.setReason(Lang.getMessages("error_occurred"));
+            event.setReason(Lang.getMessage("error_occurred"));
         }
     }
 
@@ -164,7 +164,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
         }
         if (!hasSellItem(event.getSellItem().getUniqueName())) {
             event.setValid(false);
-            event.setReason(Lang.getMessages("item_already_sold_or_removed"));
+            event.setReason(Lang.getMessage("item_already_sold_or_removed"));
             return;
         }
         User user = getUser(event.getUser().getUuid());
@@ -172,7 +172,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
 
         if (!user.getUuid().equals(sellItem.getSellerUuid())) {
             event.setValid(false);
-            event.setReason(Lang.getMessages("not_item_owner"));
+            event.setReason(Lang.getMessage("not_item_owner"));
             return;
         }
 
@@ -190,7 +190,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
-            event.setReason(Lang.getMessages("error_occurred"));
+            event.setReason(Lang.getMessage("error_occurred"));
             return;
         }
         event.setValid(true);
@@ -219,11 +219,11 @@ public class FileDataBase extends DataBaseCore implements Listener {
 
             if (!user.getUuid().equals(unsoldItem.getSellerUuid())) {
                 event.setValid(false);
-                event.setReason(Lang.getMessages("not_item_owner"));
+                event.setReason(Lang.getMessage("not_item_owner"));
                 return;
             } else if (!hasUnsoldItem(unsoldItem.getUniqueName())) {
                 event.setValid(false);
-                event.setReason(Lang.getMessages("item_not_found"));
+                event.setReason(Lang.getMessage("item_not_found"));
                 return;
             }
 
@@ -233,7 +233,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
-            event.setReason(Lang.getMessages("error_occurred"));
+            event.setReason(Lang.getMessage("error_occurred"));
         }
     }
 
@@ -241,7 +241,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
         update();
         if (!hasUser(event.getUser().getUuid())) {
             event.setValid(false);
-            event.setReason(Lang.getMessages("error_occurred"));
+            event.setReason(Lang.getMessage("error_occurred"));
             return;
         }
         CUser user = (CUser) getUser(event.getUser().getUuid());
@@ -249,13 +249,13 @@ public class FileDataBase extends DataBaseCore implements Listener {
 
         if (sellItem == null) {
             event.setValid(false);
-            event.setReason(Lang.getMessages("item_no_longer_exists"));
+            event.setReason(Lang.getMessage("item_no_longer_exists"));
             return;
         }
 
         if (user.getUuid().equals(sellItem.getSellerUuid())) {
             event.setValid(false);
-            event.setReason(Lang.getMessages("item_owner"));
+            event.setReason(Lang.getMessage("item_owner"));
             return;
         }
         BuyItemProcess event1 = new BuyItemProcess(!SyncDetectorManager.isSync(), user, sellItem);
@@ -279,7 +279,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
-            event.setReason(Lang.getMessages("error_occurred"));
+            event.setReason(Lang.getMessage("error_occurred"));
             return;
         }
         event.setValid(true);
@@ -296,20 +296,20 @@ public class FileDataBase extends DataBaseCore implements Listener {
 
             if (buyer.getUuid().equals(sellItem.getSellerUuid())) {
                 event.setValid(false);
-                event.setReason(Lang.getMessages("item_owner"));
+                event.setReason(Lang.getMessage("item_owner"));
                 return;
             }
 
             if (!hasSellItem(sellItem.getUniqueName())) {
                 event.setValid(false);
-                event.setReason(Lang.getMessages("item_already_sold_or_removed"));
+                event.setReason(Lang.getMessage("item_already_sold_or_removed"));
                 return;
             }
             CSellItem updated = (CSellItem) getSellItem(sellItem.getUniqueName());
 
             if (updated.getAmount() < event.getCount()) {
                 event.setValid(false);
-                event.setReason(Lang.getMessages("quantity_limit_exceeded"));
+                event.setReason(Lang.getMessage("quantity_limit_exceeded"));
                 return;
             }
             BuyItemCountProcess event1 = new BuyItemCountProcess(!SyncDetectorManager.isSync(), buyer, sellItem, event.getCount());
@@ -347,7 +347,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
                         .amount(newCount)
                         .priceForOne(updated.priceForOne)
                         .sellFor(updated.sellFor)
-                        .itemStack(updated.itemStack)
+                        .itemStack(itemStack)
                         .build();
 
                 addSellItem(newItem);
@@ -356,7 +356,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
-            event.setReason(Lang.getMessages("error_occurred"));
+            event.setReason(Lang.getMessage("error_occurred"));
             return;
         }
         event.setValid(true);

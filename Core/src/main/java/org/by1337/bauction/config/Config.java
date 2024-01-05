@@ -4,6 +4,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.by1337.api.configuration.YamlContext;
 import org.by1337.api.util.NameKey;
+import org.by1337.bauction.Main;
 import org.by1337.bauction.boost.BoostManager;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.NumberUtil;
@@ -50,6 +51,7 @@ public class Config {
     private BoostManager boostManager;
 
     private MenuManger menuManger;
+    private boolean allowBuyCount;
 
     public Config(Plugin plugin) {
         loadConfigs(plugin);
@@ -65,6 +67,7 @@ public class Config {
         boostManager = new BoostManager(config);
 
         menuManger = new MenuManger(this);
+        allowBuyCount = config.getAsBoolean("allow-buy-count");
     }
 
     public void reload(Plugin plugin){
@@ -81,6 +84,7 @@ public class Config {
         boostManager = new BoostManager(config);
 
         menuManger = new MenuManger(this);
+        allowBuyCount = config.getAsBoolean("allow-buy-count");
     }
 
     public void loadConfigs(Plugin plugin){
@@ -208,5 +212,9 @@ public class Config {
 
     public File getFileMenuPlayerItemsView() {
         return fileMenuPlayerItemsView;
+    }
+
+    public boolean isAllowBuyCount() {
+        return allowBuyCount;
     }
 }

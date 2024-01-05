@@ -112,7 +112,7 @@ public class DBUpdate108 {
             Set<String> sellFor = new HashSet<>(SerializeUtils.readCollectionFromStream(in));
 
             return new CSellItem(
-                    item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, null
+                    item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, null, Main.getServerId()
             );
         }
     }

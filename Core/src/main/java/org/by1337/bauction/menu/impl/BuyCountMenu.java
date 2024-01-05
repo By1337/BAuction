@@ -92,7 +92,7 @@ public class BuyCountMenu extends Menu {
                 .addSubCommand(new Command<Pair<Menu, Player>>("[BUY]")
                         .executor((sender, args) -> {
                             if (Main.getEcon().getBalance(getPlayer()) < (item.getPriceForOne() * count)) {
-                                Main.getMessage().sendMsg(getPlayer(), Lang.getMessages("insufficient_balance"));
+                                Main.getMessage().sendMsg(getPlayer(), Lang.getMessage("insufficient_balance"));
                                 generate0();
                                 return;
                             }

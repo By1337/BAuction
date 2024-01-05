@@ -25,9 +25,9 @@ public class Lang {
         messages.putAll(context.getMap("items", String.class));
     }
 
-    public static String getMessages(String s) {
+    public static String getMessage(String s) {
         String str = messages.get(s);
-        if (str == null) return "please check the message file";
+        if (str == null) return "missing message '" + s + "' in message.yml!";
         return str;
     }
 }

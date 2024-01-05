@@ -1,14 +1,15 @@
 package org.by1337.bauction.db.kernel;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.by1337.api.util.NameKey;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.auc.SellItem;
 import org.by1337.bauction.auc.UnsoldItem;
-import org.by1337.bauction.auc.User;
 import org.by1337.bauction.db.action.Action;
+import org.by1337.bauction.db.action.ActionGiveMoney;
 import org.by1337.bauction.db.action.ActionType;
 import org.by1337.bauction.db.event.BuyItemCountEvent;
 import org.by1337.bauction.db.event.BuyItemEvent;
@@ -19,12 +20,12 @@ import org.by1337.bauction.network.PacketType;
 import org.by1337.bauction.network.in.*;
 import org.by1337.bauction.network.out.*;
 import org.by1337.bauction.util.Category;
+import org.by1337.bauction.util.MoneyGiver;
 import org.by1337.bauction.util.Sorting;
 import org.by1337.bauction.util.UniqueName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -34,12 +35,6 @@ public class MysqlDb extends FileDataBase implements PacketListener {
     private final Connection connection;
     private final PacketConnection packetConnection;
 
-    private final String host;
-    private final String name;
-    private final String user;
-    private final String password;
-    private final int port;
-
     private final UUID server = UUID.randomUUID();
 
     private final ConcurrentLinkedQueue<String> sqlQueue = new ConcurrentLinkedQueue<>();
@@ -48,19 +43,14 @@ public class MysqlDb extends FileDataBase implements PacketListener {
     private final BukkitTask logClearTask;
     private final BukkitTask updateTask;
     private final boolean isHead;
-
     private long lastLogCheck;
+    private final MoneyGiver moneyGiver;
 
     public MysqlDb(Map<NameKey, Category> categoryMap, Map<NameKey, Sorting> sortingMap, String host, String name, String user, String password, int port) throws SQLException {
         super(categoryMap, sortingMap);
-        this.host = host;
-        this.name = name;
-        this.user = user;
-        this.password = password;
-        this.port = port;
         isHead = Main.getDbCfg().getContext().getAsBoolean("mysql-settings.is-head");
         packetConnection = new PacketConnection(this);
-
+        moneyGiver = new MoneyGiver(this);
         connection = DriverManager.getConnection(
                 "jdbc:mysql://" + host + ":" + port + "/" + name + "?useUnicode=true&characterEncoding=utf8&autoReconnect=true",
                 user, password
@@ -68,6 +58,9 @@ public class MysqlDb extends FileDataBase implements PacketListener {
 
         String[] createTableStatements = {
                 //<editor-fold desc="create tables sqls" defaultstate="collapsed">
+                """
+CREATE TABLE IF NOT EXISTS give_money (server VARBINARY(36) NOT NULL, uuid VARCHAR(36) NOT NULL, count DOUBLE NOT NULL)
+""",
                 """
 CREATE TABLE IF NOT EXISTS unsold_items (
   uuid VARBINARY(36) NOT NULL PRIMARY KEY,
@@ -91,7 +84,8 @@ CREATE TABLE IF NOT EXISTS sell_items (
   material VARCHAR(50) NOT NULL,
   amount TINYINT NOT NULL,
   price_for_one DOUBLE NOT NULL,
-  sell_for TEXT NOT NULL
+  sell_for TEXT NOT NULL,
+  server VARBINARY(36) NOT NULL
 )
 """,
                 """
@@ -131,6 +125,7 @@ CREATE TABLE IF NOT EXISTS logs (
                                 break;
                             }
                             try (PreparedStatement stat = connection.prepareStatement(sql)) {
+
                                 stat.execute();
                             } catch (SQLException e) {
                                 Main.getMessage().error(e);
@@ -292,12 +287,20 @@ CREATE TABLE IF NOT EXISTS logs (
         execute(String.format(sql, objects));
     }
 
+    public void addSqlToQueue(String sql) {
+        execute(sql);
+    }
+
+    public void addSqlToQueue(String sql, Object... objects) {
+        execute(sql, objects);
+    }
+
     protected void log(Action action) {
         sqlQueue.offer(action.toSql("logs"));
     }
 
     @Override
-    public void load() throws IOException {
+    public void load() {
         writeLock(() -> {
             List<CSellItem> items = parseSellItems();
             List<CUser> users = parseUsers();
@@ -424,6 +427,7 @@ CREATE TABLE IF NOT EXISTS logs (
 
     @Override
     public void close() {
+        super.close();
         try {
             connection.close();
         } catch (SQLException e) {
@@ -434,17 +438,39 @@ CREATE TABLE IF NOT EXISTS logs (
         if (logClearTask != null)
             logClearTask.cancel();
         updateTask.cancel();
-        super.close();
+        moneyGiver.close();
     }
 
     @Override
-    public void save() throws IOException {
+    public void save() {
     }
 
     @Override
     protected void update() {
         if ((System.currentTimeMillis() - lastLogCheck) > 1500) {
             applyLogs(parseLogs());
+            applyGiveMoney();
+        }
+    }
+
+    private void applyGiveMoney() {
+        List<ActionGiveMoney> actions = new ArrayList<>();
+        String query = String.format("SELECT uuid, count FROM `give_money` WHERE server = '%s'", Main.getServerId());
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+            while (resultSet.next()) {
+                actions.add(ActionGiveMoney.fromResultSet(resultSet, false));
+            }
+            try (PreparedStatement p = connection.prepareStatement(String.format("DELETE FROM give_money WHERE server = '%s'", Main.getServerId()))){
+                p.execute();
+            }
+        } catch (SQLException e) {
+            Main.getMessage().error(e);
+        }
+        for (ActionGiveMoney action : actions) {
+            System.out.println(action);
+            OfflinePlayer player = Bukkit.getOfflinePlayer(action.getUuid());
+            Main.getEcon().depositPlayer(player, action.getCount());
         }
     }
 
@@ -489,5 +515,9 @@ CREATE TABLE IF NOT EXISTS logs (
 
     public PacketConnection getPacketConnection() {
         return packetConnection;
+    }
+
+    public MoneyGiver getMoneyGiver() {
+        return moneyGiver;
     }
 }

@@ -34,6 +34,7 @@ public class CSellItem implements SellItem {
     final double priceForOne;
     final Set<String> sellFor;
     transient ItemStack itemStack;
+    final String server;
 
     public static CSellItemBuilder builder() {
         return new CSellItemBuilder();
@@ -42,9 +43,9 @@ public class CSellItem implements SellItem {
     @Override
     public String toSql(String table) {
         return String.format(
-                "INSERT INTO %s (uuid, seller_uuid, item, seller_name, price, sale_by_the_piece, tags, time_listed_for_sale, removal_date, material, amount, price_for_one, sell_for)" +
-                        "VALUES('%s', '%s', '%s', '%s', %s, %s, '%s', %s, %s, '%s', %s, %s, '%s')",
-                table, uniqueName.getKey(), sellerUuid, item, sellerName, price, saleByThePiece, listToString(tags), timeListedForSale, removalDate, material.name(), amount, priceForOne, listToString(sellFor)
+                "INSERT INTO %s (uuid, seller_uuid, item, seller_name, price, sale_by_the_piece, tags, time_listed_for_sale, removal_date, material, amount, price_for_one, sell_for, server)" +
+                        "VALUES('%s', '%s', '%s', '%s', %s, %s, '%s', %s, %s, '%s', %s, %s, '%s', '%s')",
+                table, uniqueName.getKey(), sellerUuid, item, sellerName, price, saleByThePiece, listToString(tags), timeListedForSale, removalDate, material.name(), amount, priceForOne, listToString(sellFor), server
         );
     }
 
@@ -63,6 +64,7 @@ public class CSellItem implements SellItem {
                 .amount(resultSet.getInt("amount"))
                 .priceForOne(resultSet.getDouble("price_for_one"))
                 .sellFor(new HashSet<>(Arrays.asList(resultSet.getString("sell_for").split(","))))
+                .server(resultSet.getString("server"))
                 .build();
     }
 
@@ -70,7 +72,8 @@ public class CSellItem implements SellItem {
         return String.join(",", collection);
     }
 
-    public CSellItem(String item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, UniqueName uniqueName, Material material, int amount, double priceForOne, Set<String> sellFor, ItemStack itemStack) {
+    public CSellItem(String item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, UniqueName uniqueName, Material material, int amount, double priceForOne, Set<String> sellFor, ItemStack itemStack, String server) {
+        this.server = server;
         this.item = item;
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
@@ -102,6 +105,7 @@ public class CSellItem implements SellItem {
         this.priceForOne = priceForOne;
         this.itemStack = itemStack;
         sellFor = new HashSet<>();
+        server = Main.getServerId();
     }
 
     public CSellItem(String item, String sellerName, UUID sellerUuid,
@@ -121,6 +125,7 @@ public class CSellItem implements SellItem {
         this.amount = amount;
         this.priceForOne = priceForOne;
         sellFor = new HashSet<>();
+        server = Main.getServerId();
     }
 
     public CSellItem(@NotNull String item, @NotNull String sellerName, @NotNull UUID sellerUuid, double price, boolean saleByThePiece, @NotNull Set<String> tags, long saleDuration, @NotNull Material material, int amount) {
@@ -137,6 +142,7 @@ public class CSellItem implements SellItem {
         this.amount = amount;
         priceForOne = price / amount;
         sellFor = new HashSet<>();
+        server = Main.getServerId();
     }
 
     public CSellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration) {
@@ -157,6 +163,7 @@ public class CSellItem implements SellItem {
         amount = itemStack.getAmount();
         priceForOne = saleByThePiece ? price / amount : price;
         sellFor = new HashSet<>();
+        server = Main.getServerId();
     }
 
     public CSellItem(String sellerName, UUID sellerUuid, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
@@ -173,6 +180,7 @@ public class CSellItem implements SellItem {
         amount = itemStack.getAmount();
         priceForOne = saleByThePiece ? price / amount : price;
         sellFor = new HashSet<>();
+        server = Main.getServerId();
     }
 
 
@@ -189,7 +197,10 @@ public class CSellItem implements SellItem {
                 item.getUniqueName(),
                 item.getMaterial(),
                 item.getAmount(),
-                item.getPriceForOne()
+                item.getPriceForOne(),
+                new HashSet<>(),
+                item.getItemStack(),
+                item.getServer()
         );
     }
 
@@ -228,6 +239,7 @@ public class CSellItem implements SellItem {
             data.writeDouble(priceForOne);
             SerializeUtils.writeCollectionToStream(data, sellFor);
             data.flush();
+            data.writeUTF(server);
             return out.toByteArray();
         }
     }
@@ -249,9 +261,10 @@ public class CSellItem implements SellItem {
             int amount = in.readInt();
             double priceForOne = in.readDouble();
             Set<String> sellFor = new HashSet<>(SerializeUtils.readCollectionFromStream(in));
+            String server = in.readUTF();
 
             return new CSellItem(
-                    item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, null
+                    item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, null, server
             );
         }
     }
@@ -361,7 +374,7 @@ public class CSellItem implements SellItem {
             }
             if (sb.indexOf("{sale_by_the_piece_format}") != -1) {
                 sb.replace(sb.indexOf("{sale_by_the_piece_format}"), sb.indexOf("{sale_by_the_piece_format}") + "{sale_by_the_piece_format}".length(), saleByThePiece ?
-                        Lang.getMessages("sale-by-the-piece-format-on") : Lang.getMessages("sale-by-the-piece-format-off")
+                        Lang.getMessage("sale-by-the-piece-format-on") : Lang.getMessage("sale-by-the-piece-format-off")
                 );
                 continue;
             }
@@ -393,13 +406,18 @@ public class CSellItem implements SellItem {
                 sb.replace(sb.indexOf("{item_name}"), sb.indexOf("{item_name}") + "{item_name}".length(),
                         getItemStack().getItemMeta() != null && getItemStack().getItemMeta().hasDisplayName() ?
                                 getItemStack().getItemMeta().getDisplayName() :
-                                Lang.getMessages(getMaterial().name().toLowerCase())
+                                Lang.getMessage(getMaterial().name().toLowerCase())
                 );
                 continue;
             }
             break;
         }
         return sb.toString();
+    }
+
+    @Override
+    public String getServer() {
+        return server;
     }
 
     public static class CSellItemBuilder {
@@ -417,6 +435,7 @@ public class CSellItem implements SellItem {
         private double priceForOne;
         private Set<String> sellFor;
         private ItemStack itemStack;
+        private String server;
 
         CSellItemBuilder() {
         }
@@ -428,6 +447,11 @@ public class CSellItem implements SellItem {
 
         public CSellItemBuilder sellerName(String sellerName) {
             this.sellerName = sellerName;
+            return this;
+        }
+
+        public CSellItemBuilder server(String server) {
+            this.server = server;
             return this;
         }
 
@@ -492,11 +516,9 @@ public class CSellItem implements SellItem {
         }
 
         public CSellItem build() {
-            return new CSellItem(this.item, this.sellerName, this.sellerUuid, this.price, this.saleByThePiece, this.tags, this.timeListedForSale, this.removalDate, this.uniqueName, this.material, this.amount, this.priceForOne, this.sellFor, this.itemStack);
+            return new CSellItem(this.item, this.sellerName, this.sellerUuid, this.price, this.saleByThePiece, this.tags, this.timeListedForSale, this.removalDate, this.uniqueName, this.material, this.amount, this.priceForOne, this.sellFor, this.itemStack, server);
         }
 
-        public String toString() {
-            return "CSellItem.CSellItemBuilder(item=" + this.item + ", sellerName=" + this.sellerName + ", sellerUuid=" + this.sellerUuid + ", price=" + this.price + ", saleByThePiece=" + this.saleByThePiece + ", tags=" + this.tags + ", timeListedForSale=" + this.timeListedForSale + ", removalDate=" + this.removalDate + ", uniqueName=" + this.uniqueName + ", material=" + this.material + ", amount=" + this.amount + ", priceForOne=" + this.priceForOne + ", sellFor=" + this.sellFor + ", itemStack=" + this.itemStack + ")";
-        }
     }
+
 }

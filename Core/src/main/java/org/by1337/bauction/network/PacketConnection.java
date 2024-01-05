@@ -10,6 +10,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
+import org.bukkit.scheduler.BukkitTask;
 import org.by1337.api.chat.util.Message;
 import org.by1337.api.util.Pair;
 import org.by1337.bauction.Main;
@@ -22,9 +23,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PacketConnection implements Listener, PluginMessageListener {
     private final PacketListener listener;
@@ -32,27 +36,57 @@ public class PacketConnection implements Listener, PluginMessageListener {
     private final Message message;
     private final String channelName = "BungeeCord";
     private final String subChannelName = "bauction:main";
-    private boolean hasConnection;
+    private final AtomicBoolean hasConnection = new AtomicBoolean();
     private final Map<String, Map<PacketType<? extends PacketIn>, Listener<? extends PacketIn>>> packetListeners = new ConcurrentHashMap<>();
+    private final Map<PacketType<? extends PacketIn>, List<CallBack<? extends PacketIn>>> callbacks = new ConcurrentHashMap<>();
+    private final BukkitTask pingTask;
+    private final List<String> serverList = new CopyOnWriteArrayList<>();
+    private final String currentServerId;
+    private final WaitNotifyCallBack<PlayInPingResponsePacket> pingCallBack;
 
     public PacketConnection(PacketListener listener) {
         this.listener = listener;
         plugin = Main.getInstance();
         message = Main.getMessage();
+        currentServerId = Main.getServerId();
         plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, channelName);
         plugin.getServer().getMessenger().registerIncomingPluginChannel(plugin, channelName, this);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
-        hasConnection = !Bukkit.getOnlinePlayers().isEmpty();
+        hasConnection.set(!Bukkit.getOnlinePlayers().isEmpty());
 
         register("message", PacketType.SEND_MESSAGE, this::processSendMessagePacket);
-        register("pingListener", PacketType.PING_REQUEST, this::pingProcess);
+        register("pingListener", PacketType.PING_REQUEST, this::pingResponse);
+        pingCallBack = new WaitNotifyCallBack<>() {
+            @Override
+            protected void back0(PlayInPingResponsePacket packet) {
+                if (packet.getTo().equals(currentServerId)) {
+                    serverList.add(packet.getFrom());
+                }
+            }
+        };
+        pingTask = Bukkit.getScheduler().runTaskTimerAsynchronously(Main.getInstance(), this::pining, 20 * 30, 20 * 30);
     }
 
 
+    public void pining() {
+        if (hasCallBack(PacketType.PING_RESPONSE, pingCallBack) || !hasConnection.get()) return;
+        serverList.clear();
+        registerCallBack(PacketType.PING_RESPONSE, pingCallBack);
+        PlayOutPingRequestPacket packet = new PlayOutPingRequestPacket(currentServerId);
+        saveSend(packet);
+        try {
+            pingCallBack.wait_(2000);
+            Thread.sleep(200);
+        } catch (Exception e) {
+            Main.getMessage().error(e);
+        }
+        unregisterCallBack(PacketType.PING_RESPONSE, pingCallBack);
+    }
+
     public void saveSend(PacketOut packetOut) {
         try {
-            if (!hasConnection) return;
+            if (!hasConnection.get()) return;
             byte[] arr = packetOut.getBytes();
             if (arr.length > Messenger.MAX_MESSAGE_SIZE) {
                 return;
@@ -64,7 +98,7 @@ public class PacketConnection implements Listener, PluginMessageListener {
     }
 
     public void send(byte[] arr) {
-        if (!hasConnection) {
+        if (!hasConnection.get()) {
             throw new IllegalStateException("has no connection!");
         }
         if (arr.length > Messenger.MAX_MESSAGE_SIZE) {
@@ -72,11 +106,11 @@ public class PacketConnection implements Listener, PluginMessageListener {
         }
         try {
             if (!Bukkit.getOnlinePlayers().isEmpty()) {
-                Player player = Bukkit.getOnlinePlayers().stream().findFirst().orElse(null);
+                Player player = Bukkit.getOnlinePlayers().stream().findFirst().orElseThrow(null);
                 try (ByteArrayOutputStream byteBuff = new ByteArrayOutputStream();
                      DataOutputStream out = new DataOutputStream(byteBuff)) {
                     out.writeUTF("Forward");
-                    out.writeUTF("ALL");
+                    out.writeUTF("ONLINE");
                     out.writeUTF(subChannelName);
                     out.writeShort(arr.length);
                     out.write(arr);
@@ -92,24 +126,25 @@ public class PacketConnection implements Listener, PluginMessageListener {
     }
 
     public boolean hasConnection() {
-        return hasConnection;
+        return hasConnection.get();
     }
 
-    public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
+    public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, byte @NotNull [] message) {
         try (DataInputStream in1 = new DataInputStream(new ByteArrayInputStream(message))) {
             String subChannel = in1.readUTF();
             if (!subChannel.equals(subChannelName)) return;
             short len = in1.readShort();
-            byte[] msgbytes = new byte[len];
-            in1.readFully(msgbytes);
-            readAndProcess(msgbytes);
+            byte[] bytes = new byte[len];
+            in1.readFully(bytes);
+            readAndProcess(bytes);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public <T extends PacketIn> @NotNull Pair<@NotNull PacketType<T>, @NotNull T> readBytes(byte[] msgbytes) {
-        try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(msgbytes))) {
+    @SuppressWarnings("unchecked")
+    public <T extends PacketIn> @NotNull Pair<@NotNull PacketType<T>, @NotNull T> readBytes(byte[] bytes) {
+        try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(bytes))) {
             PacketType<T> type = (PacketType<T>) PacketType.byId(in.readByte());
             T packetIn = (T) type.getSuppler().get(in);
             return new Pair<>(type, packetIn);
@@ -117,9 +152,9 @@ public class PacketConnection implements Listener, PluginMessageListener {
             throw new RuntimeException(e);
         }
     }
-
-    private <T extends PacketIn> void readAndProcess(byte[] msgbytes) {
-        Pair<PacketType<T>, T> pair = readBytes(msgbytes);
+    @SuppressWarnings("unchecked")
+    private <T extends PacketIn> void readAndProcess(byte[] bytes) {
+        Pair<PacketType<T>, T> pair = readBytes(bytes);
         PacketType<T> type = pair.getKey();
         T packetIn = pair.getValue();
         for (Map<PacketType<? extends PacketIn>, Listener<? extends PacketIn>> map : packetListeners.values()) {
@@ -130,6 +165,14 @@ public class PacketConnection implements Listener, PluginMessageListener {
                     Listener<T> listener1 = (Listener<T>) entry.getValue();
                     packetIn = listener1.accept(packetIn);
                 }
+            }
+        }
+        if (packetIn == null) return;
+
+        if (callbacks.containsKey(type)) {
+            List<CallBack<? extends PacketIn>> list = callbacks.getOrDefault(type, new CopyOnWriteArrayList<>());
+            for (Object o : list.toArray()) {
+                ((CallBack<T>) o).back(packetIn);
             }
         }
         listener.update(packetIn);
@@ -143,20 +186,24 @@ public class PacketConnection implements Listener, PluginMessageListener {
         return null;
     }
 
-    public PlayInPingRequestPacket pingProcess(PlayInPingRequestPacket packet){
-        PlayOutPingResponsePacket packet1 = new PlayOutPingResponsePacket(
-                 (int)(System.currentTimeMillis() - packet.getTime()),
-                Main.getServerId(),
-                packet.getServer()
-        );
-        saveSend(packet1);
-        return null;
+    public PlayInPingRequestPacket pingResponse(PlayInPingRequestPacket packet) {
+        if (packet.getTo().equals("any") || packet.getTo().equals(Main.getServerId())) {
+            PlayOutPingResponsePacket packet1 = new PlayOutPingResponsePacket(
+                    (int) (System.currentTimeMillis() - packet.getTime()),
+                    Main.getServerId(),
+                    packet.getServer()
+            );
+            saveSend(packet1);
+            return null;
+        }
+        return packet;
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        if (!hasConnection) {
-            hasConnection = true;
+        if (!hasConnection.get()) {
+            hasConnection.set(true);
+            new Thread(this::pining);
             listener.connectionRestored();
         }
     }
@@ -164,7 +211,7 @@ public class PacketConnection implements Listener, PluginMessageListener {
     @EventHandler
     public void onLeave(PlayerQuitEvent event) {
         if (Bukkit.getOnlinePlayers().size() <= 1) {
-            hasConnection = false;
+            hasConnection.set(false);
             listener.connectionLost();
         }
     }
@@ -173,6 +220,29 @@ public class PacketConnection implements Listener, PluginMessageListener {
         HandlerList.unregisterAll(this);
         plugin.getServer().getMessenger().unregisterOutgoingPluginChannel(plugin, channelName);
         plugin.getServer().getMessenger().unregisterIncomingPluginChannel(plugin, channelName);
+        pingTask.cancel();
+    }
+
+    public <T extends PacketIn> boolean hasCallBack(PacketType<T> type, CallBack<T> callBack) {
+        List<CallBack<? extends PacketIn>> list = callbacks.getOrDefault(type, new ArrayList<>());
+        return list.contains(callBack);
+    }
+
+    public <T extends PacketIn> void registerCallBack(PacketType<T> type, CallBack<T> callBack) {
+        List<CallBack<? extends PacketIn>> list = callbacks.getOrDefault(type, new CopyOnWriteArrayList<>());
+        if (list.contains(callBack)) {
+            throw new IllegalStateException("callback already exist!");
+        }
+        list.add(callBack);
+        callbacks.put(type, list);
+    }
+
+    public <T extends PacketIn> void unregisterCallBack(PacketType<T> type, CallBack<T> callBack) {
+        List<CallBack<? extends PacketIn>> list = callbacks.getOrDefault(type, new CopyOnWriteArrayList<>());
+        if (!list.remove(callBack)) {
+            throw new IllegalStateException("callback non-exist!");
+        }
+        callbacks.put(type, list);
     }
 
     public <T extends PacketIn> void register(String listenerName, PacketType<T> packetType, Listener<T> listener) {
@@ -194,8 +264,12 @@ public class PacketConnection implements Listener, PluginMessageListener {
         }
     }
 
-    public boolean hasListener(String listener){
+    public boolean hasListener(String listener) {
         return packetListeners.containsKey(listener);
+    }
+
+    public List<String> getServerList() {
+        return serverList;
     }
 
     @FunctionalInterface

@@ -46,6 +46,7 @@ import org.by1337.bauction.menu.requirement.IRequirement;
 import org.by1337.bauction.menu.requirement.Requirements;
 import org.by1337.bauction.network.PacketConnection;
 import org.by1337.bauction.network.PacketType;
+import org.by1337.bauction.network.WaitNotifyCallBack;
 import org.by1337.bauction.network.in.PlayInPingResponsePacket;
 import org.by1337.bauction.network.out.PlayOutPingRequestPacket;
 import org.by1337.bauction.placeholder.PlaceholderHook;
@@ -90,12 +91,7 @@ public final class Main extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
-        int seed = dbCfg.getContext().getAsInteger("name-generator.last-seed");
-        serverId = dbCfg.getContext().getAsString("server-id");
-        uniqueNameGenerator = new UniqueNameGenerator(seed);
-        dbCfg.getContext().set("name-generator.last-seed", seed + 1);
-        dbCfg.trySave();
-
+        loadCfgFromDbCfg();
         registerAdapters();
         UpdateManager.checkUpdate();
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
@@ -133,7 +129,7 @@ public final class Main extends JavaPlugin {
                     message.error("failed to load db!", e);
                     instance.getServer().getPluginManager().disablePlugin(instance);
                 }
-                message.logger(Lang.getMessages("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
+                message.logger(Lang.getMessage("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
 
                 getCommand("bauc").setTabCompleter(this::onTabComplete0);
                 getCommand("bauc").setExecutor(this::onCommand0);
@@ -153,7 +149,7 @@ public final class Main extends JavaPlugin {
                     message.error("failed to load db!", e);
                     instance.getServer().getPluginManager().disablePlugin(instance);
                 }
-                message.logger(Lang.getMessages("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
+                message.logger(Lang.getMessage("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
                 getCommand("bauc").setTabCompleter(this::onTabComplete0);
                 getCommand("bauc").setExecutor(this::onCommand0);
             }).start();
@@ -205,6 +201,19 @@ public final class Main extends JavaPlugin {
         return false;
     }
 
+    public void reloadDbCfg() {
+        loadDbCfg();
+        loadCfgFromDbCfg();
+    }
+
+    private void loadCfgFromDbCfg() {
+        int seed = dbCfg.getContext().getAsInteger("name-generator.last-seed");
+        serverId = dbCfg.getContext().getAsString("server-id");
+        uniqueNameGenerator = new UniqueNameGenerator(seed);
+        dbCfg.getContext().set("name-generator.last-seed", seed + 1);
+        dbCfg.trySave();
+    }
+
     public static YamlConfig getDbCfg() {
         return dbCfg;
     }
@@ -237,6 +246,15 @@ public final class Main extends JavaPlugin {
         return timeUtil;
     }
 
+    public void reloadConfigs() {
+        reloadDbCfg();
+        UpdateManager.checkUpdate();
+        Lang.load(this);
+        cfg.reload(instance);
+        timeUtil.reload();
+        trieManager.reload(instance);
+        TagUtil.loadAliases(instance);
+    }
 
     private void initCommand() {
         command = new Command<CommandSender>("bauc")
@@ -257,22 +275,12 @@ public final class Main extends JavaPlugin {
                                         message.error("failed to save db", e);
                                     }
                                     message.sendMsg(sender, "&fReloading other files...");
-                                    loadDbCfg();
-                                    int seed = dbCfg.getContext().getAsInteger("name-generator.last-seed");
-                                    uniqueNameGenerator = new UniqueNameGenerator(seed);
-                                    dbCfg.getContext().set("name-generator.last-seed", seed + 1);
-                                    dbCfg.trySave();
-                                    UpdateManager.checkUpdate();
-                                    Lang.load(this);
-                                    cfg.reload(instance);
-                                    timeUtil.reload();
-                                    trieManager.reload(instance);
-                                    TagUtil.loadAliases(instance);
+                                    reloadConfigs();
                                     blackList = new HashSet<>(cfg.getConfig().getList("black-list", String.class, Collections.emptyList()));
                                     message.sendMsg(sender, "&fLoading db...");
                                     loadDb();
 
-                                    message.sendMsg(sender, Lang.getMessages("plugin_reload"), timeCounter.getTime());
+                                    message.sendMsg(sender, Lang.getMessage("plugin_reload"), timeCounter.getTime());
                                 })
                         //</editor-fold>
                 )
@@ -285,45 +293,51 @@ public final class Main extends JavaPlugin {
                                         .addSubCommand(new Command<CommandSender>("ping")
                                                 .requires(new RequiresPermission<>("bauc.admin.ping"))
                                                 .requires((sender -> storage instanceof MysqlDb))
+                                                .argument(new ArgumentSetList<>("server", () -> ((MysqlDb) storage).getPacketConnection().getServerList()))
                                                 .executor(((sender, args) -> {
                                                     new Thread(() -> {
+                                                        String server = (String) args.getOrDefault("server", "any");
                                                         PacketConnection connection = ((MysqlDb) storage).getPacketConnection();
-                                                        if (!connection.hasConnection()){
+                                                        if (!connection.hasConnection()) {
                                                             message.sendMsg(sender, "&cHas no connection!");
                                                             return;
                                                         }
-                                                        if (connection.hasListener("pingCmdListener")){
-                                                            message.sendMsg(sender, "&cPls wait...");
-                                                            return;
-                                                        }
-                                                        AtomicInteger response = new AtomicInteger();
+                                                        message.sendMsg(sender, "&cInit...");
+                                                        connection.pining();
 
-                                                        PacketConnection.Listener<PlayInPingResponsePacket> pingResponse = packet -> {
-                                                            if (packet.getTo().equals(serverId)){
-                                                                message.sendMsg(sender, "&aPing '%s' %s ms.", packet.getFrom(), packet.getPing());
-                                                                response.getAndIncrement();
-                                                                return null;
+                                                        int servers = server.equals("any") ? 1 : connection.getServerList().size();
+
+                                                        AtomicInteger response = new AtomicInteger();
+                                                        WaitNotifyCallBack<PlayInPingResponsePacket> callBack = new WaitNotifyCallBack<>() {
+                                                            @Override
+                                                            protected void back0(@Nullable PlayInPingResponsePacket packet) {
+                                                                if (packet.getTo().equals(serverId)) {
+                                                                    message.sendMsg(sender, "&aPing '%s' %s ms.", packet.getFrom(), packet.getPing());
+                                                                    response.getAndIncrement();
+                                                                }
                                                             }
-                                                            return packet;
                                                         };
-                                                        connection.register("pingCmdListener", PacketType.PING_RESPONSE, pingResponse);
+                                                        connection.registerCallBack(PacketType.PING_RESPONSE, callBack);
                                                         int lost = 0;
                                                         for (int i = 1; i <= 5; i++) {
                                                             int last = response.get();
-                                                            message.sendMsg(sender, "&7Start pinging... try %s", i);
-                                                            PlayOutPingRequestPacket packet = new PlayOutPingRequestPacket(serverId);
+                                                            message.sendMsg(sender, "&7Start pinging server %s... trying %s", server, i);
+                                                            PlayOutPingRequestPacket packet = new PlayOutPingRequestPacket(serverId, server);
                                                             connection.saveSend(packet);
-                                                            try {
-                                                                Thread.sleep(2000);
-                                                            }catch (Exception e){
+
+                                                            for (int i1 = 0; i1 < servers; i1++) {
+                                                                try {
+                                                                    callBack.wait_(2000);
+                                                                } catch (Exception e) {
+                                                                }
                                                             }
-                                                            if (last - response.get() == 0){
-                                                                message.sendMsg(sender, "&cLost all");
+
+                                                            if (last - response.get() == 0) {
+                                                                message.sendMsg(sender, "&cLost...");
                                                                 lost++;
                                                             }
                                                         }
-
-                                                        connection.unregister("pingCmdListener", PacketType.PING_RESPONSE);
+                                                        connection.unregisterCallBack(PacketType.PING_RESPONSE, callBack);
                                                         message.sendMsg(sender, "&7finish. Lost %s", lost);
                                                     }).start();
                                                 }))
@@ -333,19 +347,19 @@ public final class Main extends JavaPlugin {
                                                 .requires(s -> !(storage instanceof MysqlDb))
                                                 .executor(((sender, args) -> {
                                                     if (!(sender instanceof Player player))
-                                                        throw new CommandException(Lang.getMessages("must_be_player"));
+                                                        throw new CommandException(Lang.getMessage("must_be_player"));
                                                     CallBack<Optional<ConfirmMenu.Result>> callBack = (res) -> {
                                                         if (res.isPresent()) {
                                                             if (res.get() == ConfirmMenu.Result.ACCEPT) {
                                                                 storage.clear();
-                                                                message.sendMsg(player, Lang.getMessages("auc-cleared"));
+                                                                message.sendMsg(player, Lang.getMessage("auc-cleared"));
                                                             }
                                                         }
                                                         player.closeInventory();
                                                     };
                                                     ItemStack itemStack = new ItemStack(Material.JIGSAW);
                                                     ItemMeta im = itemStack.getItemMeta();
-                                                    im.setDisplayName(message.messageBuilder(Lang.getMessages("auc-clear-confirm")));
+                                                    im.setDisplayName(message.messageBuilder(Lang.getMessage("auc-clear-confirm")));
                                                     itemStack.setItemMeta(im);
                                                     ConfirmMenu menu = new ConfirmMenu(callBack, itemStack, player);
                                                     menu.open();
@@ -412,10 +426,10 @@ public final class Main extends JavaPlugin {
                                                     String value = (String) args.getOrThrow("value");
 
                                                     if (!(sender instanceof Player player))
-                                                        throw new CommandException(Lang.getMessages("must_be_player"));
+                                                        throw new CommandException(Lang.getMessage("must_be_player"));
                                                     ItemStack itemStack = player.getInventory().getItemInMainHand();
                                                     if (itemStack.getType().isAir()) {
-                                                        throw new CommandException(Lang.getMessages("item_in_hand_required"));
+                                                        throw new CommandException(Lang.getMessage("item_in_hand_required"));
                                                     }
                                                     ItemMeta im = itemStack.getItemMeta();
                                                     im.getPersistentDataContainer().set(NamespacedKey.fromString(key), PersistentDataType.STRING, value);
@@ -463,10 +477,10 @@ public final class Main extends JavaPlugin {
                                                 .requires(new RequiresPermission<>("bauc.parse.tags"))
                                                 .executor((sender, args) -> {
                                                     if (!(sender instanceof Player player))
-                                                        throw new CommandException(Lang.getMessages("must_be_player"));
+                                                        throw new CommandException(Lang.getMessage("must_be_player"));
                                                     ItemStack itemStack = player.getInventory().getItemInMainHand();
                                                     if (itemStack.getType().isAir()) {
-                                                        throw new CommandException(Lang.getMessages("item_in_hand_required"));
+                                                        throw new CommandException(Lang.getMessage("item_in_hand_required"));
                                                     }
                                                     message.sendMsg(sender, TagUtil.getTags(itemStack).toString());
                                                 })
@@ -477,10 +491,10 @@ public final class Main extends JavaPlugin {
                                                 .requires(new RequiresPermission<>("bauc.parse.nbt"))
                                                 .executor((sender, args) -> {
                                                     if (!(sender instanceof Player player))
-                                                        throw new CommandException(Lang.getMessages("must_be_player"));
+                                                        throw new CommandException(Lang.getMessage("must_be_player"));
                                                     ItemStack itemStack = player.getInventory().getItemInMainHand();
                                                     if (itemStack.getType().isAir()) {
-                                                        throw new CommandException(Lang.getMessages("item_in_hand_required"));
+                                                        throw new CommandException(Lang.getMessage("item_in_hand_required"));
                                                     }
                                                     message.sendMsg(sender, new String(Base64.getDecoder().decode(BLib.getApi().getItemStackSerialize().serialize(itemStack))));
                                                 })
@@ -490,18 +504,18 @@ public final class Main extends JavaPlugin {
                         .addSubCommand(new Command<CommandSender>("push")
                                         //<editor-fold desc="push" defaultstate="collapsed">
                                         .requires(new RequiresPermission<>("bauc.admin.push"))
-                                        .argument(new ArgumentIntegerAllowedMatch<>("price", List.of(Lang.getMessages("price_tag"))))
-                                        .argument(new ArgumentInteger<>("amount", List.of(Lang.getMessages("quantity_tag"))))
-                                        .argument(new ArgumentString<>("time", List.of(Lang.getMessages("sale_time_tag"))))
+                                        .argument(new ArgumentIntegerAllowedMatch<>("price", List.of(Lang.getMessage("price_tag"))))
+                                        .argument(new ArgumentInteger<>("amount", List.of(Lang.getMessage("quantity_tag"))))
+                                        .argument(new ArgumentString<>("time", List.of(Lang.getMessage("sale_time_tag"))))
                                         .executor((sender, args) -> {
                                                     int amount = (int) args.getOrDefault("amount", 1);
-                                                    int price = (int) args.getOrThrow("price", Lang.getMessages("price_not_specified"));
+                                                    int price = (int) args.getOrThrow("price", Lang.getMessage("price_not_specified"));
                                                     if (!(sender instanceof Player player))
-                                                        throw new CommandException(Lang.getMessages("must_be_player"));
+                                                        throw new CommandException(Lang.getMessage("must_be_player"));
 
                                                     ItemStack itemStack = player.getInventory().getItemInMainHand();
                                                     if (itemStack.getType().isAir()) {
-                                                        throw new CommandException(Lang.getMessages("cannot_trade_air"));
+                                                        throw new CommandException(Lang.getMessage("cannot_trade_air"));
                                                     }
                                                     TimeCounter timeCounter = new TimeCounter();
                                                     Random random = new Random();
@@ -516,7 +530,7 @@ public final class Main extends JavaPlugin {
                                                             break;
                                                         }
                                                     }
-                                                    message.sendMsg(player, Lang.getMessages("successful_listing"), amount, timeCounter.getTime());
+                                                    message.sendMsg(player, Lang.getMessage("successful_listing"), amount, timeCounter.getTime());
                                                 }
                                         )
                                 //</editor-fold>
@@ -525,15 +539,15 @@ public final class Main extends JavaPlugin {
                 .addSubCommand(new Command<CommandSender>("sell")
                                 //<editor-fold desc="sell" defaultstate="collapsed">
                                 .requires(new RequiresPermission<>("bauc.sell"))
-                                .argument(new ArgumentIntegerAllowedMatch<>("price", List.of(Lang.getMessages("price_tag")),
+                                .argument(new ArgumentIntegerAllowedMatch<>("price", List.of(Lang.getMessage("price_tag")),
                                         cfg.getConfig().getAsInteger("offer-min-price", 1),
                                         cfg.getConfig().getAsInteger("offer-max-price", Integer.MAX_VALUE)
                                 ))
                                 .argument(new ArgumentFullOrCount("arg"))
                                 .executor(((sender, args) -> {
                                     if (!(sender instanceof Player player))
-                                        throw new CommandException(Lang.getMessages("must_be_player"));
-                                    int price = (int) args.getOrThrow("price", Lang.getMessages("price_not_specified"));
+                                        throw new CommandException(Lang.getMessage("must_be_player"));
+                                    int price = (int) args.getOrThrow("price", Lang.getMessage("price_not_specified"));
 
                                     String saleByThePieceS = String.valueOf(args.getOrDefault("arg", "full:false"));
 
@@ -552,7 +566,7 @@ public final class Main extends JavaPlugin {
 
                                     ItemStack itemStack = player.getInventory().getItemInMainHand().clone();
                                     if (itemStack.getType().isAir()) {
-                                        throw new CommandException(Lang.getMessages("cannot_trade_air"));
+                                        throw new CommandException(Lang.getMessage("cannot_trade_air"));
                                     }
 
                                     int cashback = 0;
@@ -563,12 +577,13 @@ public final class Main extends JavaPlugin {
                                         }
                                     }
 
+                                    if (saleByThePiece) saleByThePiece = Main.getCfg().isAllowBuyCount();
                                     User user = storage.getUserOrCreate(player);
                                     CSellItem sellItem = new CSellItem(player, itemStack, price, cfg.getDefaultSellTime() + user.getExternalSellTime(), saleByThePiece);
 
                                     for (String tag : sellItem.getTags()) {
                                         if (blackList.contains(tag)) {
-                                            message.sendMsg(player, sellItem.replace(Lang.getMessages("item-in-black-list")));
+                                            message.sendMsg(player, sellItem.replace(Lang.getMessage("item-in-black-list")));
                                             return;
                                         }
                                     }
@@ -577,7 +592,7 @@ public final class Main extends JavaPlugin {
                                     storage.validateAndAddItem(event);
                                     if (event.isValid()) {
                                         player.getInventory().getItemInMainHand().setAmount(cashback);
-                                        message.sendMsg(player, sellItem.replace(Lang.getMessages("successful_single_listing")));
+                                        message.sendMsg(player, sellItem.replace(Lang.getMessage("successful_single_listing")));
                                     } else {
                                         message.sendMsg(player, String.valueOf(event.getReason()));
                                     }
@@ -590,9 +605,9 @@ public final class Main extends JavaPlugin {
                                 .argument(new ArgumentStrings<>("tags"))
                                 .executor((sender, args) -> {
                                     if (!(sender instanceof Player player))
-                                        throw new CommandException(Lang.getMessages("must_be_player"));
+                                        throw new CommandException(Lang.getMessage("must_be_player"));
 
-                                    String[] rawtags = ((String) args.getOrThrow("tags", Lang.getMessages("tags_required"))).split(" ");
+                                    String[] rawtags = ((String) args.getOrThrow("tags", Lang.getMessage("tags_required"))).split(" ");
                                     List<String> tags = new ArrayList<>();
                                     for (String rawtag : rawtags) {
                                         tags.addAll(trieManager.getTrie().getAllWithPrefix(rawtag));
@@ -614,11 +629,11 @@ public final class Main extends JavaPlugin {
                                 .argument(new ArgumentString<>("player", () -> List.of(Bukkit.getOnlinePlayers().stream().map(Player::getName).toArray(String[]::new))))
                                 .executor(((sender, args) -> {
                                     if (!(sender instanceof Player senderP))
-                                        throw new CommandException(Lang.getMessages("must_be_player"));
+                                        throw new CommandException(Lang.getMessage("must_be_player"));
 
                                     String player = (String) args.get("player");
                                     if (player == null) {
-                                        message.sendMsg(sender, Lang.getMessages("player-not-selected"));
+                                        message.sendMsg(sender, Lang.getMessage("player-not-selected"));
                                         return;
                                     }
                                     UUID uuid;
@@ -633,7 +648,7 @@ public final class Main extends JavaPlugin {
                                         }
                                     }
                                     if (!storage.hasUser(uuid)) {
-                                        message.sendMsg(sender, Lang.getMessages("player-not-found"));
+                                        message.sendMsg(sender, Lang.getMessage("player-not-found"));
                                         return;
                                     }
                                     User user = storage.getUserOrCreate(senderP);
@@ -644,7 +659,7 @@ public final class Main extends JavaPlugin {
                 )
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))
-                        throw new CommandException(Lang.getMessages("must_be_player"));
+                        throw new CommandException(Lang.getMessage("must_be_player"));
                     User user = storage.getUserOrCreate(player);
                     MainMenu menu = new MainMenu(user, player);
                     menu.open();
@@ -667,7 +682,7 @@ public final class Main extends JavaPlugin {
     private List<String> onTabComplete0(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String alias, @NotNull String[] args) {
         if (args[0].equals("search") && sender.hasPermission("bauc.search")) {
             String last = args[args.length - 1];
-            if (last.isEmpty()) return List.of(Lang.getMessages("start_entering_item_name"));
+            if (last.isEmpty()) return List.of(Lang.getMessage("start_entering_item_name"));
             return trieManager.getTrie().getAllKeysWithPrefix(last);
         }
         return command.getTabCompleter(sender, args);

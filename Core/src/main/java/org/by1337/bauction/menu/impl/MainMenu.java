@@ -379,7 +379,7 @@ public class MainMenu extends Menu {
                             //  UUID uuid = UUID.fromString(uuidS);
 
                             if (!Main.getStorage().hasSellItem(uuid)) {
-                                Main.getMessage().sendMsg(viewer, Lang.getMessages("item_already_sold_or_removed"));
+                                Main.getMessage().sendMsg(viewer, Lang.getMessage("item_already_sold_or_removed"));
                                 sellItems = null;
                                 this.user = Main.getStorage().getUser(this.user.getUuid());
                                 generate0();
@@ -388,7 +388,7 @@ public class MainMenu extends Menu {
                             SellItem item = Main.getStorage().getSellItem(uuid);
 
                             if (Main.getEcon().getBalance(getPlayer()) < item.getPrice()) {
-                                Main.getMessage().sendMsg(getPlayer(), Lang.getMessages("insufficient_balance"));
+                                Main.getMessage().sendMsg(getPlayer(), Lang.getMessage("insufficient_balance"));
                                 return;
                             }
 
@@ -405,7 +405,7 @@ public class MainMenu extends Menu {
                             UniqueName uuid = new CUniqueName(uuidS);
 
                             if (!Main.getStorage().hasSellItem(uuid)) {
-                                Main.getMessage().sendMsg(viewer, Lang.getMessages("item_already_sold_or_removed"));
+                                Main.getMessage().sendMsg(viewer, Lang.getMessage("item_already_sold_or_removed"));
                                 sellItems = null;
                                 this.user = Main.getStorage().getUser(this.user.getUuid());
                                 generate0();
@@ -414,7 +414,7 @@ public class MainMenu extends Menu {
                             SellItem item = Main.getStorage().getSellItem(uuid);
 
                             if (Main.getEcon().getBalance(getPlayer()) < item.getPriceForOne()) {
-                                Main.getMessage().sendMsg(getPlayer(), Lang.getMessages("insufficient_balance_for_purchase"));
+                                Main.getMessage().sendMsg(getPlayer(), Lang.getMessage("insufficient_balance_for_purchase"));
                                 return;
                             }
 
@@ -430,7 +430,7 @@ public class MainMenu extends Menu {
                             UniqueName uuid = new CUniqueName(uuidS);
 
                             if (!Main.getStorage().hasSellItem(uuid)) {
-                                Main.getMessage().sendMsg(viewer, Lang.getMessages("item_already_sold_or_removed"));
+                                Main.getMessage().sendMsg(viewer, Lang.getMessage("item_already_sold_or_removed"));
                                 sellItems = null;
                                 this.user = Main.getStorage().getUser(this.user.getUuid());
                                 generate0();

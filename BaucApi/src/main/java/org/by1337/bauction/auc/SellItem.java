@@ -105,5 +105,7 @@ public interface SellItem extends Placeholderable, SerializableToByteArray {
      */
     double getPriceForOne();
 
+    String getServer();
+
     String toSql(String table);
 }

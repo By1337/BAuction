@@ -1,13 +1,11 @@
 package org.by1337.bauction.menu.impl;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
 import org.by1337.api.command.argument.ArgumentSetList;
 import org.by1337.api.command.argument.ArgumentString;
-import org.by1337.api.command.argument.ArgumentStrings;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeItemProcess;
 import org.by1337.bauction.auc.SellItem;
@@ -75,7 +73,7 @@ public class ItemsForSaleMenu extends Menu {
                             UniqueName uuid = new CUniqueName(uuidS);
 
                             if (!Main.getStorage().hasSellItem(uuid)) {
-                                Main.getMessage().sendMsg(player, Lang.getMessages("item_already_sold_or_removed"));
+                                Main.getMessage().sendMsg(player, Lang.getMessage("item_already_sold_or_removed"));
                                 sellItems = null;
                                 generate0();
                                 return;

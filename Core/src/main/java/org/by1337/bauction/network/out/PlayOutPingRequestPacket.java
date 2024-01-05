@@ -10,9 +10,17 @@ import java.io.IOException;
 public class PlayOutPingRequestPacket extends PacketOut {
     private final long time;
     private final String server;
+    private final String to;
 
     public PlayOutPingRequestPacket(String server) {
         this.server = server;
+        time = System.currentTimeMillis();
+        to = "any";
+    }
+
+    public PlayOutPingRequestPacket(String server, String to) {
+        this.server = server;
+        this.to = to;
         time = System.currentTimeMillis();
     }
 
@@ -23,6 +31,7 @@ public class PlayOutPingRequestPacket extends PacketOut {
             data.writeByte(PacketType.PING_REQUEST.ordinal());
             data.writeLong(time);
             data.writeUTF(server);
+            data.writeUTF(to);
             data.flush();
             return out.toByteArray();
         }

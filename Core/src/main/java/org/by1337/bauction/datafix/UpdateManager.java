@@ -11,10 +11,13 @@ import org.by1337.bauction.datafix.config.Messages108;
 import org.by1337.bauction.datafix.config.TagUtil107;
 import org.by1337.bauction.datafix.db.DBUpdate107;
 import org.by1337.bauction.datafix.db.DBUpdate108;
+import org.by1337.bauction.datafix.db.DBUpdate109;
+import org.by1337.bauction.datafix.db.mysql.MySqlDBUpdater1;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class UpdateManager {
     private final static int CURRENT_VERSION = 5;
@@ -47,6 +50,7 @@ public class UpdateManager {
         } catch (IOException e) {
             Main.getMessage().error(e);
         }
+        ((Main) Main.getInstance()).reloadConfigs();
     }
 
     private static void run(int version, YamlContext config) throws Exception {
@@ -74,6 +78,8 @@ public class UpdateManager {
             run(version, config);
         } else if (version == 4) {
             new DbCfg109().run();
+            new DBUpdate109().update();
+            new MySqlDBUpdater1().update();
             version++;
             run(version, config);
         }

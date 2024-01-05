@@ -21,13 +21,14 @@ public final class PacketType<T extends PacketIn> {
     public static final PacketType<PlayInSendMessagePacket> SEND_MESSAGE = register(PlayInSendMessagePacket::new);
     public static final PacketType<PlayInPingRequestPacket> PING_REQUEST = register(PlayInPingRequestPacket::new);
     public static final PacketType<PlayInPingResponsePacket> PING_RESPONSE = register(PlayInPingResponsePacket::new);
+    public static final PacketType<PlayInGiveMoneyRequest> GIVE_MONEY_REQUEST = register(PlayInGiveMoneyRequest::new);
+    public static final PacketType<PlayInGiveMoneyResponse> GIVE_MONEY_RESPONSE = register(PlayInGiveMoneyResponse::new);
 
     private final PacketInSuppler<T> suppler;
     private final int id;
 
     PacketType(PacketInSuppler<T> suppler, int id) {
         this.suppler = suppler;
-
         this.id = id;
     }
 

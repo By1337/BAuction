@@ -160,7 +160,7 @@ public class CUnsoldItem implements UnsoldItem {
                 sb.replace(sb.indexOf("{item_name}"), sb.indexOf("{item_name}") + "{item_name}".length(),
                         getItemStack().getItemMeta() != null && getItemStack().getItemMeta().hasDisplayName() ?
                                 getItemStack().getItemMeta().getDisplayName() :
-                                Lang.getMessages(getItemStack().getType().name().toLowerCase())
+                                Lang.getMessage(getItemStack().getType().name().toLowerCase())
                 );
                 continue;
             }

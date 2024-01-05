@@ -1,13 +1,11 @@
 package org.by1337.bauction.menu.impl;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.by1337.api.chat.Placeholderable;
 import org.by1337.api.command.Command;
 import org.by1337.api.command.CommandException;
 import org.by1337.api.command.argument.ArgumentSetList;
 import org.by1337.api.command.argument.ArgumentString;
-import org.by1337.api.command.argument.ArgumentStrings;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeUnsoldItemProcess;
 import org.by1337.bauction.auc.UnsoldItem;
@@ -78,7 +76,7 @@ public class UnsoldItemsMenu extends Menu {
                             UnsoldItem unsoldItem = unsoldItems.stream().filter(i -> i.getUniqueName().equals(uuid)).findFirst().orElse(null);
 
                             if (unsoldItem == null) {
-                                Main.getMessage().sendMsg(player, Lang.getMessages("item_no_longer_exists"));
+                                Main.getMessage().sendMsg(player, Lang.getMessage("item_no_longer_exists"));
                                 unsoldItems = null;
                                 generate0();
                                 return;

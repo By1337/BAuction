@@ -13,7 +13,7 @@ import java.util.List;
 public class ArgumentFullOrCount extends Argument<CommandSender> {
 
     private final ArgumentInteger<CommandSender> argumentInteger = new ArgumentIntegerAllowedMatch<>("amount", 1, 64);
-    private final boolean allowBuyCount = Main.getCfg().getConfig().getAsBoolean("allow-buy-count");
+
 
     public ArgumentFullOrCount(String name) {
         super(name);
@@ -21,7 +21,7 @@ public class ArgumentFullOrCount extends Argument<CommandSender> {
 
     @Override
     public List<String> tabCompleter(CommandSender sender, String str) throws CommandSyntaxError {
-        if (allowBuyCount) {
+        if (Main.getCfg().isAllowBuyCount()) {
             if (str.isEmpty()) return List.of("full", "64");
             if (str.startsWith("f")) return List.of("full");
         } else if (str.isEmpty()) return List.of("64");
@@ -30,7 +30,7 @@ public class ArgumentFullOrCount extends Argument<CommandSender> {
 
     @Override
     public Object process(CommandSender sender, String s) throws CommandSyntaxError {
-        if (allowBuyCount)
+        if (Main.getCfg().isAllowBuyCount())
             if (s.startsWith("f")) return "full";
         return argumentInteger.process(sender, s);
     }

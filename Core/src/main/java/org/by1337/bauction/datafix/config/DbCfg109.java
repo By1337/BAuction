@@ -16,5 +16,6 @@ public class DbCfg109 {
             config.getContext().set("server-id", "server-1");
             config.trySave();
         }
+        ((Main) Main.getInstance()).reloadDbCfg();
     }
 }

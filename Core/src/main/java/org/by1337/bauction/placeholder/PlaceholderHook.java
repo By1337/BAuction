@@ -86,7 +86,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
                                                 .executor(player -> {
                                                     if (player == null) return "player is null!";
                                                     long time = Main.getStorage().getUserOrCreate(player).getExternalSellTime();
-                                                    if (time == 0) return Lang.getMessages("has_no_external_time");
+                                                    if (time == 0) return Lang.getMessage("has_no_external_time");
                                                     return Main.getTimeUtil().getFormat(Main.getStorage().getUserOrCreate(player).getExternalSellTime() + System.currentTimeMillis(), false);
                                                 })//external_sell_time
                                         )

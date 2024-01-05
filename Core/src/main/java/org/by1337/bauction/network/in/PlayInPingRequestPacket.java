@@ -10,11 +10,13 @@ public class PlayInPingRequestPacket extends PacketIn {
 
     private final long time;
     private final String server;
+    private final String to;
 
     public PlayInPingRequestPacket(DataInputStream in) throws IOException {
         super(PacketType.PING_REQUEST);
         time = in.readLong();
         server = in.readUTF();
+        to = in.readUTF();
     }
 
     public long getTime() {
@@ -23,5 +25,9 @@ public class PlayInPingRequestPacket extends PacketIn {
 
     public String getServer() {
         return server;
+    }
+
+    public String getTo() {
+        return to;
     }
 }

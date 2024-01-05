@@ -7,9 +7,7 @@ import org.by1337.api.chat.Placeholderable;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.auc.SellItem;
 import org.by1337.bauction.auc.User;
-import org.by1337.bauction.db.kernel.CSellItem;
 
-import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.db.event.BuyItemEvent;
 import org.by1337.bauction.db.kernel.MysqlDb;
 import org.by1337.bauction.lang.Lang;
@@ -53,7 +51,7 @@ public class BuyItemProcess implements Placeholderable {
                if (result.isPresent()) {
                    if (result.get() == ConfirmMenu.Result.ACCEPT) {
                        if (Main.getEcon().getBalance(player) < buyingItem.getPrice()) {
-                           Main.getMessage().sendMsg(player, Lang.getMessages("insufficient_balance"));
+                           Main.getMessage().sendMsg(player, Lang.getMessage("insufficient_balance"));
                            return;
                        }
                        BuyItemEvent event = new BuyItemEvent(buyer, buyingItem);
@@ -62,16 +60,20 @@ public class BuyItemProcess implements Placeholderable {
                        OfflinePlayer seller = Bukkit.getOfflinePlayer(buyingItem.getSellerUuid());
                        if (event.isValid()) {
                            Main.getEcon().withdrawPlayer(player, buyingItem.getPrice());
-                           Main.getEcon().depositPlayer(seller, buyingItem.getPrice());
+                           if (!buyingItem.getServer().equals(Main.getServerId()) && Main.getStorage() instanceof MysqlDb mysqlDb) {
+                               mysqlDb.getMoneyGiver().give(buyingItem.getPrice(), buyingItem.getSellerUuid(), buyingItem.getServer());
+                           } else {
+                               Main.getEcon().depositPlayer(seller, buyingItem.getPrice());
+                           }
                            if (seller.isOnline()){
                                Main.getMessage().sendMsg(seller.getPlayer(),
-                                       replace(Lang.getMessages("item_sold_to_buyer")));
+                                       replace(Lang.getMessage("item_sold_to_buyer")));
                            } else if (Main.getStorage() instanceof MysqlDb mysqlDb) {
                                mysqlDb.getPacketConnection().saveSend(new PlayOutSendMessagePacket(
-                                       replace(Lang.getMessages("item_sold_to_buyer")), buyingItem.getSellerUuid()
+                                       replace(Lang.getMessage("item_sold_to_buyer")), buyingItem.getSellerUuid()
                                ));
                            }
-                           Main.getMessage().sendMsg(player, replace(Lang.getMessages("successful_purchase")));
+                           Main.getMessage().sendMsg(player, replace(Lang.getMessage("successful_purchase")));
                            PlayerUtil.giveItems(player, buyingItem.getItemStack());
                        } else {
                            Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
@@ -94,7 +96,7 @@ public class BuyItemProcess implements Placeholderable {
 
 
        }catch (Exception e){
-           Main.getMessage().sendMsg(player, Lang.getMessages("something_went_wrong"));
+           Main.getMessage().sendMsg(player, Lang.getMessage("something_went_wrong"));
            Main.getMessage().error(e);
        }
     }
