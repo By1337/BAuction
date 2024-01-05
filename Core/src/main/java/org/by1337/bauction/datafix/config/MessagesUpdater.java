@@ -13,14 +13,23 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Messages108 {
-
+public class MessagesUpdater {
     public void update() throws IOException, InvalidConfigurationException {
         File messages = new File(Main.getInstance().getDataFolder() + "/message.yml");
         if (!messages.exists()) return;
+        Map<String, String> map = getMessagesFromPlugin();
+        YamlConfig file = new YamlConfig(messages);
+        Map<String, String> map1 = file.getContext().getMap("messages", String.class, new HashMap<>());
+        map.forEach((k, v) -> {
+            if (!map1.containsKey(k)) {
+                file.getContext().set("messages." + k, v);
+            }
+        });
+        file.trySave();
+    }
 
+    public static Map<String, String> getMessagesFromPlugin() throws IOException {
         Map<String, String> map;
-
         try (InputStream in = Main.getInstance().getResource("message.yml")) {
             File tempFile = File.createTempFile("message", ".yml");
 
@@ -39,13 +48,6 @@ public class Messages108 {
             map = context.getMap("messages", String.class, new HashMap<>());
             tempFile.delete();
         }
-
-        YamlConfig file = new YamlConfig(messages);
-
-        file.getContext().set("messages.count-req", map.get("messages.count-req"));
-        file.getContext().set("messages.sale-by-the-piece-format-on", map.get("messages.sale-by-the-piece-format-on"));
-        file.getContext().set("messages.sale-by-the-piece-format-off", map.get("messages.sale-by-the-piece-format-off"));
-        file.getContext().set("messages.item-in-black-list", map.get("messages.item-in-black-list"));
-        file.trySave();
+        return map;
     }
 }

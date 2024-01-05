@@ -91,22 +91,23 @@ public final class Main extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
-        loadCfgFromDbCfg();
         registerAdapters();
-        UpdateManager.checkUpdate();
-        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        econ = rsp.getProvider();
+        loadCfgFromDbCfg();
         Lang.load(this);
         cfg = new Config(this);
         timeUtil = new TimeUtil();
-        initCommand();
-        new Metrics(this, 20300);
         trieManager = new TrieManager(this);
         TagUtil.loadAliases(this);
+        UpdateManager.checkUpdate();
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        econ = rsp.getProvider();
+        initCommand();
+        new Metrics(this, 20300);
         placeholderHook = new PlaceholderHook();
         placeholderHook.register();
         blackList = new HashSet<>(cfg.getConfig().getList("black-list", String.class, Collections.emptyList()));
         loadDb();
+        new VersionChecker();
     }
 
     private void loadDb() {
@@ -248,7 +249,6 @@ public final class Main extends JavaPlugin {
 
     public void reloadConfigs() {
         reloadDbCfg();
-        UpdateManager.checkUpdate();
         Lang.load(this);
         cfg.reload(instance);
         timeUtil.reload();
@@ -296,16 +296,16 @@ public final class Main extends JavaPlugin {
                                                 .argument(new ArgumentSetList<>("server", () -> ((MysqlDb) storage).getPacketConnection().getServerList()))
                                                 .executor(((sender, args) -> {
                                                     new Thread(() -> {
-                                                        String server = (String) args.getOrDefault("server", "any");
+                                                        String server = (String) args.getOrDefault("server", "all");
                                                         PacketConnection connection = ((MysqlDb) storage).getPacketConnection();
                                                         if (!connection.hasConnection()) {
                                                             message.sendMsg(sender, "&cHas no connection!");
                                                             return;
                                                         }
-                                                        message.sendMsg(sender, "&cInit...");
+                                                        message.sendMsg(sender, "&fInit...");
                                                         connection.pining();
 
-                                                        int servers = server.equals("any") ? 1 : connection.getServerList().size();
+                                                        int servers = server.equals("all") ? 1 : connection.getServerList().size();
 
                                                         AtomicInteger response = new AtomicInteger();
                                                         WaitNotifyCallBack<PlayInPingResponsePacket> callBack = new WaitNotifyCallBack<>() {

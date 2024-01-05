@@ -1,14 +1,10 @@
 package org.by1337.bauction.datafix;
 
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.by1337.api.configuration.YamlContext;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.datafix.config.DbCfg109;
-import org.by1337.bauction.datafix.config.Messages107;
-import org.by1337.bauction.datafix.config.Messages108;
-import org.by1337.bauction.datafix.config.TagUtil107;
+import org.by1337.bauction.datafix.config.*;
 import org.by1337.bauction.datafix.db.DBUpdate107;
 import org.by1337.bauction.datafix.db.DBUpdate108;
 import org.by1337.bauction.datafix.db.DBUpdate109;
@@ -17,7 +13,6 @@ import org.by1337.bauction.datafix.db.mysql.MySqlDBUpdater1;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class UpdateManager {
     private final static int CURRENT_VERSION = 5;
@@ -71,7 +66,7 @@ public class UpdateManager {
             run(version, config);
         } else if (version == 3) {
             new DBUpdate108().update();
-            new Messages108().update();
+            new MessagesUpdater().update();
             config.set("allow-buy-count", true);
             config.set("black-list", List.of("debug_stick"));
             version++;
@@ -80,6 +75,7 @@ public class UpdateManager {
             new DbCfg109().run();
             new DBUpdate109().update();
             new MySqlDBUpdater1().update();
+            new MessagesUpdater().update();
             version++;
             run(version, config);
         }

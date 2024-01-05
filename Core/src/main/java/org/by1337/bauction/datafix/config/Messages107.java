@@ -20,27 +20,7 @@ public class Messages107 {
 
         if (!messages.exists()) return;
 
-        Map<String, String> map;
-
-        try (InputStream in = Main.getInstance().getResource("message.yml")) {
-            File tempFile = File.createTempFile("message", ".yml");
-
-            try (FileOutputStream fos = new FileOutputStream(tempFile)) {
-                byte[] buffer = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = in.read(buffer)) != -1) {
-                    fos.write(buffer, 0, bytesRead);
-                }
-            }
-
-            YamlConfiguration yamlConfiguration = YamlConfiguration.loadConfiguration(tempFile);
-
-            YamlContext context = new YamlContext(yamlConfiguration);
-
-            map = context.getMap("messages", String.class, new HashMap<>());
-            tempFile.delete();
-        }
-
+        Map<String, String> map = MessagesUpdater.getMessagesFromPlugin();
 
         YamlConfig config = new YamlConfig(messages);
 
