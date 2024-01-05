@@ -33,6 +33,7 @@ public class VersionChecker implements Listener {
                 String[] args = result.split("=");
                 actualVersion = args[0];
                 downloadLink = args[1];
+                if (actualVersion.equals(currentVersion)) return;
                 message = String.format(Lang.getMessage("update-msg-raw"), currentVersion, actualVersion, downloadLink, downloadLink, downloadLink);
                 Bukkit.getPluginManager().registerEvents(listener, Main.getInstance());
             }
