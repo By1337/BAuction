@@ -3,6 +3,7 @@ package org.by1337.bauction.util;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.by1337.api.BLib;
@@ -38,7 +39,7 @@ public class VersionChecker implements Listener {
         }).start();
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (player.hasPermission("bauc.update")) {
@@ -63,8 +64,7 @@ public class VersionChecker implements Listener {
             if (code == 200) {
                 try (InputStream inputStream = connection.getInputStream();
                      BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                    String s = String.join("\n", reader.lines().toList());
-                    return s;
+                    return String.join("\n", reader.lines().toList());
                 }
             }
         } catch (IOException ignore) {
