@@ -5,16 +5,16 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.by1337</groupId>
-    <artifactId>V1_20_2</artifactId>
+    <artifactId>V1_17_1</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <name>V1_20_2</name>
+    <name>V1_17_1</name>
 
     <properties>
         <java.version>16</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <server.version>1.20.2-R0.1-SNAPSHOT</server.version>
+        <server.version>1.17.1-R0.1-SNAPSHOT</server.version>
     </properties>
 
     <build>
@@ -71,7 +71,7 @@
                         </goals>
                         <id>remap-spigot</id>
                         <configuration>
-                            <inputFile>${project.build.directory}/${project.artifactId}-${project.version}-remapped-obf.jar</inputFile>
+                            <inputFile>target/V1_17_1-1.0-remapped-obf.jar</inputFile>
                             <srgIn>org.spigotmc:minecraft-server:${server.version}:csrg:maps-spigot</srgIn>
                             <remappedDependencies>org.spigotmc:spigot:${server.version}:jar:remapped-obf</remappedDependencies>
                         </configuration>

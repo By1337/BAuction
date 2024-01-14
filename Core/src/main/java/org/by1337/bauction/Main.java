@@ -290,6 +290,27 @@ public final class Main extends JavaPlugin {
                         .addSubCommand(new Command<CommandSender>("debug")
                                         //<editor-fold desc="debug" defaultstate="collapsed">
                                         .requires(new RequiresPermission<>("bauc.admin.debug"))
+                                        .addSubCommand(new Command<CommandSender>("run")
+                                                .requires((s) -> s instanceof Player)
+                                                .argument(new ArgumentInteger<>("count"))
+                                                .argument(new ArgumentStrings<>("command"))
+                                                .executor(((sender, args) -> {
+                                                    Player player = (Player) sender;
+                                                    ItemStack itemStack = player.getInventory().getItemInMainHand().clone();
+                                                    if (itemStack.getType().isAir()) {
+                                                        throw new CommandException(Lang.getMessage("item_in_hand_required"));
+                                                    }
+                                                    int count = (int) args.getOrThrow("count");
+                                                    String cmd = (String) args.getOrThrow("command");
+                                                    TimeCounter timeCounter = new TimeCounter();
+                                                    for (int i = 0; i < count; i++) {
+                                                        player.performCommand(cmd);
+                                                        player.getInventory().setItemInMainHand(itemStack);
+                                                    }
+                                                    message.sendMsg(sender, "&fThe '%s' command was executed %s times for %s ms.", cmd, count, timeCounter.getTime());
+                                                }))
+                                        )
+
                                         .addSubCommand(new Command<CommandSender>("ping")
                                                 .requires(new RequiresPermission<>("bauc.admin.ping"))
                                                 .requires((sender -> storage instanceof MysqlDb))

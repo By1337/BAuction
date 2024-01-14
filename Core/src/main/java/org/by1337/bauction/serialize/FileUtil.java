@@ -14,9 +14,13 @@ public class FileUtil {
              DataOutputStream dos = new DataOutputStream(fos)) {
 
             for (SerializableToByteArray serializable : source) {
-                byte[] byteArray = serializable.getBytes();
-                dos.writeInt(byteArray.length);
-                dos.write(byteArray);
+                try {
+                    byte[] byteArray = serializable.getBytes();
+                    dos.writeInt(byteArray.length);
+                    dos.write(byteArray);
+                } catch (Exception e) {
+                    Main.getMessage().error("failed to save %s", e, source);
+                }
             }
         }
     }
@@ -68,16 +72,17 @@ public class FileUtil {
 
 
     public static void deleteFile(File file) throws IOException {
-        if (!file.exists()){
+        if (!file.exists()) {
             throw new FileNotFoundException(file.getPath());
         }
-        if (file.isDirectory()){
+        if (file.isDirectory()) {
             deleteInFolder(file);
         }
         if (!file.delete()) {
             throw new FileDeleteException("failed to delete file: " + file);
         }
     }
+
     private static void deleteInFolder(File folder) {
         if (folder.exists()) {
             File[] files = folder.listFiles();
@@ -92,6 +97,7 @@ public class FileUtil {
             }
         }
     }
+
     public static void deleteFileInDataFolder(String file) throws IOException {
         if (file.startsWith("/") || file.startsWith("\\")) file = file.substring(1);
         File f = new File(Main.getInstance().getDataFolder() + "/" + file);

@@ -1,8 +1,10 @@
 package org.by1337.v1_16_5.bauc;
 
 import net.minecraft.server.v1_16_R3.NBTTagCompound;
+import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_16_R3.persistence.CraftPersistentDataContainer;
 import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.by1337.bauction.ParsePDCTags;
 
 import java.util.ArrayList;

@@ -8,7 +8,6 @@ import org.by1337.v1_18_2.bauc.SyncDetectorV182;
 import org.by1337.v1_19_4.bauc.SyncDetectorV194;
 import org.by1337.v1_20_1.bauc.SyncDetectorV201;
 import org.by1337.v1_20_2.bauc.SyncDetectorV202;
-import org.by1337.v1_20_3.bauc.SyncDetectorV203;
 import org.by1337.v1_20_4.bauc.SyncDetectorV204;
 
 public class SyncDetectorManager {
@@ -22,7 +21,7 @@ public class SyncDetectorManager {
             case V1_19_4 -> new SyncDetectorV194();
             case V1_20_1 -> new SyncDetectorV201();
             case V1_20_2 -> new SyncDetectorV202();
-            case V1_20_3 -> new SyncDetectorV203();
+            case V1_20_3 -> new SyncDetectorV204(); // test
             case V1_20_4 -> new SyncDetectorV204();
             default -> throw new RuntimeException("unsupported version");
         };

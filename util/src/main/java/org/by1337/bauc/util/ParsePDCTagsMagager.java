@@ -9,7 +9,6 @@ import org.by1337.v1_18_2.bauc.ParsePDCTagsV182;
 import org.by1337.v1_19_4.bauc.ParsePDCTagsV194;
 import org.by1337.v1_20_1.bauc.ParsePDCTagsV201;
 import org.by1337.v1_20_2.bauc.ParsePDCTagsV202;
-import org.by1337.v1_20_3.bauc.ParsePDCTagsV203;
 import org.by1337.v1_20_4.bauc.ParsePDCTagsV204;
 
 import java.util.List;
@@ -29,7 +28,7 @@ public class ParsePDCTagsMagager {
             case V1_19_4 -> new ParsePDCTagsV194();
             case V1_20_1 -> new ParsePDCTagsV201();
             case V1_20_2 -> new ParsePDCTagsV202();
-            case V1_20_3 -> new ParsePDCTagsV203();
+            case V1_20_3 -> new ParsePDCTagsV204(); // test
             case V1_20_4 -> new ParsePDCTagsV204();
             default -> throw new RuntimeException("unsupported version");
         };

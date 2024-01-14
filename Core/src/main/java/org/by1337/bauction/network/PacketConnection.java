@@ -92,8 +92,8 @@ public class PacketConnection implements Listener, PluginMessageListener {
                 return;
             }
             send(arr);
-        } catch (IOException e) {
-            Main.getMessage().error(e);
+        } catch (Throwable ignore) {
+            //Main.getMessage().error(ignore);
         }
     }
 

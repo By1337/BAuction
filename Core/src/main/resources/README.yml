@@ -42,10 +42,10 @@ item:
       check_3:
         type: has permission # hp
         permission: 'some.permission'
-        check_2:
-          type: match # m
-          input: '10 * 10 + 15 == 115 || 10 > 9'
-          output: 'true' # если не указать, то будет true по умолчанию
+      check_4:
+        type: match # m
+        input: '10 * 10 + 15 == 115 || 10 > 9'
+        output: 'true' # если не указать, то будет true по умолчанию
     deny_commands:
       - 'cmd'
   left_click_commands:

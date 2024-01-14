@@ -218,7 +218,8 @@ public class CSellItem implements SellItem {
                 tags != null &&
                 uniqueName != null &&
                 material != null &&
-                sellFor != null;
+                sellFor != null &&
+                server != null;
     }
 
     @Override
@@ -238,8 +239,8 @@ public class CSellItem implements SellItem {
             data.writeInt(amount);
             data.writeDouble(priceForOne);
             SerializeUtils.writeCollectionToStream(data, sellFor);
-            data.flush();
             data.writeUTF(server);
+            data.flush();
             return out.toByteArray();
         }
     }
@@ -321,6 +322,7 @@ public class CSellItem implements SellItem {
 //        return sellFor;
 //    }
 
+
     @Override
     public String toString() {
         return "CSellItem{" +
@@ -332,11 +334,12 @@ public class CSellItem implements SellItem {
                 ", tags=" + tags +
                 ", timeListedForSale=" + timeListedForSale +
                 ", removalDate=" + removalDate +
-                ", uuid=" + uniqueName +
+                ", uniqueName=" + uniqueName +
                 ", material=" + material +
                 ", amount=" + amount +
                 ", priceForOne=" + priceForOne +
                 ", sellFor=" + sellFor +
+                ", server='" + server + '\'' +
                 '}';
     }
 

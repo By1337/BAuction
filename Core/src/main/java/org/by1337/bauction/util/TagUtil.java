@@ -45,6 +45,9 @@ public class TagUtil {
         Material material = itemStack.getType();
         list.add(material.name());
         ItemMeta im = itemStack.getItemMeta();
+        if (im.hasCustomModelData()){
+            list.add("customModelData:" + im.getCustomModelData());
+        }
         itemStack.getEnchantments().forEach((e, i) -> {
             list.add(e.getKey().getKey());
             list.add(e.getKey().getKey() + ":" + i);

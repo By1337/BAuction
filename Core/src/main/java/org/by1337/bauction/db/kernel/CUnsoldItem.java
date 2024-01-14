@@ -169,6 +169,17 @@ public class CUnsoldItem implements UnsoldItem {
         return sb.toString();
     }
 
+    @Override
+    public String toString() {
+        return "CUnsoldItem{" +
+                "item='" + item + '\'' +
+                ", expired=" + expired +
+                ", sellerUuid=" + sellerUuid +
+                ", uniqueName=" + uniqueName +
+                ", deleteVia=" + deleteVia +
+                '}';
+    }
+
     public static class CUnsoldItemBuilder {
         private String item;
         private long expired;
