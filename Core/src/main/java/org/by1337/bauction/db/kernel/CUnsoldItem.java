@@ -9,11 +9,13 @@ import org.by1337.bauction.serialize.SerializeUtils;
 import org.by1337.bauction.util.CUniqueName;
 import org.by1337.bauction.util.UniqueName;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.UUID;
 
 public class CUnsoldItem implements UnsoldItem {
@@ -22,6 +24,7 @@ public class CUnsoldItem implements UnsoldItem {
     final UUID sellerUuid;
     final UniqueName uniqueName;
     final long deleteVia;
+    @Nullable
     private transient ItemStack itemStack;
 
     public static CUnsoldItemBuilder builder() {
@@ -133,6 +136,14 @@ public class CUnsoldItem implements UnsoldItem {
 
     public long getDeleteVia() {
         return deleteVia;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CUnsoldItem that = (CUnsoldItem) o;
+        return expired == that.expired && deleteVia == that.deleteVia && Objects.equals(item, that.item) && Objects.equals(sellerUuid, that.sellerUuid) && Objects.equals(uniqueName, that.uniqueName);
     }
 
     @Override

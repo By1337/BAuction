@@ -13,6 +13,7 @@ import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.TagUtil;
 import org.by1337.bauction.util.UniqueName;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.sql.ResultSet;
@@ -33,6 +34,7 @@ public class CSellItem implements SellItem {
     final int amount;
     final double priceForOne;
     final Set<String> sellFor;
+    @Nullable
     transient ItemStack itemStack;
     final String server;
 
@@ -57,13 +59,20 @@ public class CSellItem implements SellItem {
                 .sellerName(resultSet.getString("seller_name"))
                 .price(resultSet.getDouble("price"))
                 .saleByThePiece(resultSet.getBoolean("sale_by_the_piece"))
-                .tags(new HashSet<>(Arrays.asList(resultSet.getString("tags").split(","))))
+                .tags(
+                        new HashSet<>(
+                                Arrays.stream(resultSet.getString("tags").split(",")).filter(s -> !s.isEmpty()).toList()
+                        )
+                )
                 .timeListedForSale(resultSet.getLong("time_listed_for_sale"))
                 .removalDate(resultSet.getLong("removal_date"))
                 .material(Material.valueOf(resultSet.getString("material")))
                 .amount(resultSet.getInt("amount"))
                 .priceForOne(resultSet.getDouble("price_for_one"))
-                .sellFor(new HashSet<>(Arrays.asList(resultSet.getString("sell_for").split(","))))
+                .sellFor(new HashSet<>(
+                                Arrays.stream(resultSet.getString("sell_for").split(",")).filter(s -> !s.isEmpty()).toList()
+                        )
+                )
                 .server(resultSet.getString("server"))
                 .build();
     }
@@ -161,7 +170,7 @@ public class CSellItem implements SellItem {
         this.uniqueName = Main.getUniqueNameGenerator().getNextCombination();
         material = itemStack.getType();
         amount = itemStack.getAmount();
-        priceForOne = saleByThePiece ? price / amount : price;
+        priceForOne = price / amount;
         sellFor = new HashSet<>();
         server = Main.getServerId();
     }
@@ -178,7 +187,7 @@ public class CSellItem implements SellItem {
         this.uniqueName = Main.getUniqueNameGenerator().getNextCombination();
         material = itemStack.getType();
         amount = itemStack.getAmount();
-        priceForOne = saleByThePiece ? price / amount : price;
+        priceForOne = price / amount;
         sellFor = new HashSet<>();
         server = Main.getServerId();
     }
@@ -186,7 +195,7 @@ public class CSellItem implements SellItem {
 
     static CSellItem parse(SellItem item) {
         return new CSellItem(
-                BLib.getApi().getItemStackSerialize().serialize(item.getItemStack()),
+                item.getItem(),
                 item.getSellerName(),
                 item.getSellerUuid(),
                 item.getPrice(),
@@ -344,18 +353,6 @@ public class CSellItem implements SellItem {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof CSellItem sellItem)) return false;
-        return Double.compare(getPrice(), sellItem.getPrice()) == 0 && isSaleByThePiece() == sellItem.isSaleByThePiece() && getTimeListedForSale() == sellItem.getTimeListedForSale() && getRemovalDate() == sellItem.getRemovalDate() && getAmount() == sellItem.getAmount() && Double.compare(getPriceForOne(), sellItem.getPriceForOne()) == 0 && Objects.equals(getItem(), sellItem.getItem()) && Objects.equals(getSellerName(), sellItem.getSellerName()) && Objects.equals(getSellerUuid(), sellItem.getSellerUuid()) && Objects.equals(getTags(), sellItem.getTags()) && Objects.equals(getUniqueName(), sellItem.getUniqueName()) && getMaterial() == sellItem.getMaterial() && Objects.equals(sellFor, sellItem.sellFor) && Objects.equals(getItemStack(), sellItem.getItemStack());
-    }
-
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(uniqueName.getKey().toCharArray());
-    }
-
-    @Override
     public String replace(String s) {
         StringBuilder sb = new StringBuilder(s);
         while (true) {
@@ -421,6 +418,33 @@ public class CSellItem implements SellItem {
     @Override
     public String getServer() {
         return server;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CSellItem cSellItem = (CSellItem) o;
+        return
+                Double.compare(price, cSellItem.price) == 0 &&
+                        saleByThePiece == cSellItem.saleByThePiece &&
+                        timeListedForSale == cSellItem.timeListedForSale &&
+                        removalDate == cSellItem.removalDate &&
+                        amount == cSellItem.amount &&
+                        Double.compare(priceForOne, cSellItem.priceForOne) == 0 &&
+                        Objects.equals(item, cSellItem.item) &&
+                        Objects.equals(sellerName, cSellItem.sellerName) &&
+                        Objects.equals(sellerUuid, cSellItem.sellerUuid) &&
+                        Objects.equals(tags, cSellItem.tags) &&
+                        Objects.equals(uniqueName, cSellItem.uniqueName) &&
+                        material == cSellItem.material &&
+                        Objects.equals(sellFor, cSellItem.sellFor) &&
+                        Objects.equals(server, cSellItem.server);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, server);
     }
 
     public static class CSellItemBuilder {

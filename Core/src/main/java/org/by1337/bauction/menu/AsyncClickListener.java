@@ -13,9 +13,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.by1337.api.BLib;
 import org.by1337.bauction.Main;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Closeable;
 import java.util.concurrent.ExecutorService;
@@ -39,7 +39,10 @@ public abstract class AsyncClickListener implements Listener, Closeable {
      */
     private long lastClick = 0;
 
+    @Nullable
     private ExecutorService executor;
+
+    private final RunManager runManager;
 
     /**
      * Constructor for the AsyncClickListener.
@@ -47,12 +50,22 @@ public abstract class AsyncClickListener implements Listener, Closeable {
      * @param viewer The player viewing the inventory.
      */
     public AsyncClickListener(Player viewer) {
-        this.viewer = viewer;
-        Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
-        executor = Executors.newSingleThreadExecutor();
+        this(viewer, true);
     }
 
-    protected void createInventory(int size, String title, InventoryType type){
+    public AsyncClickListener(Player viewer, boolean async) {
+        this.viewer = viewer;
+        Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
+
+        if (async) {
+            executor = Executors.newSingleThreadExecutor();
+            runManager = executor::execute;
+        } else {
+            runManager = Runnable::run;
+        }
+    }
+
+    protected void createInventory(int size, String title, InventoryType type) {
         if (type == InventoryType.CHEST) {
             inventory = Bukkit.createInventory(null, size, title);
         } else {
@@ -91,29 +104,25 @@ public abstract class AsyncClickListener implements Listener, Closeable {
         if (inventory.equals(e.getInventory())) {
             onClose(e);
             close();
-            new BukkitRunnable() {
-                final Player player = (Player) e.getPlayer();
-
-                @Override
-                public void run() {
-                    player.updateInventory();
-                    for (ItemStack itemStack : player.getInventory()) {
-                        if (itemStack == null) continue;
-                        ItemMeta im = itemStack.getItemMeta();
-                        if (im == null) continue;
-                        if (im.getPersistentDataContainer().has(CustomItemStack.MENU_ITEM_KEY, PersistentDataType.INTEGER)) {
-                            player.getInventory().remove(itemStack);
-                        }
+            syncUtil(() -> {
+                viewer.updateInventory();
+                for (ItemStack itemStack : viewer.getInventory()) {
+                    if (itemStack == null) continue;
+                    ItemMeta im = itemStack.getItemMeta();
+                    if (im == null) continue;
+                    if (im.getPersistentDataContainer().has(CustomItemStack.MENU_ITEM_KEY, PersistentDataType.INTEGER)) {
+                        viewer.getInventory().remove(itemStack);
                     }
                 }
-            }.runTaskLater(Main.getInstance(), 10);
+            }, 10);
         }
     }
 
     @Override
     public void close() {
         HandlerList.unregisterAll(this);
-        executor.shutdown();
+        if (executor != null)
+            executor.shutdown();
     }
 
     /**
@@ -130,7 +139,7 @@ public abstract class AsyncClickListener implements Listener, Closeable {
             } else {
                 lastClick = System.currentTimeMillis() + 50;
             }
-            executor.execute(() -> onClick(e));
+            runManager.run(() -> onClick(e));
         }
     }
 
@@ -148,7 +157,7 @@ public abstract class AsyncClickListener implements Listener, Closeable {
             } else {
                 lastClick = System.currentTimeMillis() + 50;
             }
-            executor.execute(() -> onClick(e));
+            runManager.run(() -> onClick(e));
         }
     }
 
@@ -157,7 +166,8 @@ public abstract class AsyncClickListener implements Listener, Closeable {
      */
     protected void reRegister() {
         Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
-        executor = Executors.newSingleThreadExecutor();
+        if (executor != null)
+            executor = Executors.newSingleThreadExecutor();
     }
 
     /**
@@ -176,6 +186,15 @@ public abstract class AsyncClickListener implements Listener, Closeable {
      * @param runnable The Runnable task to be executed.
      */
     public static void syncUtil(Runnable runnable) {
-        Bukkit.getScheduler().runTaskLater(Main.getInstance(), runnable, 0);
+        syncUtil(runnable, 0);
+    }
+
+    public static void syncUtil(Runnable runnable, long delay) {
+        Bukkit.getScheduler().runTaskLater(Main.getInstance(), runnable, delay);
+    }
+
+    @FunctionalInterface
+    private interface RunManager {
+        void run(Runnable runnable);
     }
 }
