@@ -1,12 +1,10 @@
 package org.by1337.bauction.db;
 
-import org.by1337.api.util.NameKey;
-import org.by1337.bauction.auc.SellItem;
-import org.by1337.bauction.db.kernel.CSellItem;
+import org.by1337.blib.util.NameKey;
+import org.by1337.bauction.api.auc.SellItem;
 import org.by1337.bauction.util.Sorting;
 
 import java.util.*;
-import java.util.function.Predicate;
 
 public class SortingItems {
 

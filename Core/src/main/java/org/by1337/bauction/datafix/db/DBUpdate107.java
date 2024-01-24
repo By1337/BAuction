@@ -7,7 +7,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.serialize.FileUtil;
-import org.by1337.bauction.serialize.SerializableToByteArray;
+import org.by1337.bauction.api.serialize.SerializableToByteArray;
 import org.by1337.bauction.serialize.SerializeUtils;
 import org.by1337.bauction.util.TimeCounter;
 

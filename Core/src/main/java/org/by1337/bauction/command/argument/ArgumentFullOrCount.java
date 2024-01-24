@@ -1,11 +1,11 @@
 package org.by1337.bauction.command.argument;
 
 import org.bukkit.command.CommandSender;
-import org.by1337.api.command.CommandSyntaxError;
-import org.by1337.api.command.argument.Argument;
-import org.by1337.api.command.argument.ArgumentInteger;
-import org.by1337.api.command.argument.ArgumentIntegerAllowedMatch;
-import org.by1337.api.command.argument.ArgumentSetList;
+import org.by1337.blib.command.CommandSyntaxError;
+import org.by1337.blib.command.argument.Argument;
+import org.by1337.blib.command.argument.ArgumentInteger;
+import org.by1337.blib.command.argument.ArgumentIntegerAllowedMatch;
+import org.by1337.blib.command.argument.ArgumentSetList;
 import org.by1337.bauction.Main;
 
 import java.util.List;

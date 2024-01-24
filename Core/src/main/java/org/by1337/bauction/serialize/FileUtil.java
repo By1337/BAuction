@@ -1,6 +1,7 @@
 package org.by1337.bauction.serialize;
 
 import org.by1337.bauction.Main;
+import org.by1337.bauction.api.serialize.SerializableToByteArray;
 
 import java.io.*;
 import java.util.ArrayList;

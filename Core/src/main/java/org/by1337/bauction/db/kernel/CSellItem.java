@@ -3,15 +3,16 @@ package org.by1337.bauction.db.kernel;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.by1337.api.BLib;
+import org.by1337.bauction.util.Placeholder;
+import org.by1337.blib.BLib;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.auc.SellItem;
+import org.by1337.bauction.api.auc.SellItem;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.serialize.SerializeUtils;
 import org.by1337.bauction.util.CUniqueName;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.TagUtil;
-import org.by1337.bauction.util.UniqueName;
+import org.by1337.bauction.api.util.UniqueName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,7 +21,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-public class CSellItem implements SellItem {
+public class CSellItem extends Placeholder implements SellItem {
     final String item;
     final String sellerName;
     final UUID sellerUuid;
@@ -97,6 +98,7 @@ public class CSellItem implements SellItem {
         this.priceForOne = priceForOne;
         this.sellFor = sellFor;
         this.itemStack = itemStack;
+        init();
     }
 
     public CSellItem(String item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, UniqueName uniqueName, Material material, int amount, double priceForOne, ItemStack itemStack) {
@@ -115,6 +117,7 @@ public class CSellItem implements SellItem {
         this.itemStack = itemStack;
         sellFor = new HashSet<>();
         server = Main.getServerId();
+        init();
     }
 
     public CSellItem(String item, String sellerName, UUID sellerUuid,
@@ -135,6 +138,7 @@ public class CSellItem implements SellItem {
         this.priceForOne = priceForOne;
         sellFor = new HashSet<>();
         server = Main.getServerId();
+        init();
     }
 
     public CSellItem(@NotNull String item, @NotNull String sellerName, @NotNull UUID sellerUuid, double price, boolean saleByThePiece, @NotNull Set<String> tags, long saleDuration, @NotNull Material material, int amount) {
@@ -152,6 +156,7 @@ public class CSellItem implements SellItem {
         priceForOne = price / amount;
         sellFor = new HashSet<>();
         server = Main.getServerId();
+        init();
     }
 
     public CSellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration) {
@@ -173,6 +178,7 @@ public class CSellItem implements SellItem {
         priceForOne = price / amount;
         sellFor = new HashSet<>();
         server = Main.getServerId();
+        init();
     }
 
     public CSellItem(String sellerName, UUID sellerUuid, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
@@ -190,8 +196,26 @@ public class CSellItem implements SellItem {
         priceForOne = price / amount;
         sellFor = new HashSet<>();
         server = Main.getServerId();
+        init();
     }
 
+    private void init(){
+        registerPlaceholder("{seller_uuid}", sellerUuid::toString);
+        registerPlaceholder("{seller_name}", () -> sellerName);
+        registerPlaceholder("{price}", () -> NumberUtil.format(price));
+        registerPlaceholder("{sale_by_the_piece}", () -> String.valueOf(saleByThePiece));
+        registerPlaceholder("{sale_by_the_piece_format}", () -> saleByThePiece ?
+                Lang.getMessage("sale-by-the-piece-format-on") : Lang.getMessage("sale-by-the-piece-format-off"));
+        registerPlaceholder("{expires}", () -> Main.getTimeUtil().getFormat(removalDate));
+        registerPlaceholder("{price_for_one}", () -> NumberUtil.format(priceForOne));
+        registerPlaceholder("{material}", () -> String.valueOf(material));
+        registerPlaceholder("{amount}", () -> String.valueOf(amount));
+        registerPlaceholder("{id}", () -> String.valueOf(uniqueName.getKey()));
+        registerPlaceholder("{sale_time}", () -> String.valueOf(timeListedForSale / 1000));
+        registerPlaceholder("{item_name}", () -> getItemStack().getItemMeta() != null && getItemStack().getItemMeta().hasDisplayName() ?
+                getItemStack().getItemMeta().getDisplayName() :
+                Lang.getMessage(getMaterial().name().toLowerCase()));
+    }
 
     static CSellItem parse(SellItem item) {
         return new CSellItem(
@@ -350,69 +374,6 @@ public class CSellItem implements SellItem {
                 ", sellFor=" + sellFor +
                 ", server='" + server + '\'' +
                 '}';
-    }
-
-    @Override
-    public String replace(String s) {
-        StringBuilder sb = new StringBuilder(s);
-        while (true) {
-            if (sb.indexOf("{seller_uuid}") != -1) {
-                sb.replace(sb.indexOf("{seller_uuid}"), sb.indexOf("{seller_uuid}") + "{seller_uuid}".length(), sellerUuid.toString());
-                continue;
-            }
-            if (sb.indexOf("{seller_name}") != -1) {
-                sb.replace(sb.indexOf("{seller_name}"), sb.indexOf("{seller_name}") + "{seller_name}".length(), sellerName);
-                continue;
-            }
-            if (sb.indexOf("{price}") != -1) {
-                sb.replace(sb.indexOf("{price}"), sb.indexOf("{price}") + "{price}".length(), NumberUtil.format(price));
-                continue;
-            }
-            if (sb.indexOf("{sale_by_the_piece}") != -1) {
-                sb.replace(sb.indexOf("{sale_by_the_piece}"), sb.indexOf("{sale_by_the_piece}") + "{sale_by_the_piece}".length(), String.valueOf(saleByThePiece));
-                continue;
-            }
-            if (sb.indexOf("{sale_by_the_piece_format}") != -1) {
-                sb.replace(sb.indexOf("{sale_by_the_piece_format}"), sb.indexOf("{sale_by_the_piece_format}") + "{sale_by_the_piece_format}".length(), saleByThePiece ?
-                        Lang.getMessage("sale-by-the-piece-format-on") : Lang.getMessage("sale-by-the-piece-format-off")
-                );
-                continue;
-            }
-            if (sb.indexOf("{expires}") != -1) {
-                sb.replace(sb.indexOf("{expires}"), sb.indexOf("{expires}") + "{expires}".length(), Main.getTimeUtil().getFormat(removalDate));
-                continue;
-            }
-            if (sb.indexOf("{price_for_one}") != -1) {
-                sb.replace(sb.indexOf("{price_for_one}"), sb.indexOf("{price_for_one}") + "{price_for_one}".length(), NumberUtil.format(priceForOne));
-                continue;
-            }
-            if (sb.indexOf("{material}") != -1) {
-                sb.replace(sb.indexOf("{material}"), sb.indexOf("{material}") + "{material}".length(), String.valueOf(material));
-                continue;
-            }
-            if (sb.indexOf("{amount}") != -1) {
-                sb.replace(sb.indexOf("{amount}"), sb.indexOf("{amount}") + "{amount}".length(), String.valueOf(amount));
-                continue;
-            }
-            if (sb.indexOf("{id}") != -1) {
-                sb.replace(sb.indexOf("{id}"), sb.indexOf("{id}") + "{id}".length(), String.valueOf(uniqueName.getKey()));
-                continue;
-            }
-            if (sb.indexOf("{sale_time}") != -1) {
-                sb.replace(sb.indexOf("{sale_time}"), sb.indexOf("{sale_time}") + "{sale_time}".length(), String.valueOf(timeListedForSale / 1000));
-                continue;
-            }
-            if (sb.indexOf("{item_name}") != -1) {
-                sb.replace(sb.indexOf("{item_name}"), sb.indexOf("{item_name}") + "{item_name}".length(),
-                        getItemStack().getItemMeta() != null && getItemStack().getItemMeta().hasDisplayName() ?
-                                getItemStack().getItemMeta().getDisplayName() :
-                                Lang.getMessage(getMaterial().name().toLowerCase())
-                );
-                continue;
-            }
-            break;
-        }
-        return sb.toString();
     }
 
     @Override

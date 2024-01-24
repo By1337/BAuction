@@ -1,6 +1,6 @@
 package org.by1337.bauction.util;
 
-import org.by1337.api.configuration.YamlContext;
+import org.by1337.blib.configuration.YamlContext;
 import org.by1337.bauction.Main;
 
 import java.util.HashMap;

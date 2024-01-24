@@ -2,7 +2,7 @@ package org.by1337.bauction.network.out;
 
 import org.by1337.bauction.network.PacketOut;
 import org.by1337.bauction.network.PacketType;
-import org.by1337.bauction.util.UniqueName;
+import org.by1337.bauction.api.util.UniqueName;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;

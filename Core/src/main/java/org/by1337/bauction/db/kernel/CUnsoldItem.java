@@ -1,13 +1,14 @@
 package org.by1337.bauction.db.kernel;
 
 import org.bukkit.inventory.ItemStack;
-import org.by1337.api.BLib;
+import org.by1337.bauction.util.Placeholder;
+import org.by1337.blib.BLib;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.auc.UnsoldItem;
+import org.by1337.bauction.api.auc.UnsoldItem;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.serialize.SerializeUtils;
 import org.by1337.bauction.util.CUniqueName;
-import org.by1337.bauction.util.UniqueName;
+import org.by1337.bauction.api.util.UniqueName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,7 +19,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 
-public class CUnsoldItem implements UnsoldItem {
+public class CUnsoldItem extends Placeholder implements UnsoldItem {
     final String item;
     final long expired;
     final UUID sellerUuid;
@@ -55,6 +56,7 @@ public class CUnsoldItem implements UnsoldItem {
         this.sellerUuid = sellerUuid;
         this.uniqueName = uniqueName;
         this.deleteVia = deleteVia;
+        init();
     }
 
     public CUnsoldItem(String item, long expired, UUID sellerUuid, UniqueName uniqueName, long deleteVia, ItemStack itemStack) {
@@ -64,6 +66,7 @@ public class CUnsoldItem implements UnsoldItem {
         this.uniqueName = uniqueName;
         this.deleteVia = deleteVia;
         this.itemStack = itemStack;
+        init();
     }
 
     public CUnsoldItem(@NotNull String item, @NotNull UUID sellerUuid, long expired, long deleteVia) {
@@ -72,8 +75,17 @@ public class CUnsoldItem implements UnsoldItem {
         this.sellerUuid = sellerUuid;
         this.deleteVia = deleteVia;
         uniqueName = Main.getUniqueNameGenerator().getNextCombination();
+        init();
     }
 
+    private void init(){
+        registerPlaceholder("{expired}", () -> Main.getTimeUtil().getFormat(expired));
+        registerPlaceholder("{delete_via}", () -> Main.getTimeUtil().getFormat(deleteVia));
+        registerPlaceholder("{id}", () -> String.valueOf(uniqueName.getKey()));
+        registerPlaceholder("{item_name}", () -> getItemStack().getItemMeta() != null && getItemStack().getItemMeta().hasDisplayName() ?
+                getItemStack().getItemMeta().getDisplayName() :
+                Lang.getMessage(getItemStack().getType().name().toLowerCase()));
+    }
     public ItemStack getItemStack() {
         if (itemStack == null) {
             itemStack = BLib.getApi().getItemStackSerialize().deserialize(item);
@@ -151,34 +163,6 @@ public class CUnsoldItem implements UnsoldItem {
         return Arrays.hashCode(uniqueName.getKey().toCharArray());
     }
 
-    @Override
-    public String replace(String s) {
-        StringBuilder sb = new StringBuilder(s);
-        while (true) {
-            if (sb.indexOf("{expired}") != -1) {
-                sb.replace(sb.indexOf("{expired}"), sb.indexOf("{expired}") + "{expired}".length(), Main.getTimeUtil().getFormat(expired));
-                continue;
-            }
-            if (sb.indexOf("{delete_via}") != -1) {
-                sb.replace(sb.indexOf("{delete_via}"), sb.indexOf("{delete_via}") + "{delete_via}".length(), Main.getTimeUtil().getFormat(deleteVia));
-                continue;
-            }
-            if (sb.indexOf("{id}") != -1) {
-                sb.replace(sb.indexOf("{id}"), sb.indexOf("{id}") + "{id}".length(), String.valueOf(uniqueName.getKey()));
-                continue;
-            }
-            if (sb.indexOf("{item_name}") != -1) {
-                sb.replace(sb.indexOf("{item_name}"), sb.indexOf("{item_name}") + "{item_name}".length(),
-                        getItemStack().getItemMeta() != null && getItemStack().getItemMeta().hasDisplayName() ?
-                                getItemStack().getItemMeta().getDisplayName() :
-                                Lang.getMessage(getItemStack().getType().name().toLowerCase())
-                );
-                continue;
-            }
-            break;
-        }
-        return sb.toString();
-    }
 
     @Override
     public String toString() {

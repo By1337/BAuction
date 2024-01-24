@@ -1,7 +1,7 @@
 package org.by1337.bauction.menu.click;
 
 
-import org.by1337.api.chat.Placeholderable;
+import org.by1337.blib.chat.Placeholderable;
 import org.jetbrains.annotations.Nullable;
 
 import org.by1337.bauction.menu.requirement.Requirements;

@@ -2,7 +2,7 @@ package org.by1337.bauction.search;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
-import org.by1337.api.configuration.YamlContext;
+import org.by1337.blib.configuration.YamlContext;
 
 import java.io.File;
 import java.util.Map;

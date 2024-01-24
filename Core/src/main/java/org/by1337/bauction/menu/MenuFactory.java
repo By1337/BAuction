@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import org.by1337.api.configuration.YamlContext;
+import org.by1337.blib.configuration.YamlContext;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.menu.click.Click;
 import org.by1337.bauction.menu.click.ClickType;

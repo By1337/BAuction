@@ -9,8 +9,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.by1337.api.chat.Placeholderable;
-import org.by1337.bauction.auc.User;
+import org.by1337.blib.chat.Placeholderable;
+import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.menu.requirement.Requirements;
 
 import org.jetbrains.annotations.Nullable;

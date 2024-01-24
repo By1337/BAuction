@@ -1,5 +1,7 @@
 package org.by1337.bauction.serialize;
 
+import org.by1337.bauction.api.serialize.SerializableToByteArray;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;

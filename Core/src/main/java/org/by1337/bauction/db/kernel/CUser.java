@@ -1,19 +1,17 @@
 package org.by1337.bauction.db.kernel;
 
 import org.by1337.bauction.Main;
-import org.by1337.bauction.auc.User;
+import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.serialize.SerializeUtils;
-import org.by1337.bauction.util.CUniqueName;
-import org.by1337.bauction.util.UniqueName;
+import org.by1337.bauction.util.Placeholder;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-public class CUser implements User {
+public class CUser extends Placeholder implements User {
     final String nickName;
     final UUID uuid;
     int dealCount;
@@ -36,12 +34,27 @@ public class CUser implements User {
         this.uuid = uuid;
         this.dealCount = dealCount;
         this.dealSum = dealSum;
+        init();
     }
 
 
     public CUser(@NotNull String nickName, @NotNull UUID uuid) {
         this.nickName = nickName;
         this.uuid = uuid;
+        init();
+    }
+    private void init(){
+        registerPlaceholder("{user_uuid}", () -> String.valueOf(uuid));
+        registerPlaceholder("{deal_sum}", () -> String.valueOf(dealSum));
+        registerPlaceholder("{nick_name}", () -> String.valueOf(nickName));
+        registerPlaceholder("{deal_count}", () -> String.valueOf(dealCount));
+        registerPlaceholder("{selling_item_count}", () -> String.valueOf(Main.getStorage().sellItemsCountByUser(uuid)));
+        registerPlaceholder("{not_sold_item_count}", () -> String.valueOf(Main.getStorage().unsoldItemsCountByUser(uuid)));
+        registerPlaceholder("{deal_count}", () -> String.valueOf(dealCount));
+        registerPlaceholder("{external_slots}", () -> String.valueOf(externalSlots));
+        registerPlaceholder("{slots_count}", () -> String.valueOf(Main.getCfg().getMaxSlots() + externalSlots));
+        registerPlaceholder("{external_slots}", () -> String.valueOf(externalSlots));
+        registerPlaceholder("{external_sell_time}", () -> String.valueOf(Main.getTimeUtil().getFormat(externalSellTime, false)));
     }
 
     public String toSql(String table) {
@@ -145,7 +158,7 @@ public class CUser implements User {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof CUser user)) return false;
-        return  Objects.equals(getNickName(), user.getNickName()) && Objects.equals(getUuid(), user.getUuid());
+        return Objects.equals(getNickName(), user.getNickName()) && Objects.equals(getUuid(), user.getUuid());
     }
 
     @Override
@@ -153,52 +166,4 @@ public class CUser implements User {
         return Objects.hash(getNickName(), getUuid());
     }
 
-    @Override
-    public String replace(String s) {
-        StringBuilder sb = new StringBuilder(s);
-        while (true) {
-            if (sb.indexOf("{user_uuid}") != -1) {
-                sb.replace(sb.indexOf("{user_uuid}"), sb.indexOf("{user_uuid}") + "{user_uuid}".length(), String.valueOf(uuid));
-                continue;
-            }
-            if (sb.indexOf("{deal_sum}") != -1) {
-                sb.replace(sb.indexOf("{deal_sum}"), sb.indexOf("{deal_sum}") + "{deal_sum}".length(), String.valueOf(dealSum));
-                continue;
-            }
-            if (sb.indexOf("{nick_name}") != -1) {
-                sb.replace(sb.indexOf("{nick_name}"), sb.indexOf("{nick_name}") + "{nick_name}".length(), nickName);
-                continue;
-            }
-            if (sb.indexOf("{deal_count}") != -1) {
-                sb.replace(sb.indexOf("{deal_count}"), sb.indexOf("{deal_count}") + "{deal_count}".length(), String.valueOf(dealCount));
-                continue;
-            }
-            if (sb.indexOf("{selling_item_count}") != -1) {
-                sb.replace(sb.indexOf("{selling_item_count}"), sb.indexOf("{selling_item_count}") + "{selling_item_count}".length(),
-                        String.valueOf(Main.getStorage().sellItemsCountByUser(uuid))
-                );
-                continue;
-            }
-            if (sb.indexOf("{not_sold_item_count}") != -1) {
-                sb.replace(sb.indexOf("{not_sold_item_count}"), sb.indexOf("{not_sold_item_count}") + "{not_sold_item_count}".length(),
-                        String.valueOf(Main.getStorage().unsoldItemsCountByUser(uuid))
-                );
-                continue;
-            }
-            if (sb.indexOf("{external_slots}") != -1) {
-                sb.replace(sb.indexOf("{external_slots}"), sb.indexOf("{external_slots}") + "{external_slots}".length(), String.valueOf(externalSlots));
-                continue;
-            }
-            if (sb.indexOf("{slots_count}") != -1) {
-                sb.replace(sb.indexOf("{slots_count}"), sb.indexOf("{slots_count}") + "{slots_count}".length(), String.valueOf(Main.getCfg().getMaxSlots() + externalSlots));
-                continue;
-            }
-            if (sb.indexOf("{external_sell_time}") != -1) {
-                sb.replace(sb.indexOf("{external_sell_time}"), sb.indexOf("{external_sell_time}") + "{external_sell_time}".length(), Main.getTimeUtil().getFormat(externalSellTime, false));
-                continue;
-            }
-            break;
-        }
-        return sb.toString();
-    }
 }

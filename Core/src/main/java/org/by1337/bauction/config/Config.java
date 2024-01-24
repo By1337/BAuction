@@ -2,8 +2,8 @@ package org.by1337.bauction.config;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
-import org.by1337.api.configuration.YamlContext;
-import org.by1337.api.util.NameKey;
+import org.by1337.blib.configuration.YamlContext;
+import org.by1337.blib.util.NameKey;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.boost.BoostManager;
 import org.by1337.bauction.util.Category;

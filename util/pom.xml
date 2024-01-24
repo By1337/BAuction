@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.by1337</groupId>
+    <groupId>org.by1337.bauction.util</groupId>
     <artifactId>util</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
@@ -62,6 +62,10 @@
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
+        <repository>
+            <id>by1337</id>
+            <url>https://by1337.space/repository/maven-releases/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -72,42 +76,49 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.by1337</groupId>
+            <groupId>org.by1337.blib</groupId>
+            <artifactId>Blib-api</artifactId>
+            <version>1.0.5</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.by1337.bauction.nms</groupId>
             <artifactId>V1_16_5</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>org.by1337</groupId>
+            <groupId>org.by1337.bauction.nms</groupId>
             <artifactId>V1_17_1</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>org.by1337</groupId>
+            <groupId>org.by1337.bauction.nms</groupId>
             <artifactId>V1_18_2</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>org.by1337</groupId>
+            <groupId>org.by1337.bauction.nms</groupId>
             <artifactId>V1_19_4</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>org.by1337</groupId>
+            <groupId>org.by1337.bauction.nms</groupId>
             <artifactId>V1_20_1</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>org.by1337</groupId>
+            <groupId>org.by1337.bauction.nms</groupId>
             <artifactId>V1_20_2</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>org.by1337</groupId>
+            <groupId>org.by1337.bauction.nms</groupId>
             <artifactId>V1_20_4</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>org.by1337</groupId>
+            <groupId>org.by1337.bauction.api</groupId>
             <artifactId>BaucApi</artifactId>
             <version>1.0</version>
         </dependency>

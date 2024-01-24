@@ -2,12 +2,10 @@ package org.by1337.bauction.menu.impl;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.auc.SellItem;
-import org.by1337.bauction.auc.User;
+import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.util.TagUtil;
 
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.UUID;
 
 public class PlayerItemsView extends MainMenu {

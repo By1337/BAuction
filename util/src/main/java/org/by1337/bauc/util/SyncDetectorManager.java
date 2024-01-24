@@ -1,14 +1,14 @@
 package org.by1337.bauc.util;
 
-import org.by1337.api.util.Version;
-import org.by1337.bauction.SyncDetector;
-import org.by1337.v1_16_5.bauc.SyncDetectorV165;
-import org.by1337.v1_17_1.bauc.SyncDetectorV171;
-import org.by1337.v1_18_2.bauc.SyncDetectorV182;
-import org.by1337.v1_19_4.bauc.SyncDetectorV194;
-import org.by1337.v1_20_1.bauc.SyncDetectorV201;
-import org.by1337.v1_20_2.bauc.SyncDetectorV202;
-import org.by1337.v1_20_4.bauc.SyncDetectorV204;
+import org.by1337.blib.util.Version;
+import org.by1337.bauction.api.SyncDetector;
+import org.by1337.bauction.nms.v1_16_5.SyncDetectorV165;
+import org.by1337.bauction.nms.v1_17_1.SyncDetectorV171;
+import org.by1337.bauction.nms.v1_18_2.SyncDetectorV182;
+import org.by1337.bauction.nms.v1_19_4.SyncDetectorV194;
+import org.by1337.bauction.nms.v1_20_1.SyncDetectorV201;
+import org.by1337.bauction.nms.v1_20_2.SyncDetectorV202;
+import org.by1337.bauction.nms.v1_20_4.SyncDetectorV204;
 
 public class SyncDetectorManager {
     private final static SyncDetector syncDetector;

@@ -1,9 +1,8 @@
 package org.by1337.bauction.util;
 
-import org.by1337.bauction.db.kernel.CUnsoldItem;
+import org.by1337.bauction.api.util.UniqueName;
 
 import java.io.*;
-import java.util.UUID;
 
 public class CUniqueName implements UniqueName {
     private final String key;

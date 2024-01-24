@@ -13,7 +13,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.by1337.api.BLib;
+import org.by1337.blib.BLib;
 import org.by1337.bauction.Main;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +42,8 @@ public abstract class AsyncClickListener implements Listener, Closeable {
     @Nullable
     private ExecutorService executor;
 
-    private final RunManager runManager;
+    private RunManager runManager;
+    private final boolean async;
 
     /**
      * Constructor for the AsyncClickListener.
@@ -53,8 +54,9 @@ public abstract class AsyncClickListener implements Listener, Closeable {
         this(viewer, true);
     }
 
-    public AsyncClickListener(Player viewer, boolean async) {
+    public AsyncClickListener(Player viewer, boolean async ) {
         this.viewer = viewer;
+        this.async = async;
         Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
 
         if (async) {
@@ -166,8 +168,12 @@ public abstract class AsyncClickListener implements Listener, Closeable {
      */
     protected void reRegister() {
         Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
-        if (executor != null)
+        if (async) {
             executor = Executors.newSingleThreadExecutor();
+            runManager = executor::execute;
+        } else {
+            runManager = Runnable::run;
+        }
     }
 
     /**

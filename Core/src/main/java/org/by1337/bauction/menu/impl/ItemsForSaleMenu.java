@@ -1,22 +1,22 @@
 package org.by1337.bauction.menu.impl;
 
 import org.bukkit.entity.Player;
-import org.by1337.api.chat.Placeholderable;
-import org.by1337.api.command.Command;
-import org.by1337.api.command.CommandException;
-import org.by1337.api.command.argument.ArgumentSetList;
-import org.by1337.api.command.argument.ArgumentString;
+import org.by1337.blib.chat.Placeholderable;
+import org.by1337.blib.command.Command;
+import org.by1337.blib.command.CommandException;
+import org.by1337.blib.command.argument.ArgumentSetList;
+import org.by1337.blib.command.argument.ArgumentString;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.action.TakeItemProcess;
-import org.by1337.bauction.auc.SellItem;
-import org.by1337.bauction.auc.User;
+import org.by1337.bauction.api.auc.SellItem;
+import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.command.DefaultMenuCommand;
 import org.by1337.bauction.util.CUniqueName;
-import org.by1337.api.util.Pair;
-import org.by1337.bauction.util.UniqueName;
+import org.by1337.blib.util.Pair;
+import org.by1337.bauction.api.util.UniqueName;
 
 import javax.annotation.Nullable;
 import java.util.*;

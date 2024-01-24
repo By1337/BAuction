@@ -1,14 +1,15 @@
 package org.by1337.bauction.db.kernel;
 
 import org.bukkit.entity.Player;
-import org.by1337.api.chat.util.Message;
-import org.by1337.api.util.NameKey;
-import org.by1337.api.util.Pair;
-import org.by1337.api.util.SupplerPair;
+import org.by1337.bauction.api.util.UniqueName;
+import org.by1337.blib.chat.util.Message;
+import org.by1337.blib.util.NameKey;
+import org.by1337.blib.util.Pair;
+import org.by1337.blib.util.SupplerPair;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.auc.SellItem;
-import org.by1337.bauction.auc.UnsoldItem;
-import org.by1337.bauction.auc.User;
+import org.by1337.bauction.api.auc.SellItem;
+import org.by1337.bauction.api.auc.UnsoldItem;
+import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.db.SortingItems;
 import org.by1337.bauction.util.*;
 import org.jetbrains.annotations.NotNull;

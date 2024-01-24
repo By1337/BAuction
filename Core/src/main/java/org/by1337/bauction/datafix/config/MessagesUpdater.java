@@ -2,8 +2,8 @@ package org.by1337.bauction.datafix.config;
 
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.by1337.api.configuration.YamlConfig;
-import org.by1337.api.configuration.YamlContext;
+import org.by1337.blib.configuration.YamlConfig;
+import org.by1337.blib.configuration.YamlContext;
 import org.by1337.bauction.Main;
 
 import java.io.File;

@@ -3,10 +3,10 @@ package org.by1337.bauction.action;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.by1337.api.chat.Placeholderable;
+import org.by1337.blib.chat.Placeholderable;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.auc.SellItem;
-import org.by1337.bauction.auc.User;
+import org.by1337.bauction.api.auc.SellItem;
+import org.by1337.bauction.api.auc.User;
 
 import org.by1337.bauction.db.event.BuyItemEvent;
 import org.by1337.bauction.db.kernel.MysqlDb;

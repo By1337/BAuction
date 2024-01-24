@@ -1,6 +1,6 @@
 package org.by1337.bauction.boost;
 
-import org.by1337.api.util.NameKey;
+import org.by1337.blib.util.NameKey;
 
 public class Boost {
     private final NameKey id;

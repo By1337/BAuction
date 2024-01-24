@@ -1,7 +1,5 @@
 package org.by1337.bauction.network;
 
-import org.by1337.bauction.serialize.SerializableToByteArray;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;

@@ -1,6 +1,6 @@
 package org.by1337.bauction.network.in;
 
-import org.by1337.bauction.auc.SellItem;
+import org.by1337.bauction.api.auc.SellItem;
 import org.by1337.bauction.db.kernel.CSellItem;
 import org.by1337.bauction.network.PacketIn;
 import org.by1337.bauction.network.PacketType;

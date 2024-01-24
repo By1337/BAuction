@@ -1,6 +1,5 @@
 package org.by1337.bauction.network.in;
 
-import org.by1337.bauction.auc.User;
 import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.network.PacketIn;
 import org.by1337.bauction.network.PacketType;

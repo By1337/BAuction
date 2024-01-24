@@ -1,6 +1,5 @@
-import org.by1337.bauction.Main;
 import org.by1337.bauction.util.CUniqueName;
-import org.by1337.bauction.util.UniqueName;
+import org.by1337.bauction.api.util.UniqueName;
 import org.by1337.bauction.util.UniqueNameGenerator;
 import org.junit.Assert;
 import org.junit.Test;

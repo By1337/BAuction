@@ -8,14 +8,14 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.by1337.api.util.NameKey;
+import org.by1337.bauction.api.event.*;
+import org.by1337.blib.util.NameKey;
 import org.by1337.bauc.util.SyncDetectorManager;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.auc.SellItem;
-import org.by1337.bauction.auc.UnsoldItem;
-import org.by1337.bauction.auc.User;
+import org.by1337.bauction.api.auc.SellItem;
+import org.by1337.bauction.api.auc.UnsoldItem;
+import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.db.event.*;
-import org.by1337.bauction.event.*;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.serialize.FileUtil;
 import org.by1337.bauction.util.*;
@@ -348,6 +348,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
                         .priceForOne(updated.priceForOne)
                         .sellFor(updated.sellFor)
                         .itemStack(itemStack)
+                        .server(updated.server)
                         .build();
 
                 addSellItem(newItem);

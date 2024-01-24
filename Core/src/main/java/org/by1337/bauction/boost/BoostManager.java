@@ -2,7 +2,7 @@ package org.by1337.bauction.boost;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.by1337.api.configuration.YamlContext;
+import org.by1337.blib.configuration.YamlContext;
 import org.by1337.bauction.db.kernel.CUser;
 import org.jetbrains.annotations.NotNull;
 

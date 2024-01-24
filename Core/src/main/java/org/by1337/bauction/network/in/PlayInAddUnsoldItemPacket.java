@@ -1,6 +1,5 @@
 package org.by1337.bauction.network.in;
 
-import org.by1337.bauction.auc.UnsoldItem;
 import org.by1337.bauction.db.kernel.CUnsoldItem;
 import org.by1337.bauction.network.PacketIn;
 import org.by1337.bauction.network.PacketType;

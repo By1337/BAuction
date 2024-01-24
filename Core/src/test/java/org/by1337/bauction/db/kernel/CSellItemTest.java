@@ -3,7 +3,7 @@ package org.by1337.bauction.db.kernel;
 import junit.framework.TestCase;
 import org.bukkit.Material;
 import org.by1337.bauction.BLibApi;
-import org.by1337.bauction.auc.SellItem;
+import org.by1337.bauction.api.auc.SellItem;
 import org.by1337.bauction.util.CUniqueName;
 import org.junit.Assert;
 import org.mockito.Mockito;

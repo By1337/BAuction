@@ -1,9 +1,9 @@
 package org.by1337.bauction.config.adapter;
 
 import org.bukkit.configuration.ConfigurationSection;
-import org.by1337.api.configuration.YamlContext;
-import org.by1337.api.configuration.adapter.ClassAdapter;
-import org.by1337.api.util.NameKey;
+import org.by1337.blib.configuration.YamlContext;
+import org.by1337.blib.configuration.adapter.ClassAdapter;
+import org.by1337.blib.util.NameKey;
 import org.by1337.bauction.boost.Boost;
 import org.by1337.bauction.util.NumberUtil;
 

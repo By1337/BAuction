@@ -1,6 +1,7 @@
 package org.by1337.bauction.serialize;
 
 import junit.framework.TestCase;
+import org.by1337.bauction.api.serialize.SerializableToByteArray;
 import org.junit.Assert;
 
 import java.io.File;

@@ -2,7 +2,7 @@ package org.by1337.bauction.datafix;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
-import org.by1337.api.configuration.YamlContext;
+import org.by1337.blib.configuration.YamlContext;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.datafix.config.*;
 import org.by1337.bauction.datafix.db.DBUpdate107;

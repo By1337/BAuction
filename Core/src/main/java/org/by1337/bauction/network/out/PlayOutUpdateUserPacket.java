@@ -1,6 +1,6 @@
 package org.by1337.bauction.network.out;
 
-import org.by1337.bauction.auc.User;
+import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.network.PacketOut;
 import org.by1337.bauction.network.PacketType;
 

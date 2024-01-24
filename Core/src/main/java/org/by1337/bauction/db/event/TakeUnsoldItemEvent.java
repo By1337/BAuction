@@ -1,9 +1,7 @@
 package org.by1337.bauction.db.event;
 
-import org.by1337.bauction.auc.UnsoldItem;
-import org.by1337.bauction.auc.User;
-import org.by1337.bauction.db.kernel.CUnsoldItem;
-import org.by1337.bauction.db.kernel.CUser;
+import org.by1337.bauction.api.auc.UnsoldItem;
+import org.by1337.bauction.api.auc.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

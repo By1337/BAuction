@@ -6,7 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.by1337.api.BLib;
+import org.by1337.blib.BLib;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.lang.Lang;
 

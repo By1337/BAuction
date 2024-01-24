@@ -2,8 +2,8 @@ package org.by1337.bauction.action;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.auc.UnsoldItem;
-import org.by1337.bauction.auc.User;
+import org.by1337.bauction.api.auc.UnsoldItem;
+import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.db.event.TakeUnsoldItemEvent;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.Menu;

@@ -1,6 +1,6 @@
 package org.by1337.bauction.menu.requirement;
 
-import org.by1337.api.chat.Placeholderable;
+import org.by1337.blib.chat.Placeholderable;
 import org.by1337.bauction.menu.Menu;
 
 public class RequirementStringEquals implements IRequirement {

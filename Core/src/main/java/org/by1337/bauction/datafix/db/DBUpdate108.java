@@ -8,7 +8,7 @@ import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.serialize.FileUtil;
 import org.by1337.bauction.serialize.SerializeUtils;
 import org.by1337.bauction.util.CUniqueName;
-import org.by1337.bauction.util.UniqueName;
+import org.by1337.bauction.api.util.UniqueName;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
