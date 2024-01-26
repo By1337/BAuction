@@ -19,7 +19,7 @@ public class SortingItems {
         comparator = sorting.getComparator();
         items = new TreeSet<>((o1, o2) -> {
             int res = comparator.compare(o1, o2);
-            if (res == 0) return Arrays.compare(o1.getUniqueName().getKey().toCharArray(), o2.getUniqueName().getKey().toCharArray());
+            if (res == 0) return o1.getUniqueName().getKey().compareTo(o2.getUniqueName().getKey());
             return res;
         });
     }

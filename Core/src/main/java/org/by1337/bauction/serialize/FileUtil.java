@@ -28,24 +28,18 @@ public class FileUtil {
 
     public static <T> List<T> read(File file, Deserializable<T> deserializeProvider) throws IOException {
         List<T> list = new ArrayList<>();
-        try (FileInputStream fis = new FileInputStream(file)) {
-            byte[] initialBuffer = new byte[4];
-            int bytesRead = fis.read(initialBuffer);
 
-            while (bytesRead == 4) {
-                int dynamicChunkSize = byteToInt(initialBuffer);
-
-                byte[] buffer = new byte[dynamicChunkSize];
-                int chunkBytesRead = fis.read(buffer);
-
-                if (chunkBytesRead == dynamicChunkSize) {
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+            try (DataInputStream dis = new DataInputStream(bis)) {
+                while (dis.available() > 0) {
+                    int dynamicChunkSize = dis.readInt();
+                    byte[] buffer = new byte[dynamicChunkSize];
+                    dis.readFully(buffer);
                     list.add(deserializeProvider.deserialize(buffer));
-                    bytesRead = fis.read(initialBuffer);
-                } else {
-                    break;
                 }
             }
         }
+
         return list;
     }
 
