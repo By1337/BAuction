@@ -169,8 +169,8 @@ public class PacketConnection implements Listener, PluginMessageListener {
         }
         if (packetIn == null) return;
 
-        if (callbacks.containsKey(type)) {
-            List<CallBack<? extends PacketIn>> list = callbacks.getOrDefault(type, new CopyOnWriteArrayList<>());
+        List<CallBack<? extends PacketIn>> list = callbacks.get(type);
+        if (list != null){
             for (Object o : list.toArray()) {
                 ((CallBack<T>) o).back(packetIn);
             }

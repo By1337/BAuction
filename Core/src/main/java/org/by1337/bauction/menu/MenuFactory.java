@@ -1,27 +1,11 @@
 package org.by1337.bauction.menu;
 
 
-import org.bukkit.Color;
-import org.bukkit.NamespacedKey;
-import org.bukkit.configuration.MemorySection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-
+import org.by1337.bauction.menu.requirement.Requirements;
 import org.by1337.blib.configuration.YamlContext;
-import org.by1337.bauction.Main;
-import org.by1337.bauction.menu.click.Click;
-import org.by1337.bauction.menu.click.ClickType;
-import org.by1337.bauction.menu.click.IClick;
-import org.by1337.bauction.menu.requirement.*;
-import org.by1337.bauction.menu.util.EnchantmentBuilder;
 
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MenuFactory {

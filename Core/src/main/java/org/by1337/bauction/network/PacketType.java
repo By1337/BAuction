@@ -2,13 +2,11 @@ package org.by1337.bauction.network;
 
 import org.by1337.bauction.network.in.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public final class PacketType<T extends PacketIn> {
     private static final List<PacketType<?>> types = new ArrayList<>();

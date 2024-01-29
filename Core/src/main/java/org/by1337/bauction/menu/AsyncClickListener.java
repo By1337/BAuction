@@ -17,7 +17,6 @@ import org.by1337.blib.BLib;
 import org.by1337.bauction.Main;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Closeable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,7 +24,7 @@ import java.util.concurrent.Executors;
 /**
  * Abstract class representing an asynchronous click listener for inventories.
  */
-public abstract class AsyncClickListener implements Listener, Closeable {
+public abstract class AsyncClickListener implements Listener {
     /**
      * The inventory associated with this click listener.
      */
@@ -58,13 +57,7 @@ public abstract class AsyncClickListener implements Listener, Closeable {
         this.viewer = viewer;
         this.async = async;
         Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
-
-        if (async) {
-            executor = Executors.newSingleThreadExecutor();
-            runManager = executor::execute;
-        } else {
-            runManager = Runnable::run;
-        }
+        createRunManager();
     }
 
     protected void createInventory(int size, String title, InventoryType type) {
@@ -120,11 +113,11 @@ public abstract class AsyncClickListener implements Listener, Closeable {
         }
     }
 
-    @Override
     public void close() {
         HandlerList.unregisterAll(this);
         if (executor != null)
             executor.shutdown();
+        runManager = null;
     }
 
     /**
@@ -167,13 +160,11 @@ public abstract class AsyncClickListener implements Listener, Closeable {
      * Re-registers the click listener with the Bukkit plugin manager.
      */
     protected void reRegister() {
-        Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
-        if (async) {
-            executor = Executors.newSingleThreadExecutor();
-            runManager = executor::execute;
-        } else {
-            runManager = Runnable::run;
+        if (runManager != null){
+            throw new IllegalStateException("The menu was not closed!");
         }
+        Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
+        createRunManager();
     }
 
     /**
@@ -199,6 +190,14 @@ public abstract class AsyncClickListener implements Listener, Closeable {
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), runnable, delay);
     }
 
+    private void createRunManager(){
+        if (async) {
+            executor = Executors.newSingleThreadExecutor();
+            runManager = executor::execute;
+        } else {
+            runManager = Runnable::run;
+        }
+    }
     @FunctionalInterface
     private interface RunManager {
         void run(Runnable runnable);

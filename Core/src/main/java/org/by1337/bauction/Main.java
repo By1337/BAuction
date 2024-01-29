@@ -1,66 +1,44 @@
 package org.by1337.bauction;
 
-import com.google.common.base.Charsets;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.by1337.blib.BLib;
-import org.by1337.blib.chat.util.Message;
-import org.by1337.blib.command.Command;
-import org.by1337.blib.command.CommandException;
-import org.by1337.blib.command.argument.*;
-import org.by1337.blib.command.requires.RequiresPermission;
-import org.by1337.blib.configuration.YamlConfig;
-import org.by1337.blib.configuration.adapter.AdapterRegistry;
-import org.by1337.blib.configuration.adapter.impl.primitive.AdapterEnum;
-import org.by1337.blib.util.NameKey;
 import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.boost.Boost;
-import org.by1337.bauction.command.argument.ArgumentFullOrCount;
+import org.by1337.bauction.command.*;
 import org.by1337.bauction.config.Config;
 import org.by1337.bauction.config.adapter.*;
 import org.by1337.bauction.datafix.UpdateManager;
-import org.by1337.bauction.db.kernel.CSellItem;
 import org.by1337.bauction.db.kernel.FileDataBase;
 import org.by1337.bauction.db.kernel.MysqlDb;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
-import org.by1337.bauction.menu.impl.CallBack;
-import org.by1337.bauction.menu.impl.ConfirmMenu;
 import org.by1337.bauction.menu.impl.MainMenu;
-import org.by1337.bauction.db.event.SellItemEvent;
-import org.by1337.bauction.menu.impl.PlayerItemsView;
 import org.by1337.bauction.menu.requirement.IRequirement;
 import org.by1337.bauction.menu.requirement.Requirements;
-import org.by1337.bauction.network.PacketConnection;
-import org.by1337.bauction.network.PacketType;
-import org.by1337.bauction.network.WaitNotifyCallBack;
-import org.by1337.bauction.network.in.PlayInPingResponsePacket;
-import org.by1337.bauction.network.out.PlayOutPingRequestPacket;
 import org.by1337.bauction.placeholder.PlaceholderHook;
 import org.by1337.bauction.search.TrieManager;
-import org.by1337.bauction.test.FakePlayer;
 import org.by1337.bauction.util.*;
-import org.by1337.bauction.util.TagUtil;
+import org.by1337.blib.chat.util.Message;
+import org.by1337.blib.command.Command;
+import org.by1337.blib.command.CommandException;
+import org.by1337.blib.command.requires.RequiresPermission;
+import org.by1337.blib.configuration.YamlConfig;
+import org.by1337.blib.configuration.adapter.AdapterRegistry;
+import org.by1337.blib.configuration.adapter.impl.primitive.AdapterEnum;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public final class Main extends JavaPlugin {
     private static Message message;
@@ -69,7 +47,7 @@ public final class Main extends JavaPlugin {
     private static FileDataBase storage;
     private Command<CommandSender> command;
     private static Economy econ;
-    private TrieManager trieManager;
+    private static TrieManager trieManager;
     private static TimeUtil timeUtil;
     private PlaceholderHook placeholderHook;
     private static UniqueNameGenerator uniqueNameGenerator;
@@ -91,6 +69,7 @@ public final class Main extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
+        getCommand("bauc").setPermission("bauc.use");
         registerAdapters();
         loadCfgFromDbCfg();
         Lang.load(this);
@@ -100,7 +79,7 @@ public final class Main extends JavaPlugin {
         TagUtil.loadAliases(this);
         UpdateManager.checkUpdate();
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        econ = rsp.getProvider();
+        econ = Objects.requireNonNull(rsp, "Economy not found!").getProvider();
         initCommand();
         new Metrics(this, 20300);
         placeholderHook = new PlaceholderHook();
@@ -110,7 +89,10 @@ public final class Main extends JavaPlugin {
         new VersionChecker();
     }
 
-    private void loadDb() {
+    public void loadDb() {
+        if (storage != null) {
+            throw new IllegalStateException("data base already loaded!");
+        }
         String dbType = dbCfg.getContext().getAsString("db-type");
         if ("mysql".equals(dbType)) {
             new Thread(() -> {
@@ -248,436 +230,53 @@ public final class Main extends JavaPlugin {
     }
 
     public void reloadConfigs() {
+        if (storage != null) {
+            throw new IllegalStateException("pls unload data base!");
+        }
         reloadDbCfg();
         Lang.load(this);
         cfg.reload(instance);
         timeUtil.reload();
         trieManager.reload(instance);
         TagUtil.loadAliases(instance);
+        blackList = new HashSet<>(Main.getCfg().getConfig().getList("black-list", String.class, Collections.emptyList()));
+    }
+
+    public void unloadDb() {
+        try {
+            storage.save();
+            storage.close();
+            storage = null;
+        } catch (IOException e) {
+            message.error("failed to save db", e);
+        }
     }
 
     private void initCommand() {
         command = new Command<CommandSender>("bauc")
-                .addSubCommand(new Command<CommandSender>("reload")
-                                //<editor-fold desc="reload" defaultstate="collapsed">
-                                .requires(new RequiresPermission<>("bauc.reload"))
-                                .executor((sender, args) -> {
-                                    TimeCounter timeCounter = new TimeCounter();
-
-                                    getCommand("bauc").setTabCompleter(instance);
-                                    getCommand("bauc").setExecutor(instance);
-
-                                    message.sendMsg(sender, "&fUnloading db...");
-                                    try {
-                                        storage.save();
-                                        storage.close();
-                                    } catch (IOException e) {
-                                        message.error("failed to save db", e);
-                                    }
-                                    message.sendMsg(sender, "&fReloading other files...");
-                                    reloadConfigs();
-                                    blackList = new HashSet<>(cfg.getConfig().getList("black-list", String.class, Collections.emptyList()));
-                                    message.sendMsg(sender, "&fLoading db...");
-                                    loadDb();
-
-                                    message.sendMsg(sender, Lang.getMessage("plugin_reload"), timeCounter.getTime());
-                                })
-                        //</editor-fold>
-                )
                 .requires(new RequiresPermission<>("bauc.use"))
+                .addSubCommand(new ReloadCmd("reload"))
                 .addSubCommand(new Command<CommandSender>("admin")
                         .requires(new RequiresPermission<>("bauc.admin"))
                         .addSubCommand(new Command<CommandSender>("debug")
-                                        //<editor-fold desc="debug" defaultstate="collapsed">
-                                        .requires(new RequiresPermission<>("bauc.admin.debug"))
-                                        .addSubCommand(new Command<CommandSender>("run")
-                                                .requires((s) -> s instanceof Player)
-                                                .argument(new ArgumentInteger<>("count"))
-                                                .argument(new ArgumentStrings<>("command"))
-                                                .executor(((sender, args) -> {
-                                                    Player player = (Player) sender;
-                                                    ItemStack itemStack = player.getInventory().getItemInMainHand().clone();
-                                                    if (itemStack.getType().isAir()) {
-                                                        throw new CommandException(Lang.getMessage("item_in_hand_required"));
-                                                    }
-                                                    int count = (int) args.getOrThrow("count");
-                                                    String cmd = (String) args.getOrThrow("command");
-                                                    TimeCounter timeCounter = new TimeCounter();
-                                                    for (int i = 0; i < count; i++) {
-                                                        player.performCommand(cmd);
-                                                        player.getInventory().setItemInMainHand(itemStack);
-                                                    }
-                                                    message.sendMsg(sender, "&fThe '%s' command was executed %s times for %s ms.", cmd, count, timeCounter.getTime());
-                                                }))
-                                        )
-
-                                        .addSubCommand(new Command<CommandSender>("ping")
-                                                .requires(new RequiresPermission<>("bauc.admin.ping"))
-                                                .requires((sender -> storage instanceof MysqlDb))
-                                                .argument(new ArgumentSetList<>("server", () -> ((MysqlDb) storage).getPacketConnection().getServerList()))
-                                                .executor(((sender, args) -> {
-                                                    new Thread(() -> {
-                                                        String server = (String) args.getOrDefault("server", "all");
-                                                        PacketConnection connection = ((MysqlDb) storage).getPacketConnection();
-                                                        if (!connection.hasConnection()) {
-                                                            message.sendMsg(sender, "&cHas no connection!");
-                                                            return;
-                                                        }
-                                                        message.sendMsg(sender, "&fInit...");
-                                                        connection.pining();
-
-                                                        int servers = server.equals("all") ? 1 : connection.getServerList().size();
-
-                                                        AtomicInteger response = new AtomicInteger();
-                                                        WaitNotifyCallBack<PlayInPingResponsePacket> callBack = new WaitNotifyCallBack<>() {
-                                                            @Override
-                                                            protected void back0(@Nullable PlayInPingResponsePacket packet) {
-                                                                if (packet.getTo().equals(serverId)) {
-                                                                    message.sendMsg(sender, "&aPing '%s' %s ms.", packet.getFrom(), packet.getPing());
-                                                                    response.getAndIncrement();
-                                                                }
-                                                            }
-                                                        };
-                                                        connection.registerCallBack(PacketType.PING_RESPONSE, callBack);
-                                                        int lost = 0;
-                                                        for (int i = 1; i <= 5; i++) {
-                                                            int last = response.get();
-                                                            message.sendMsg(sender, "&7Start pinging server %s... trying %s", server, i);
-                                                            PlayOutPingRequestPacket packet = new PlayOutPingRequestPacket(serverId, server);
-                                                            connection.saveSend(packet);
-
-                                                            for (int i1 = 0; i1 < servers; i1++) {
-                                                                try {
-                                                                    callBack.wait_(2000);
-                                                                } catch (Exception e) {
-                                                                }
-                                                            }
-
-                                                            if (last - response.get() == 0) {
-                                                                message.sendMsg(sender, "&cLost...");
-                                                                lost++;
-                                                            }
-                                                        }
-                                                        connection.unregisterCallBack(PacketType.PING_RESPONSE, callBack);
-                                                        message.sendMsg(sender, "&7finish. Lost %s", lost);
-                                                    }).start();
-                                                }))
-                                        )
-                                        .addSubCommand(new Command<CommandSender>("clear")
-                                                .requires(new RequiresPermission<>("bauc.admin.debug.clear"))
-                                                .requires(s -> !(storage instanceof MysqlDb))
-                                                .executor(((sender, args) -> {
-                                                    if (!(sender instanceof Player player))
-                                                        throw new CommandException(Lang.getMessage("must_be_player"));
-                                                    CallBack<Optional<ConfirmMenu.Result>> callBack = (res) -> {
-                                                        if (res.isPresent()) {
-                                                            if (res.get() == ConfirmMenu.Result.ACCEPT) {
-                                                                storage.clear();
-                                                                message.sendMsg(player, Lang.getMessage("auc-cleared"));
-                                                            }
-                                                        }
-                                                        player.closeInventory();
-                                                    };
-                                                    ItemStack itemStack = new ItemStack(Material.JIGSAW);
-                                                    ItemMeta im = itemStack.getItemMeta();
-                                                    im.setDisplayName(message.messageBuilder(Lang.getMessage("auc-clear-confirm")));
-                                                    itemStack.setItemMeta(im);
-                                                    ConfirmMenu menu = new ConfirmMenu(callBack, itemStack, player);
-                                                    menu.open();
-                                                }))
-                                        )
-                                        .addSubCommand(new Command<CommandSender>("stress")
-                                                .requires(new RequiresPermission<>("bauc.admin.debug.stress"))
-                                                .argument(new ArgumentIntegerAllowedMatch<>("count", List.of("[count]")))
-                                                .argument(new ArgumentIntegerAllowedMatch<>("repeat", List.of("[repeat]")))
-                                                .argument(new ArgumentIntegerAllowedMatch<>("cd", List.of("[cd]")))
-                                                .argument(new ArgumentIntegerAllowedMatch<>("limit", List.of("[limit]")))
-                                                .executor((sender, args) -> {
-                                                    int count = (int) args.getOrDefault("count", 1);
-                                                    int repeat = (int) args.getOrDefault("repeat", 1);
-                                                    int cd = (int) args.getOrDefault("cd", 1);
-                                                    int limit = (int) args.getOrDefault("limit", Integer.MAX_VALUE);
-                                                    TimeCounter timeCounter = new TimeCounter();
-                                                    FakePlayer fakePlayer = new FakePlayer(storage, limit);
-                                                    new BukkitRunnable() {
-                                                        int x = 0;
-                                                        List<Long> list = new ArrayList<>();
-
-                                                        @Override
-                                                        public void run() {
-                                                            timeCounter.reset();
-                                                            x++;
-                                                            for (int i = 0; i < count; i++) {
-                                                                fakePlayer.randomAction();
-                                                            }
-                                                            long time = timeCounter.getTime();
-                                                            message.sendMsg(sender, "Completed in %s ms. %s", time, x);
-                                                            list.add(time);
-                                                            if (x >= repeat) {
-                                                                long l = 0;
-                                                                for (Long l1 : list) {
-                                                                    l += l1;
-                                                                }
-                                                                l /= list.size();
-
-                                                                String s = String.format("Deals per second: %s. Average duration: %s ms. Total deals made: %s. Items on auction: %s.",
-                                                                        count * (20 / cd),
-                                                                        l,
-                                                                        count * repeat,
-                                                                        storage.getSellItemsSize()
-                                                                );
-                                                                message.logger(s);
-                                                                message.sendMsg(sender, s);
-                                                                cancel();
-                                                            }
-                                                        }
-                                                    }.runTaskTimerAsynchronously(instance, 0, cd);
-                                                })
-                                        )
-                                //</editor-fold>
+                                .requires(new RequiresPermission<>("bauc.admin.debug"))
+                                .addSubCommand(new PushCmd("push"))
+                                .addSubCommand(new RunCmd("run"))
+                                .addSubCommand(new PingCmd("ping"))
+                                .addSubCommand(new ClearCmd("clear"))
+                                .addSubCommand(new StressCmd("stress"))
                         )
-
-                        .addSubCommand(new Command<CommandSender>("addTag")
-                                        //<editor-fold desc="addTag" defaultstate="collapsed">
-                                        .requires(new RequiresPermission<>("bauc.admin.addTag"))
-                                        .argument(new ArgumentString<>("key", List.of("[tag key]")))
-                                        .argument(new ArgumentString<>("value", List.of("[tag value]")))
-                                        .executor((sender, args) -> {
-                                                    String key = (String) args.getOrThrow("key");
-                                                    String value = (String) args.getOrThrow("value");
-
-                                                    if (!(sender instanceof Player player))
-                                                        throw new CommandException(Lang.getMessage("must_be_player"));
-                                                    ItemStack itemStack = player.getInventory().getItemInMainHand();
-                                                    if (itemStack.getType().isAir()) {
-                                                        throw new CommandException(Lang.getMessage("item_in_hand_required"));
-                                                    }
-                                                    ItemMeta im = itemStack.getItemMeta();
-                                                    im.getPersistentDataContainer().set(NamespacedKey.fromString(key), PersistentDataType.STRING, value);
-                                                    itemStack.setItemMeta(im);
-                                                    message.sendMsg(sender, "&adone");
-                                                }
-                                        )
-                                //</editor-fold>
-                        )
-                        .addSubCommand(new Command<CommandSender>("open")
-                                        //<editor-fold desc="open" defaultstate="collapsed">
-                                        .requires(new RequiresPermission<>("bauc.admin.open"))
-                                        .argument(new ArgumentPlayer<>("player"))
-                                        .argument(new ArgumentSetList<>("category", cfg.getCategoryMap().keySet().stream().map(NameKey::getName).toList()))
-                                        .executor((sender, args) -> {
-                                            Player player = (Player) args.getOrThrow("player");
-                                            String categoryS = (String) args.getOrThrow("category");
-
-                                            Category category = cfg.getCategoryMap().get(new NameKey(categoryS, true));
-
-                                            if (category == null) {
-                                                message.sendMsg(sender, "unknown category %s", categoryS);
-                                                return;
-                                            }
-
-                                            User user = storage.getUserOrCreate(player);
-                                            MainMenu menu = new MainMenu(user, player);
-
-                                            int index = menu.getCategories().indexOf(category);
-
-                                            if (index == -1) {
-                                                message.sendMsg(sender, "unknown category %s", categoryS);
-                                                menu.close();
-                                                return;
-                                            }
-                                            menu.getCategories().current = index;
-                                            menu.open();
-                                        })
-                                //</editor-fold>
-                        )
+                        .addSubCommand(new AddTagCmd("addTag"))
+                        .addSubCommand(new OpenCmd("open"))
                         .addSubCommand(new Command<CommandSender>("parse")
-                                //<editor-fold desc="parse" defaultstate="collapsed">
                                 .requires(new RequiresPermission<>("bauc.parse"))
-                                .addSubCommand(new Command<CommandSender>("tags")
-                                                .requires(new RequiresPermission<>("bauc.parse.tags"))
-                                                .executor((sender, args) -> {
-                                                    if (!(sender instanceof Player player))
-                                                        throw new CommandException(Lang.getMessage("must_be_player"));
-                                                    ItemStack itemStack = player.getInventory().getItemInMainHand();
-                                                    if (itemStack.getType().isAir()) {
-                                                        throw new CommandException(Lang.getMessage("item_in_hand_required"));
-                                                    }
-                                                    message.sendMsg(sender, TagUtil.getTags(itemStack).toString());
-                                                })
-                                        //</editor-fold>
-                                )
-                                .addSubCommand(new Command<CommandSender>("nbt")
-                                                //<editor-fold desc="nbt" defaultstate="collapsed">
-                                                .requires(new RequiresPermission<>("bauc.parse.nbt"))
-                                                .executor((sender, args) -> {
-                                                    if (!(sender instanceof Player player))
-                                                        throw new CommandException(Lang.getMessage("must_be_player"));
-                                                    ItemStack itemStack = player.getInventory().getItemInMainHand();
-                                                    if (itemStack.getType().isAir()) {
-                                                        throw new CommandException(Lang.getMessage("item_in_hand_required"));
-                                                    }
-                                                    message.sendMsg(sender, new String(Base64.getDecoder().decode(BLib.getApi().getItemStackSerialize().serialize(itemStack))));
-                                                })
-                                        //</editor-fold>
-                                )
-                        )
-                        .addSubCommand(new Command<CommandSender>("push")
-                                        //<editor-fold desc="push" defaultstate="collapsed">
-                                        .requires(new RequiresPermission<>("bauc.admin.push"))
-                                        .argument(new ArgumentIntegerAllowedMatch<>("price", List.of(Lang.getMessage("price_tag"))))
-                                        .argument(new ArgumentInteger<>("amount", List.of(Lang.getMessage("quantity_tag"))))
-                                        .argument(new ArgumentString<>("time", List.of(Lang.getMessage("sale_time_tag"))))
-                                        .executor((sender, args) -> {
-                                                    int amount = (int) args.getOrDefault("amount", 1);
-                                                    int price = (int) args.getOrThrow("price", Lang.getMessage("price_not_specified"));
-                                                    if (!(sender instanceof Player player))
-                                                        throw new CommandException(Lang.getMessage("must_be_player"));
-
-                                                    ItemStack itemStack = player.getInventory().getItemInMainHand();
-                                                    if (itemStack.getType().isAir()) {
-                                                        throw new CommandException(Lang.getMessage("cannot_trade_air"));
-                                                    }
-                                                    TimeCounter timeCounter = new TimeCounter();
-                                                    Random random = new Random();
-                                                    User user = storage.getUserOrCreate(player);
-                                                    long time = NumberUtil.getTime(((String) args.getOrDefault("time", "2d")));
-                                                    for (int i = 0; i < amount; i++) {
-                                                        CSellItem sellItem = new CSellItem(player, itemStack, price + random.nextInt(price / 2), time);
-                                                        SellItemEvent event = new SellItemEvent(user, sellItem);
-                                                        storage.validateAndAddItem(event);
-                                                        if (!event.isValid()) {
-                                                            message.sendMsg(player, String.valueOf(event.getReason()));
-                                                            break;
-                                                        }
-                                                    }
-                                                    message.sendMsg(player, Lang.getMessage("successful_listing"), amount, timeCounter.getTime());
-                                                }
-                                        )
-                                //</editor-fold>
+                                .addSubCommand(new ParseTagsCmd("tags"))
+                                .addSubCommand(new ParseNbtCmd("nbt"))
                         )
                 )
-                .addSubCommand(new Command<CommandSender>("sell")
-                                //<editor-fold desc="sell" defaultstate="collapsed">
-                                .requires(new RequiresPermission<>("bauc.sell"))
-                                .argument(new ArgumentIntegerAllowedMatch<>("price", List.of(Lang.getMessage("price_tag")),
-                                        cfg.getConfig().getAsInteger("offer-min-price", 1),
-                                        cfg.getConfig().getAsInteger("offer-max-price", Integer.MAX_VALUE)
-                                ))
-                                .argument(new ArgumentFullOrCount("arg"))
-                                .executor(((sender, args) -> {
-                                    if (!(sender instanceof Player player))
-                                        throw new CommandException(Lang.getMessage("must_be_player"));
-                                    int price = (int) args.getOrThrow("price", Lang.getMessage("price_not_specified"));
-
-                                    String saleByThePieceS = String.valueOf(args.getOrDefault("arg", "full:false"));
-
-                                    boolean saleByThePiece = !(saleByThePieceS.equals("full"));
-
-
-                                    int amount = -1; //(int) args.getOrDefault("amount", -1);
-                                    if (!saleByThePieceS.startsWith("f")) {
-                                        try {
-                                            amount = Integer.parseInt(saleByThePieceS);
-                                        } catch (NumberFormatException e) {
-                                            message.sendMsg(sender, "&cУкажите число для продажи определённого количества предметов!");
-                                            return;
-                                        }
-                                    }
-
-                                    ItemStack itemStack = player.getInventory().getItemInMainHand().clone();
-                                    if (itemStack.getType().isAir()) {
-                                        throw new CommandException(Lang.getMessage("cannot_trade_air"));
-                                    }
-
-                                    int cashback = 0;
-                                    if (amount != -1) {
-                                        if (itemStack.getAmount() > amount) {
-                                            cashback = itemStack.getAmount() - amount;
-                                            itemStack.setAmount(amount);
-                                        }
-                                    }
-
-                                    if (saleByThePiece) saleByThePiece = Main.getCfg().isAllowBuyCount();
-                                    User user = storage.getUserOrCreate(player);
-                                    CSellItem sellItem = new CSellItem(player, itemStack, price, cfg.getDefaultSellTime() + user.getExternalSellTime(), saleByThePiece);
-
-                                    for (String tag : sellItem.getTags()) {
-                                        if (blackList.contains(tag)) {
-                                            message.sendMsg(player, sellItem.replace(Lang.getMessage("item-in-black-list")));
-                                            return;
-                                        }
-                                    }
-
-                                    SellItemEvent event = new SellItemEvent(user, sellItem);
-                                    storage.validateAndAddItem(event);
-                                    if (event.isValid()) {
-                                        player.getInventory().getItemInMainHand().setAmount(cashback);
-                                        message.sendMsg(player, sellItem.replace(Lang.getMessage("successful_single_listing")));
-                                    } else {
-                                        message.sendMsg(player, String.valueOf(event.getReason()));
-                                    }
-                                }))
-                        //</editor-fold>
-                )
-                .addSubCommand(new Command<CommandSender>("search")
-                                //<editor-fold desc="search" defaultstate="collapsed">
-                                .requires(new RequiresPermission<>("bauc.search"))
-                                .argument(new ArgumentStrings<>("tags"))
-                                .executor((sender, args) -> {
-                                    if (!(sender instanceof Player player))
-                                        throw new CommandException(Lang.getMessage("must_be_player"));
-
-                                    String[] rawtags = ((String) args.getOrThrow("tags", Lang.getMessage("tags_required"))).split(" ");
-                                    List<String> tags = new ArrayList<>();
-                                    for (String rawtag : rawtags) {
-                                        tags.addAll(trieManager.getTrie().getAllWithPrefix(rawtag));
-                                    }
-                                    Category custom = cfg.getSorting().getAs("special.search", Category.class);
-                                    custom.setTags(new HashSet<>(tags));
-
-                                    User user = storage.getUserOrCreate(player);
-
-                                    MainMenu menu = new MainMenu(user, player);
-                                    menu.setCustomCategory(custom);
-                                    menu.open();
-                                })
-                        //</editor-fold>
-                )
-                .addSubCommand(new Command<CommandSender>("view")
-                                //<editor-fold desc="view" defaultstate="collapsed">
-                                .requires(new RequiresPermission<>("bauc.view"))
-                                .argument(new ArgumentString<>("player", () -> List.of(Bukkit.getOnlinePlayers().stream().map(Player::getName).toArray(String[]::new))))
-                                .executor(((sender, args) -> {
-                                    if (!(sender instanceof Player senderP))
-                                        throw new CommandException(Lang.getMessage("must_be_player"));
-
-                                    String player = (String) args.get("player");
-                                    if (player == null) {
-                                        message.sendMsg(sender, Lang.getMessage("player-not-selected"));
-                                        return;
-                                    }
-                                    UUID uuid;
-                                    if (UUIDUtils.isUUID(player)) {
-                                        uuid = UUID.fromString(player);
-                                    } else {
-                                        Player p = Bukkit.getPlayer(player);
-                                        if (p != null) {
-                                            uuid = p.getUniqueId();
-                                        } else {
-                                            uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + player).getBytes(Charsets.UTF_8));
-                                        }
-                                    }
-                                    if (!storage.hasUser(uuid)) {
-                                        message.sendMsg(sender, Lang.getMessage("player-not-found"));
-                                        return;
-                                    }
-                                    User user = storage.getUserOrCreate(senderP);
-                                    PlayerItemsView menu = new PlayerItemsView(user, senderP, uuid, player);
-                                    menu.open();
-                                }))
-                        //</editor-fold>
-                )
+                .addSubCommand(new SellCmd("sell"))
+                .addSubCommand(new SearchCmd("search"))
+                .addSubCommand(new ViewCommand("view"))
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))
                         throw new CommandException(Lang.getMessage("must_be_player"));
@@ -711,5 +310,25 @@ public final class Main extends JavaPlugin {
 
     public static String getServerId() {
         return serverId;
+    }
+
+    public static Set<String> getBlackList() {
+        return blackList;
+    }
+
+    public Command<CommandSender> getCommand() {
+        return command;
+    }
+
+    public static TrieManager getTrieManager() {
+        return trieManager;
+    }
+
+    public PlaceholderHook getPlaceholderHook() {
+        return placeholderHook;
+    }
+
+    public boolean isLoaded() {
+        return loaded;
     }
 }

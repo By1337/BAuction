@@ -243,21 +243,6 @@ public abstract class DataBaseCore {
         return readLock(() -> sellItemsMap.get(name));
     }
 
-//    @NotNull
-//    public Collection<? extends SellItem> getSellItemsBy(NameKey category, NameKey sorting) {
-//        return readLock(() -> {
-//            Map<NameKey, SortingItems> map = sortedItems.get(category);
-//            if (map == null) {
-//                throw new IllegalStateException("unknown category: " + category.getName());
-//            }
-//            SortingItems sortingItems = map.get(sorting);
-//            if (sortingItems == null) {
-//                throw new IllegalStateException("unknown sorting: " + sorting.getName());
-//            }
-//            return sortingItems.getItems();
-//        });
-//    }
-
     public void forEachSellItemsBy(Consumer<? super SellItem> action, NameKey category, NameKey sorting) {
         readLock(() -> {
             Map<NameKey, SortingItems> map = sortedItems.get(category);
@@ -290,22 +275,6 @@ public abstract class DataBaseCore {
         readLock(() -> sortedSellItems.forEach(action));
     }
 
-
-//    @NotNull
-//    public Collection<? extends SellItem> getSellItemsByUser(@NotNull UUID uuid) {
-//        return readLock(() -> {
-//            Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
-//            return pair.getKey();
-//        });
-//    }
-
-    //    @NotNull
-//    public Collection<? extends UnsoldItem> getUnsoldItemsByUser(@NotNull UUID uuid) {
-//        return readLock(() -> {
-//            Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
-//            return pair.getRight();
-//        });
-//    }
 
     public void forEachSellItemsByUser(Consumer<? super SellItem> action, @NotNull UUID uuid) {
         readLock(() -> {
@@ -363,7 +332,6 @@ public abstract class DataBaseCore {
     protected void load(List<CSellItem> items, List<CUser> users, List<CUnsoldItem> unsoldItems) {
         writeLock(() -> {
             Message message = Main.getMessage();
-            // long time = System.currentTimeMillis();
             users.removeIf(user -> {
                 if (user == null || !user.isValid()) {
                     message.error("cannot be load user %s", String.valueOf(user));
@@ -401,7 +369,6 @@ public abstract class DataBaseCore {
                     }
                 });
             });
-            // sortedSellItems.sort(sellItemComparator);
             unsoldItems.forEach(unsoldItem -> {
                 unsoldItemsMap.put(unsoldItem.uniqueName, unsoldItem);
                 sortedUnsoldItems.add(unsoldItem);
@@ -410,18 +377,10 @@ public abstract class DataBaseCore {
                 pair.getRight().add(unsoldItem);
                 itemsByOwner.put(unsoldItem.sellerUuid, pair);
             });
-            // sortedUnsoldItems.sort(unsoldItemComparator);
-
-//            items.forEach(item -> {
-//                if (item.removalDate <= time) {
-//                    expiredItem(item);
-//                }
-//            });
         });
     }
 
     public abstract void close();
-
 
     protected <K, V> V getValue(Map<K, V> map, @NotNull K key, Supplier<V> supplier) {
         V val = map.get(key);

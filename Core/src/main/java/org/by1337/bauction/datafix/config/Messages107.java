@@ -1,16 +1,11 @@
 package org.by1337.bauction.datafix.config;
 
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.by1337.blib.configuration.YamlConfig;
-import org.by1337.blib.configuration.YamlContext;
 import org.by1337.bauction.Main;
+import org.by1337.blib.configuration.YamlConfig;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Map;
 
 public class Messages107 {
@@ -54,34 +49,34 @@ public class Messages107 {
         map.put("has_no_external_time", config.getContext().getAsString("has_no_external_time", map.get("item_no_longer_exists")));
 
 
-        config.getContext().getHandle().set("successful_loading", null);
-        config.getContext().getHandle().set("plugin_reload", null);
-        config.getContext().getHandle().set("must_be_player", null);
-        config.getContext().getHandle().set("item_in_hand_required", null);
-        config.getContext().getHandle().set("price_tag", null);
-        config.getContext().getHandle().set("quantity_tag", null);
-        config.getContext().getHandle().set("sale_time_tag", null);
-        config.getContext().getHandle().set("successful_listing", null);
-        config.getContext().getHandle().set("cannot_trade_air", null);
-        config.getContext().getHandle().set("successful_single_listing", null);
-        config.getContext().getHandle().set("tags_required", null);
-        config.getContext().getHandle().set("start_entering_item_name", null);
-        config.getContext().getHandle().set("auction_item_limit_reached", null);
-        config.getContext().getHandle().set("error_occurred", null);
-        config.getContext().getHandle().set("not_item_owner", null);
-        config.getContext().getHandle().set("item_already_sold_or_removed", null);
-        config.getContext().getHandle().set("item_not_found", null);
-        config.getContext().getHandle().set("item_owner", null);
-        config.getContext().getHandle().set("quantity_limit_exceeded", null);
-        config.getContext().getHandle().set("successful_item_retrieval", null);
-        config.getContext().getHandle().set("insufficient_balance", null);
-        config.getContext().getHandle().set("item_sold_to_buyer", null);
-        config.getContext().getHandle().set("successful_purchase", null);
-        config.getContext().getHandle().set("something_went_wrong", null);
-        config.getContext().getHandle().set("price_not_specified", null);
-        config.getContext().getHandle().set("insufficient_balance_for_purchase", null);
-        config.getContext().getHandle().set("item_no_longer_exists", null);
-        config.getContext().getHandle().set("has_no_external_time", null);
+        config.getContext().set("successful_loading", null);
+        config.getContext().set("plugin_reload", null);
+        config.getContext().set("must_be_player", null);
+        config.getContext().set("item_in_hand_required", null);
+        config.getContext().set("price_tag", null);
+        config.getContext().set("quantity_tag", null);
+        config.getContext().set("sale_time_tag", null);
+        config.getContext().set("successful_listing", null);
+        config.getContext().set("cannot_trade_air", null);
+        config.getContext().set("successful_single_listing", null);
+        config.getContext().set("tags_required", null);
+        config.getContext().set("start_entering_item_name", null);
+        config.getContext().set("auction_item_limit_reached", null);
+        config.getContext().set("error_occurred", null);
+        config.getContext().set("not_item_owner", null);
+        config.getContext().set("item_already_sold_or_removed", null);
+        config.getContext().set("item_not_found", null);
+        config.getContext().set("item_owner", null);
+        config.getContext().set("quantity_limit_exceeded", null);
+        config.getContext().set("successful_item_retrieval", null);
+        config.getContext().set("insufficient_balance", null);
+        config.getContext().set("item_sold_to_buyer", null);
+        config.getContext().set("successful_purchase", null);
+        config.getContext().set("something_went_wrong", null);
+        config.getContext().set("price_not_specified", null);
+        config.getContext().set("insufficient_balance_for_purchase", null);
+        config.getContext().set("item_no_longer_exists", null);
+        config.getContext().set("has_no_external_time", null);
 
         config.getContext().set("messages", map);
 

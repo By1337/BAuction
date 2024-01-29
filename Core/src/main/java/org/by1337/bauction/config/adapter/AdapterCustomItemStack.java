@@ -1,27 +1,23 @@
 package org.by1337.bauction.config.adapter;
 
 import org.bukkit.Color;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.MemorySection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.by1337.blib.configuration.YamlContext;
-import org.by1337.blib.configuration.adapter.ClassAdapter;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.click.Click;
 import org.by1337.bauction.menu.click.ClickType;
 import org.by1337.bauction.menu.click.IClick;
-import org.by1337.bauction.menu.requirement.*;
+import org.by1337.bauction.menu.requirement.Requirements;
 import org.by1337.bauction.menu.util.EnchantmentBuilder;
-import org.jetbrains.annotations.Nullable;
+import org.by1337.blib.configuration.YamlContext;
+import org.by1337.blib.configuration.adapter.ClassAdapter;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class AdapterCustomItemStack implements ClassAdapter<CustomItemStack> {
     @Override
@@ -72,7 +68,7 @@ public class AdapterCustomItemStack implements ClassAdapter<CustomItemStack> {
         boolean unbreakable = context.getAsBoolean("unbreakable", false);
 
 
-        int model_data = context.getAsInteger("model_data", -1);
+        int model_data = context.getAsInteger("model_data", 0);
 
         int priority = context.getAsInteger("priority", 0);
 

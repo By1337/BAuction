@@ -36,6 +36,7 @@ public class VersionChecker implements Listener {
                 if (actualVersion.equals(currentVersion)) return;
                 message = String.format(Lang.getMessage("update-msg-raw"), currentVersion, actualVersion, downloadLink, downloadLink, downloadLink);
                 Bukkit.getPluginManager().registerEvents(listener, Main.getInstance());
+                Bukkit.getOnlinePlayers().forEach(this::trySendUpdateMessage);
             }
         }).start();
     }
@@ -43,6 +44,10 @@ public class VersionChecker implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        trySendUpdateMessage(player);
+    }
+
+    private void trySendUpdateMessage(Player player) {
         if (player.hasPermission("bauc.update")) {
             BLib.getApi().getCommandUtil().tellRaw(
                     message,
