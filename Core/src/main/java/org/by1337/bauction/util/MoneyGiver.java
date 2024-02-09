@@ -7,10 +7,8 @@ import org.by1337.bauction.db.kernel.MysqlDb;
 import org.by1337.bauction.network.PacketConnection;
 import org.by1337.bauction.network.PacketType;
 import org.by1337.bauction.network.WaitNotifyCallBack;
-import org.by1337.bauction.network.in.PlayInGiveMoneyRequest;
-import org.by1337.bauction.network.in.PlayInGiveMoneyResponse;
-import org.by1337.bauction.network.out.PlayOutGiveMoneyRequest;
-import org.by1337.bauction.network.out.PlayOutGiveMoneyResponse;
+import org.by1337.bauction.network.impl.PacketGiveMoneyRequest;
+import org.by1337.bauction.network.impl.PacketGiveMoneyResponse;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -46,7 +44,7 @@ public class MoneyGiver {
     private void give0(Double count, UUID player, String toServer) {
         if (connection.hasConnection()) {
             int id = counter.getAndIncrement();
-            var packet = new PlayOutGiveMoneyRequest(
+            var packet = new PacketGiveMoneyRequest(
                     currentServer,
                     toServer,
                     player,
@@ -78,7 +76,7 @@ public class MoneyGiver {
         }
     }
 
-    private PlayInGiveMoneyResponse giveResponse(PlayInGiveMoneyResponse packet) {
+    private PacketGiveMoneyResponse giveResponse(PacketGiveMoneyResponse packet) {
         if (packet.getTo().equals(currentServer)) {
             var callBack = waiters.remove(packet.getId());
             if (callBack != null) {
@@ -90,11 +88,11 @@ public class MoneyGiver {
         return null;
     }
 
-    private PlayInGiveMoneyRequest giveRequest(PlayInGiveMoneyRequest packet) {
+    private PacketGiveMoneyRequest giveRequest(PacketGiveMoneyRequest packet) {
         if (packet.getTo().equals(currentServer)) {
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(packet.getPlayer());
             Main.getEcon().depositPlayer(offlinePlayer, packet.getCount());
-            connection.saveSend(new PlayOutGiveMoneyResponse(packet.getFrom(), packet.getId()));
+            connection.saveSend(new PacketGiveMoneyResponse(packet.getFrom(), packet.getId()));
         }
         return null;
     }

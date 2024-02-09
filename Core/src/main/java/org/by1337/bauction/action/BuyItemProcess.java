@@ -14,7 +14,7 @@ import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.impl.CallBack;
 import org.by1337.bauction.menu.impl.ConfirmMenu;
-import org.by1337.bauction.network.out.PlayOutSendMessagePacket;
+import org.by1337.bauction.network.impl.PacketSendMessage;
 import org.by1337.bauction.util.PlayerUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -69,7 +69,7 @@ public class BuyItemProcess implements Placeholderable {
                                Main.getMessage().sendMsg(seller.getPlayer(),
                                        replace(Lang.getMessage("item_sold_to_buyer")));
                            } else if (Main.getStorage() instanceof MysqlDb mysqlDb) {
-                               mysqlDb.getPacketConnection().saveSend(new PlayOutSendMessagePacket(
+                               mysqlDb.getPacketConnection().saveSend(new PacketSendMessage(
                                        replace(Lang.getMessage("item_sold_to_buyer")), buyingItem.getSellerUuid()
                                ));
                            }

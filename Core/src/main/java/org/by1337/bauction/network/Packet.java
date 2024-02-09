@@ -6,6 +6,19 @@ import java.io.IOException;
 
 public abstract class Packet {
 
+    private final PacketType<?> type;
+
+    public Packet(PacketType<?> type) {
+        this.type = type;
+    }
+
+    public PacketType<?> getType() {
+        return type;
+    }
+
+    public abstract void write(DataOutputStream data) throws IOException;
+    public abstract void read(DataInputStream in) throws IOException;
+
     protected void writeByteArray(DataOutputStream data, byte[] source) throws IOException {
         data.writeInt(source.length);
         for (byte b : source) {

@@ -130,7 +130,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
                 throw new IllegalStateException("user non-exist: " + event.getUser());
             }
             if (hasSellItem(sellItem.getUniqueName())) {
-                throw new IllegalStateException("sell item non-exist: " + event.getSellItem());
+                throw new IllegalStateException("sell item already exist: " + event.getSellItem());
             }
             CUser user = (CUser) getUser(event.getUser().getUuid());
 

@@ -3,13 +3,11 @@ package org.by1337.bauction.command;
 import org.bukkit.command.CommandSender;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.MysqlDb;
-import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.network.PacketConnection;
 import org.by1337.bauction.network.PacketType;
 import org.by1337.bauction.network.WaitNotifyCallBack;
-import org.by1337.bauction.network.in.PlayInPingResponsePacket;
-import org.by1337.bauction.network.out.PlayOutPingRequestPacket;
-import org.by1337.bauction.util.TimeCounter;
+import org.by1337.bauction.network.impl.PacketPingRequest;
+import org.by1337.bauction.network.impl.PacketPingResponse;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.argument.ArgumentMap;
 import org.by1337.blib.command.argument.ArgumentSetList;
@@ -32,7 +30,7 @@ public class PingCmd extends Command<CommandSender> {
 
     private void execute(CommandSender sender, ArgumentMap<String, Object> args) {
         new Thread(() -> {
-            String server = (String) args.getOrDefault("server", "all");
+            String server = (String) args.getOrDefault("server", "any");
             PacketConnection connection = ((MysqlDb) Main.getStorage()).getPacketConnection();
             if (!connection.hasConnection()) {
                 Main.getMessage().sendMsg(sender, "&cHas no connection!");
@@ -41,12 +39,12 @@ public class PingCmd extends Command<CommandSender> {
             Main.getMessage().sendMsg(sender, "&fInit...");
             connection.pining();
 
-            int servers = server.equals("all") ? 1 : connection.getServerList().size();
+            int servers = server.equals("any") ? 1 : connection.getServerList().size();
 
             AtomicInteger response = new AtomicInteger();
-            WaitNotifyCallBack<PlayInPingResponsePacket> callBack = new WaitNotifyCallBack<>() {
+            WaitNotifyCallBack<PacketPingResponse> callBack = new WaitNotifyCallBack<>() {
                 @Override
-                protected void back0(@Nullable PlayInPingResponsePacket packet) {
+                protected void back0(@Nullable PacketPingResponse packet) {
                     if (packet.getTo().equals(Main.getServerId())) {
                         Main.getMessage().sendMsg(sender, "&aPing '%s' %s ms.", packet.getFrom(), packet.getPing());
                         response.getAndIncrement();
@@ -58,7 +56,7 @@ public class PingCmd extends Command<CommandSender> {
             for (int i = 1; i <= 5; i++) {
                 int last = response.get();
                 Main.getMessage().sendMsg(sender, "&7Start pinging server %s... trying %s", server, i);
-                PlayOutPingRequestPacket packet = new PlayOutPingRequestPacket(Main.getServerId(), server);
+                PacketPingRequest packet = new PacketPingRequest(Main.getServerId(), server);
                 connection.saveSend(packet);
 
                 for (int i1 = 0; i1 < servers; i1++) {

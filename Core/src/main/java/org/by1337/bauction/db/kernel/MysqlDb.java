@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.by1337.bauction.network.Packet;
 import org.by1337.blib.util.NameKey;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.SellItem;
@@ -14,11 +15,9 @@ import org.by1337.bauction.db.action.ActionType;
 import org.by1337.bauction.db.event.BuyItemCountEvent;
 import org.by1337.bauction.db.event.BuyItemEvent;
 import org.by1337.bauction.network.PacketConnection;
-import org.by1337.bauction.network.PacketIn;
 import org.by1337.bauction.network.PacketListener;
 import org.by1337.bauction.network.PacketType;
-import org.by1337.bauction.network.in.*;
-import org.by1337.bauction.network.out.*;
+import org.by1337.bauction.network.impl.*;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.MoneyGiver;
 import org.by1337.bauction.util.Sorting;
@@ -34,9 +33,7 @@ public class MysqlDb extends FileDataBase implements PacketListener {
 
     private final Connection connection;
     private final PacketConnection packetConnection;
-
     private final UUID server = UUID.randomUUID();
-
     private final ConcurrentLinkedQueue<String> sqlQueue = new ConcurrentLinkedQueue<>();
     private final BukkitTask sqlExecuteTask;
     @Nullable
@@ -200,7 +197,7 @@ CREATE TABLE IF NOT EXISTS logs (
         super.addSellItem(sellItem);
         execute(sellItem.toSql("sell_items"));
         log(new Action(ActionType.ADD_SELL_ITEM, sellItem.getSellerUuid(), sellItem.getUniqueName(), server));
-        packetConnection.saveSend(new PlayOutAddSellItemPacket(sellItem));
+        packetConnection.saveSend(new PacketAddSellItem(sellItem));
     }
 
     @Override
@@ -208,7 +205,7 @@ CREATE TABLE IF NOT EXISTS logs (
         super.replaceUser(user);
         execute(user.toSqlUpdate("users"));
         log(new Action(ActionType.UPDATE_USER, user.getUuid(), null, server));
-        packetConnection.saveSend(new PlayOutUpdateUserPacket(user));
+        packetConnection.saveSend(new PacketUpdateUser(user));
     }
 
     @Override
@@ -216,7 +213,7 @@ CREATE TABLE IF NOT EXISTS logs (
         super.addUser(user);
         execute(user.toSql("users"));
         log(new Action(ActionType.UPDATE_USER, user.getUuid(), null, server));
-        packetConnection.saveSend(new PlayOutUpdateUserPacket(user));
+        packetConnection.saveSend(new PacketUpdateUser(user));
         return user;
     }
 
@@ -227,13 +224,13 @@ CREATE TABLE IF NOT EXISTS logs (
         if (buyer != null) {
             execute(buyer.toSqlUpdate("users"));
             log(new Action(ActionType.UPDATE_USER, buyer.getUuid(), null, server));
-            packetConnection.saveSend(new PlayOutUpdateUserPacket(buyer));
+            packetConnection.saveSend(new PacketUpdateUser(buyer));
         }
 
         if (owner != null) {
             execute(owner.toSqlUpdate("users"));
             log(new Action(ActionType.UPDATE_USER, owner.getUuid(), null, server));
-            packetConnection.saveSend(new PlayOutUpdateUserPacket(owner));
+            packetConnection.saveSend(new PacketUpdateUser(owner));
         }
     }
 
@@ -258,7 +255,7 @@ CREATE TABLE IF NOT EXISTS logs (
         UnsoldItem unsoldItem = super.removeUnsoldItem(name);
         execute("DELETE FROM unsold_items WHERE uuid = '%s';", name.getKey());
         log(new Action(ActionType.REMOVE_UNSOLD_ITEM, unsoldItem.getSellerUuid(), name, server));
-        packetConnection.saveSend(new PlayOutRemoveUnsoldItemPacket(name));
+        packetConnection.saveSend(new PacketRemoveUnsoldItem(name));
         return unsoldItem;
     }
 
@@ -267,7 +264,7 @@ CREATE TABLE IF NOT EXISTS logs (
         super.addUnsoldItem(unsoldItem);
         execute(unsoldItem.toSql("unsold_items"));
         log(new Action(ActionType.ADD_UNSOLD_ITEM, unsoldItem.getSellerUuid(), unsoldItem.uniqueName, server));
-        packetConnection.saveSend(new PlayOutAddUnsoldItemPacket(unsoldItem));
+        packetConnection.saveSend(new PacketAddUnsoldItem(unsoldItem));
     }
 
     @Override
@@ -275,7 +272,7 @@ CREATE TABLE IF NOT EXISTS logs (
         SellItem item = super.removeSellItem(name);
         execute("DELETE FROM sell_items WHERE uuid = '%s';", name.getKey());
         log(new Action(ActionType.REMOVE_SELL_ITEM, item.getSellerUuid(), item.getUniqueName(), server));
-        packetConnection.saveSend(new PlayOutRemoveSellItemPacket(name));
+        packetConnection.saveSend(new PacketRemoveSellItem(name));
         return item;
     }
 
@@ -475,14 +472,14 @@ CREATE TABLE IF NOT EXISTS logs (
     }
 
     @Override
-    public void update(PacketIn packetIn) {
+    public void update(Packet packetIn) {
         int id = packetIn.getType().getId();
         if (id == PacketType.ADD_SELL_ITEM.getId()) {
-            SellItem sellItem = ((PlayInAddSellItemPacket) packetIn).getSellItem();
+            SellItem sellItem = ((PacketAddSellItem) packetIn).getSellItem();
             if (hasSellItem(sellItem.getUniqueName())) return;
             writeLock(() -> addSellItem0((CSellItem) sellItem));
         } else if (id == PacketType.UPDATE_USER.getId()) {
-            CUser user = ((PlayInUpdateUserPacket) packetIn).getUser();
+            CUser user = ((PacketUpdateUser) packetIn).getUser();
             if (hasUser(user.uuid)) {
                 writeLock(() -> super.replaceUser(user));
             } else {
@@ -490,15 +487,15 @@ CREATE TABLE IF NOT EXISTS logs (
             }
             boostCheck(user.uuid);
         } else if (id == PacketType.ADD_UNSOLD_ITEM.getId()) {
-            CUnsoldItem unsoldItem = ((PlayInAddUnsoldItemPacket) packetIn).getUnsoldItem();
+            CUnsoldItem unsoldItem = ((PacketAddUnsoldItem) packetIn).getUnsoldItem();
             if (hasUnsoldItem(unsoldItem.uniqueName)) return;
             writeLock(() -> addUnsoldItem0(unsoldItem));
         } else if (id == PacketType.REMOVE_SELL_ITEM.getId()) {
-            UniqueName name = ((PlayInRemoveSellItemPacket) packetIn).getName();
+            UniqueName name = ((PacketRemoveSellItem) packetIn).getName();
             if (!hasSellItem(name)) return;
             super.removeSellItem(name);
         } else if (id == PacketType.REMOVE_UNSOLD_ITEM.getId()) {
-            UniqueName name = ((PlayInRemoveUnsoldItemPacket) packetIn).getName();
+            UniqueName name = ((PacketRemoveUnsoldItem) packetIn).getName();
             if (!hasUnsoldItem(name)) return;
             super.removeUnsoldItem(name);
         }

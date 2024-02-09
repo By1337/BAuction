@@ -218,6 +218,7 @@ public class CSellItem extends Placeholder implements SellItem {
     }
 
     static CSellItem parse(SellItem item) {
+        if (item instanceof CSellItem cSellItem) return cSellItem;
         return new CSellItem(
                 item.getItem(),
                 item.getSellerName(),

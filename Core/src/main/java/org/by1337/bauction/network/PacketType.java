@@ -1,36 +1,37 @@
 package org.by1337.bauction.network;
 
-import org.by1337.bauction.network.in.*;
+import org.by1337.bauction.network.impl.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
-public final class PacketType<T extends PacketIn> {
+public final class PacketType<T extends Packet> {
     private static final List<PacketType<?>> types = new ArrayList<>();
 
-    public static final PacketType<PlayInAddSellItemPacket> ADD_SELL_ITEM = register(PlayInAddSellItemPacket::new);
-    public static final PacketType<PlayInRemoveSellItemPacket> REMOVE_SELL_ITEM = register(PlayInRemoveSellItemPacket::new);
-    public static final PacketType<PlayInAddUnsoldItemPacket> ADD_UNSOLD_ITEM = register(PlayInAddUnsoldItemPacket::new);
-    public static final PacketType<PlayInRemoveUnsoldItemPacket> REMOVE_UNSOLD_ITEM = register(PlayInRemoveUnsoldItemPacket::new);
-    public static final PacketType<PlayInUpdateUserPacket> UPDATE_USER = register(PlayInUpdateUserPacket::new);
-    public static final PacketType<PlayInSendMessagePacket> SEND_MESSAGE = register(PlayInSendMessagePacket::new);
-    public static final PacketType<PlayInPingRequestPacket> PING_REQUEST = register(PlayInPingRequestPacket::new);
-    public static final PacketType<PlayInPingResponsePacket> PING_RESPONSE = register(PlayInPingResponsePacket::new);
-    public static final PacketType<PlayInGiveMoneyRequest> GIVE_MONEY_REQUEST = register(PlayInGiveMoneyRequest::new);
-    public static final PacketType<PlayInGiveMoneyResponse> GIVE_MONEY_RESPONSE = register(PlayInGiveMoneyResponse::new);
+    public static final PacketType<PacketAddSellItem> ADD_SELL_ITEM = register(PacketAddSellItem::new);
+    public static final PacketType<PacketRemoveSellItem> REMOVE_SELL_ITEM = register(PacketRemoveSellItem::new);
+    public static final PacketType<PacketAddUnsoldItem> ADD_UNSOLD_ITEM = register(PacketAddUnsoldItem::new);
+    public static final PacketType<PacketRemoveUnsoldItem> REMOVE_UNSOLD_ITEM = register(PacketRemoveUnsoldItem::new);
+    public static final PacketType<PacketUpdateUser> UPDATE_USER = register(PacketUpdateUser::new);
+    public static final PacketType<PacketSendMessage> SEND_MESSAGE = register(PacketSendMessage::new);
+    public static final PacketType<PacketPingRequest> PING_REQUEST = register(PacketPingRequest::new);
+    public static final PacketType<PacketPingResponse> PING_RESPONSE = register(PacketPingResponse::new);
+    public static final PacketType<PacketGiveMoneyRequest> GIVE_MONEY_REQUEST = register(PacketGiveMoneyRequest::new);
+    public static final PacketType<PacketGiveMoneyResponse> GIVE_MONEY_RESPONSE = register(PacketGiveMoneyResponse::new);
 
-    private final PacketInSuppler<T> suppler;
+    private final Supplier<T> suppler;
     private final int id;
 
-    PacketType(PacketInSuppler<T> suppler, int id) {
+    PacketType(Supplier<T> suppler, int id) {
         this.suppler = suppler;
         this.id = id;
     }
 
-    private static <T extends PacketIn> PacketType<T> register(PacketInSuppler<T> suppler){
+    private static <T extends Packet> PacketType<T> register(Supplier<T> suppler){
         int id = types.size();
         PacketType<T> type = new PacketType<>(suppler, id);
         types.add(type);
@@ -53,13 +54,8 @@ public final class PacketType<T extends PacketIn> {
         return types.toArray(new PacketType[0]);
     }
 
-    public PacketInSuppler<? extends PacketIn> getSuppler() {
+    public Supplier<? extends Packet> getSuppler() {
         return suppler;
-    }
-
-    public interface PacketInSuppler<T extends PacketIn> {
-        @NotNull
-        T get(DataInputStream in) throws IOException;
     }
 
     @Override
