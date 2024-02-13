@@ -50,7 +50,7 @@ public class ConfirmMenu extends Menu {
 
     @Override
     public void reopen() {
-        throw new IllegalStateException();
+        throw new UnsupportedOperationException();
     }
 
     @Override

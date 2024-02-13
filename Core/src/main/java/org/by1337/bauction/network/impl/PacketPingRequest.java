@@ -1,5 +1,6 @@
 package org.by1337.bauction.network.impl;
 
+import org.by1337.bauction.network.ByteBuffer;
 import org.by1337.bauction.network.Packet;
 import org.by1337.bauction.network.PacketType;
 
@@ -40,17 +41,17 @@ public class PacketPingRequest extends Packet {
     }
 
     @Override
-    public void write(DataOutputStream data) throws IOException {
-        data.writeLong(time);
-        data.writeUTF(server);
-        data.writeUTF(to);
+    public void write(ByteBuffer data) {
+        data.writeVarLong(time);
+        data.writeUtf(server);
+        data.writeUtf(to);
     }
 
     @Override
-    public void read(DataInputStream in) throws IOException {
-        time = in.readLong();
-        server = in.readUTF();
-        to = in.readUTF();
+    public void read(ByteBuffer in) {
+        time = in.readVarLong();
+        server = in.readUtf();
+        to = in.readUtf();
     }
 
     public String getTo() {

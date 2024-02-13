@@ -1,5 +1,6 @@
 package org.by1337.bauction.network.impl;
 
+import org.by1337.bauction.network.ByteBuffer;
 import org.by1337.bauction.network.Packet;
 import org.by1337.bauction.network.PacketType;
 
@@ -23,15 +24,15 @@ public class PacketGiveMoneyResponse extends Packet {
 
 
     @Override
-    public void write(DataOutputStream data) throws IOException {
-        data.writeUTF(to);
-        data.writeInt(id);
+    public void write(ByteBuffer data) {
+        data.writeUtf(to);
+        data.writeVarInt(id);
     }
 
     @Override
-    public void read(DataInputStream in) throws IOException {
-        to = in.readUTF();
-        id = in.readInt();
+    public void read(ByteBuffer in) {
+        to = in.readUtf();
+        id = in.readVarInt();
     }
 
     public String getTo() {

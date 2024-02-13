@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS logs (
 
                                 stat.execute();
                             } catch (SQLException e) {
-                                Main.getMessage().error(e);
+                                Main.getMessage().error(sql, e);
                             }
                         }
                         if (sql != null) {
@@ -458,7 +458,7 @@ CREATE TABLE IF NOT EXISTS logs (
             while (resultSet.next()) {
                 actions.add(ActionGiveMoney.fromResultSet(resultSet, false));
             }
-            try (PreparedStatement p = connection.prepareStatement(String.format("DELETE FROM give_money WHERE server = '%s'", Main.getServerId()))){
+            try (PreparedStatement p = connection.prepareStatement(String.format("DELETE FROM give_money WHERE server = '%s'", Main.getServerId()))) {
                 p.execute();
             }
         } catch (SQLException e) {

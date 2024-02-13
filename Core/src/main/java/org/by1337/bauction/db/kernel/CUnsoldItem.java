@@ -1,6 +1,7 @@
 package org.by1337.bauction.db.kernel;
 
 import org.bukkit.inventory.ItemStack;
+import org.by1337.bauction.network.ByteBuffer;
 import org.by1337.bauction.util.Placeholder;
 import org.by1337.blib.BLib;
 import org.by1337.bauction.Main;
@@ -112,7 +113,6 @@ public class CUnsoldItem extends Placeholder implements UnsoldItem {
             return out.toByteArray();
         }
     }
-
     public static CUnsoldItem fromBytes(byte[] arr) throws IOException {
         try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
 

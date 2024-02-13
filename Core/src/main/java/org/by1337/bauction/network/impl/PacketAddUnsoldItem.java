@@ -2,6 +2,7 @@ package org.by1337.bauction.network.impl;
 
 import org.by1337.bauction.api.auc.UnsoldItem;
 import org.by1337.bauction.db.kernel.CUnsoldItem;
+import org.by1337.bauction.network.ByteBuffer;
 import org.by1337.bauction.network.Packet;
 import org.by1337.bauction.network.PacketType;
 
@@ -23,13 +24,26 @@ public class PacketAddUnsoldItem extends Packet {
 
 
     @Override
-    public void write(DataOutputStream data) throws IOException {
-        writeByteArray(data, unsoldItem.getBytes());
+    public void write(ByteBuffer buffer) {
+        try {
+            byte[] arr = unsoldItem.getBytes();
+            buffer.writeVarInt(arr.length);
+            buffer.writeBytes(arr);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     @Override
-    public void read(DataInputStream in) throws IOException {
-        unsoldItem = CUnsoldItem.fromBytes(readByteArray(in));
+    public void read(ByteBuffer buffer) {
+        try {
+            byte[] arr = new byte[buffer.readVarInt()];
+            buffer.readBytes(arr);
+            unsoldItem = CUnsoldItem.fromBytes(arr);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public CUnsoldItem getUnsoldItem() {

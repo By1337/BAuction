@@ -86,14 +86,10 @@ public class PacketConnection implements Listener, PluginMessageListener {
     public void saveSend(Packet packet) {
         try {
             if (!hasConnection.get()) return;
-            byte[] arr;
-            try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-                 DataOutputStream data = new DataOutputStream(out)) {
-                data.writeByte(packet.getType().getId());
-                packet.write(data);
-                data.flush();
-                arr = out.toByteArray();
-            }
+            ByteBuffer buffer = new ByteBuffer();
+            buffer.writeVarInt(packet.getType().getId());
+            packet.write(buffer);
+            byte[] arr = buffer.toByteArray();
 
             if (arr.length > Messenger.MAX_MESSAGE_SIZE) {
                 return;
@@ -150,14 +146,14 @@ public class PacketConnection implements Listener, PluginMessageListener {
 
     @SuppressWarnings("unchecked")
     public <T extends Packet> @NotNull Pair<@NotNull PacketType<T>, @NotNull T> readBytes(byte[] bytes) {
-        try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(bytes))) {
-            PacketType<T> type = (PacketType<T>) PacketType.byId(in.readByte());
-            T packet = (T) type.getSuppler().get();
-            packet.read(in);
-            return new Pair<>(type, packet);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        ByteBuffer buffer = new ByteBuffer(bytes);
+        PacketType<T> type = (PacketType<T>) PacketType.byId(buffer.readVarInt());
+        T packet = (T) type.getSuppler().get();
+        packet.read(buffer);
+        if (buffer.readableBytes() > 0){
+            System.out.println("extra bytes! " + buffer.readableBytes());
         }
+        return new Pair<>(type, packet);
     }
 
     @SuppressWarnings("unchecked")

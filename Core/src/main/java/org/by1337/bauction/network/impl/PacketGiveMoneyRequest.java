@@ -1,6 +1,7 @@
 package org.by1337.bauction.network.impl;
 
 import org.by1337.bauction.Main;
+import org.by1337.bauction.network.ByteBuffer;
 import org.by1337.bauction.network.Packet;
 import org.by1337.bauction.network.PacketType;
 import org.by1337.bauction.serialize.SerializeUtils;
@@ -47,21 +48,21 @@ public class PacketGiveMoneyRequest extends Packet {
     }
 
     @Override
-    public void write(DataOutputStream data) throws IOException {
-        data.writeUTF(from);
-        data.writeUTF(to);
-        SerializeUtils.writeUUID(player, data);
-        data.writeDouble(count);
-        data.writeInt(id);
+    public void write(ByteBuffer buffer) {
+        buffer.writeUtf(from);
+        buffer.writeUtf(to);
+        buffer.writeUUID(player);
+        buffer.writeDouble(count);
+        buffer.writeVarInt(id);
     }
 
     @Override
-    public void read(DataInputStream in) throws IOException {
-        from = in.readUTF();
-        to = in.readUTF();
-        player = SerializeUtils.readUUID(in);
-        count = in.readDouble();
-        id = in.readInt();
+    public void read(ByteBuffer buffer) {
+        from = buffer.readUtf();
+        to = buffer.readUtf();
+        player = buffer.readUUID();
+        count = buffer.readDouble();
+        id = buffer.readVarInt();
     }
 
     public String getFrom() {

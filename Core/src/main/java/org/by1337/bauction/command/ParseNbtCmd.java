@@ -17,7 +17,6 @@ import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.argument.ArgumentMap;
 import org.by1337.blib.command.requires.RequiresPermission;
-
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -36,8 +35,9 @@ public class ParseNbtCmd extends Command<CommandSender> {
         if (itemStack.getType().isAir()) {
             throw new CommandException(Lang.getMessage("item_in_hand_required"));
         }
+
         String nbt = new String(Base64.getDecoder().decode(BLib.getApi().getItemStackSerialize().serialize(itemStack)));
         Main.getMessage().sendMsg(sender, nbt);
-
+        Main.getMessage().logger(nbt);
     }
 }

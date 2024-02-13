@@ -1,5 +1,6 @@
 package org.by1337.bauction.network.impl;
 
+import org.by1337.bauction.network.ByteBuffer;
 import org.by1337.bauction.network.Packet;
 import org.by1337.bauction.network.PacketType;
 import org.by1337.bauction.serialize.SerializeUtils;
@@ -25,15 +26,15 @@ public class PacketSendMessage extends Packet {
 
 
     @Override
-    public void write(DataOutputStream data) throws IOException {
-        data.writeUTF(message);
-        SerializeUtils.writeUUID(receiver, data);
+    public void write(ByteBuffer buffer) {
+        buffer.writeUtf(message);
+        buffer.writeUUID(receiver);
     }
 
     @Override
-    public void read(DataInputStream in) throws IOException {
-        message = in.readUTF();
-        receiver = SerializeUtils.readUUID(in);
+    public void read(ByteBuffer buffer) {
+        message = buffer.readUtf();
+        receiver = buffer.readUUID();
     }
 
     public String getMessage() {

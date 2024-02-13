@@ -144,12 +144,13 @@ public class UnsoldItemsMenu extends Menu {
 
     public void reopen() {
         if (viewer == null || !viewer.isOnline()) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("player is offline!");
         }
         syncUtil(() -> {
-            reRegister();
-            if (!viewer.getOpenInventory().getTopInventory().equals(inventory))
+            if (!viewer.getOpenInventory().getTopInventory().equals(inventory)) {
                 viewer.openInventory(getInventory());
+                reRegister();
+            }
             sendFakeTitle(replace(title));
             unsoldItems = null;
             generate0();

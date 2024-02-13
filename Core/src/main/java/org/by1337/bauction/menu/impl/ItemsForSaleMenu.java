@@ -150,21 +150,20 @@ public class ItemsForSaleMenu extends Menu {
             Main.getMessage().error(e);
         }
     }
-
     public void reopen() {
         if (getPlayer() == null || !getPlayer().isOnline()) {
-            throw new IllegalArgumentException();
+            throw new IllegalStateException("player is offline!");
         }
         syncUtil(() -> {
-            reRegister();
-            if (!viewer.getOpenInventory().getTopInventory().equals(inventory))
+            if (!viewer.getOpenInventory().getTopInventory().equals(inventory)) {
                 viewer.openInventory(getInventory());
-            sendFakeTitle(replace(title));
+                reRegister();
+            }
             sellItems = null;
+            sendFakeTitle(replace(title));
             generate0();
         });
     }
-
     @Override
     public String replace(String s) {
         StringBuilder sb = new StringBuilder(Main.getMessage().messageBuilder(s, viewer));

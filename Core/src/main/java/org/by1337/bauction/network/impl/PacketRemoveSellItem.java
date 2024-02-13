@@ -1,5 +1,6 @@
 package org.by1337.bauction.network.impl;
 
+import org.by1337.bauction.network.ByteBuffer;
 import org.by1337.bauction.network.Packet;
 import org.by1337.bauction.network.PacketType;
 import org.by1337.bauction.api.util.UniqueName;
@@ -22,14 +23,15 @@ public class PacketRemoveSellItem extends Packet {
     }
 
     @Override
-    public void write(DataOutputStream data) throws IOException {
-        writeByteArray(data, name.getBytes());
+    public void write(ByteBuffer buffer) {
+        buffer.writeUtf(name.getKey());
     }
 
     @Override
-    public void read(DataInputStream in) throws IOException {
-        name = CUniqueName.fromBytes(readByteArray(in));
+    public void read(ByteBuffer buffer) {
+        name = new CUniqueName(buffer.readUtf());
     }
+
 
     public UniqueName getName() {
         return name;

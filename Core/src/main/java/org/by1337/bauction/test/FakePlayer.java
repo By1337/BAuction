@@ -65,7 +65,7 @@ public class FakePlayer {
         CUser user = (CUser) storage.getUserOrCreate(nickName, uuid);
         user.setExternalSlots(9999);
         ItemStack itemStack = new ItemStack(Material.values()[random.nextInt(50) + 1]);
-
+        itemStack.setAmount(random.nextInt(itemStack.getType().getMaxStackSize() - 1) + 1);
         CSellItem sellItem = new CSellItem(nickName, uuid, itemStack, random.nextInt(200) + 200, Main.getCfg().getDefaultSellTime() + user.getExternalSellTime(), true);
         SellItemEvent event = new SellItemEvent(user, sellItem);
         storage.validateAndAddItem(event);

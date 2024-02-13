@@ -16,8 +16,8 @@ public abstract class Packet {
         return type;
     }
 
-    public abstract void write(DataOutputStream data) throws IOException;
-    public abstract void read(DataInputStream in) throws IOException;
+    public abstract void write(ByteBuffer data);
+    public abstract void read(ByteBuffer in);
 
     protected void writeByteArray(DataOutputStream data, byte[] source) throws IOException {
         data.writeInt(source.length);

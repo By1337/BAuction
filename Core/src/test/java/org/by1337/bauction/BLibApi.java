@@ -1,11 +1,13 @@
 package org.by1337.bauction;
 
 import org.bukkit.Material;
+import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.blib.Api;
 import org.by1337.blib.BLib;
 import org.by1337.blib.chat.util.Message;
+import org.by1337.blib.command.BukkitCommandRegister;
 import org.by1337.blib.command.CommandUtil;
 import org.by1337.blib.factory.PacketEntityFactory;
 import org.by1337.blib.factory.PacketFactory;
@@ -131,6 +133,19 @@ public class BLibApi implements Api {
     @Override
     public @NotNull FakeTitleFactory getFakeTitleFactory() {
         return () -> (FakeTitle) (inventory, s) -> {
+        };
+    }
+
+    @Override
+    public @NotNull BukkitCommandRegister getBukkitCommandRegister() {
+        return new BukkitCommandRegister() {
+            @Override
+            public void register(BukkitCommand bukkitCommand) {
+            }
+
+            @Override
+            public void unregister(BukkitCommand bukkitCommand) {
+            }
         };
     }
 }

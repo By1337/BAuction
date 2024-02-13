@@ -154,12 +154,13 @@ public class BuyCountMenu extends Menu {
 
     public void reopen() {
         if (getPlayer() == null || !getPlayer().isOnline()) {
-            throw new IllegalArgumentException();
+            throw new IllegalStateException("player is offline!");
         }
         syncUtil(() -> {
-            reRegister();
-            if (!viewer.getOpenInventory().getTopInventory().equals(inventory))
+            if (!viewer.getOpenInventory().getTopInventory().equals(inventory)) {
                 viewer.openInventory(getInventory());
+                reRegister();
+            }
             sendFakeTitle(replace(title));
             generate0();
         });

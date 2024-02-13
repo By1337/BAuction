@@ -53,7 +53,7 @@ public abstract class AsyncClickListener implements Listener {
         this(viewer, true);
     }
 
-    public AsyncClickListener(Player viewer, boolean async ) {
+    public AsyncClickListener(Player viewer, boolean async) {
         this.viewer = viewer;
         this.async = async;
         Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
@@ -167,6 +167,7 @@ public abstract class AsyncClickListener implements Listener {
         createRunManager();
     }
 
+
     /**
      * Sends a fake title to the player viewing the inventory.
      *
@@ -190,7 +191,7 @@ public abstract class AsyncClickListener implements Listener {
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), runnable, delay);
     }
 
-    private void createRunManager(){
+    private void createRunManager() {
         if (async) {
             executor = Executors.newSingleThreadExecutor();
             runManager = executor::execute;
@@ -198,6 +199,7 @@ public abstract class AsyncClickListener implements Listener {
             runManager = Runnable::run;
         }
     }
+
     @FunctionalInterface
     private interface RunManager {
         void run(Runnable runnable);

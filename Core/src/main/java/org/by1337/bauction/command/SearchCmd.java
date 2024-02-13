@@ -12,6 +12,7 @@ import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.CommandSyntaxError;
 import org.by1337.blib.command.argument.ArgumentMap;
+import org.by1337.blib.command.argument.ArgumentStrings;
 import org.by1337.blib.command.requires.RequiresPermission;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class SearchCmd extends Command<CommandSender> {
         super(command);
         requires(new RequiresPermission<>("bauc.search"));
         requires(sender -> sender instanceof Player);
+        argument(new ArgumentStrings<>("tags"));
         executor(this::execute);
     }
 
