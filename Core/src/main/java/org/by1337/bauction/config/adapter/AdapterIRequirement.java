@@ -26,11 +26,11 @@ public class AdapterIRequirement implements ClassAdapter<IRequirement> {
             String output = context.getAsString("output", "true");
             return new RequirementStringContains(input, input2, output);
         }
-        if (type.equalsIgnoreCase("match") || type.equalsIgnoreCase("m")) {
+        if (type.equalsIgnoreCase("math") || type.equalsIgnoreCase("m")) {
             String input = context.getAsString("input");
             String output = context.getAsString("output", "true");
 
-            return new RequirementMatch(input, output);
+            return new RequirementMath(input, output);
         }
         if (type.equalsIgnoreCase("has permission") || type.equalsIgnoreCase("hp")) {
             return new RequirementHasPermission(context.getAsString("permission"));

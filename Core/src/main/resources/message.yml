@@ -1,43 +1,44 @@
 messages:
   successful_loading: "Успешно загружено %s предметов за %s мс."
-  plugin_reload: "&aПлагин успешно перезагружен за %s мс."
+  plugin_reload: "&#0dfb00» &fПлагин успешно перезагружен за %s мс."
   must_be_player: "Вы должны быть игроком!"
-  item_in_hand_required: "&cУ Вас в руке должен быть предмет"
+  item_in_hand_required: "&#fb093c» &fУ Вас в руке должен быть предмет"
   price_tag: "[цена]"
   quantity_tag: "[количество]"
   sale_time_tag: "[время продажи]"
-  successful_listing: "&aВы успешно выставили %s предметов на продажу за %s миллисекунд!"
-  cannot_trade_air: "&cВы не можете торговать воздухом!"
-  successful_single_listing: "&aВы успешно выставили предмет на продажу!"
-  tags_required: "&cУкажите теги!"
+  successful_listing: "&#0dfb00» &fВы успешно выставили %s предметов на продажу за %s миллисекунд!"
+  cannot_trade_air: "&#fb093c» &fВы не можете торговать воздухом!"
+  successful_single_listing: "&#0dfb00» &fВы успешно выставили предмет на продажу!"
+  tags_required: "&#fb093c» &fУкажите теги!"
   start_entering_item_name: "начните вводить название предмета"
-  auction_item_limit_reached: "&cВы достигли лимита по количеству предметов на аукционе!"
-  error_occurred: "&cПроизошла ошибка!"
-  not_item_owner: "&cВы не владелец предмета!"
-  item_already_sold_or_removed: "&cПредмет уже продан или снят с продажи!"
-  item_not_found: "&cКажется такого предмета нет!"
-  item_owner: "&cВы владелец предмета!"
-  quantity_limit_exceeded: "&cКто-то выкупил часть товара и вы больше не можете купить этот предмет в таком количестве!"
-  successful_item_retrieval: "&aВы успешно забрали свой предмет!"
-  insufficient_balance: "&cУ Вас не хватает баланса для покупки предмета!"
-  item_sold_to_buyer: "&aИгрок {buyer_name} купил у вас {item_name}&r за {price}!"
-  successful_purchase: "&aВы успешно купили {item_name}&r в количестве {amount}!"
-  something_went_wrong: "&cЧто-то пошло не так!"
-  price_not_specified: "&cВы должны указать цену!"
-  insufficient_balance_for_purchase: "&cУ Вас не хватает баланса для покупки хотя бы одного предмета!"
-  item_no_longer_exists: "&cКажется этого предмета больше не существует"
+  auction_item_limit_reached: "&#fb093c» &fВы достигли лимита по количеству предметов на аукционе!"
+  error_occurred: "&#fb093c» &fПроизошла ошибка!"
+  not_item_owner: "&#fb093c» &fВы не владелец предмета!"
+  item_already_sold_or_removed: "&#fb093c» &fПредмет уже продан или снят с продажи!"
+  item_not_found: "&#fb093c» &fКажется такого предмета больше нет!"
+  item_owner: "&#fb093c» &fВы владелец предмета!"
+  quantity_limit_exceeded: "&#fb093c» &fКто-то выкупил часть товара и вы больше не можете купить этот предмет в таком количестве!"
+  successful_item_retrieval: "&#0dfb00» &fВы успешно забрали свой предмет!"
+  insufficient_balance: "&#fb093c» &fУ Вас не хватает баланса для покупки предмета!"
+  item_sold_to_buyer: "&#0dfb00» &fИгрок {buyer_name} купил у вас '{item_name}&f' за {price}!"
+  successful_purchase: "&#0dfb00» &fВы успешно купили '{item_name}&f' в количестве x{amount}!"
+  something_went_wrong: "&#fb093c» &fЧто-то пошло не так!"
+  price_not_specified: "&#fb093c» &fВы должны указать цену!"
+  insufficient_balance_for_purchase: "&#fb093c» &fУ Вас не хватает баланса для покупки хотя бы одного предмета!"
+  item_no_longer_exists: "&#fb093c» &fКажется этого предмета больше не существует"
   has_no_external_time: 'нет'
-  player-not-found: '&cИгрок не найден!'
-  player-not-selected: '&cВы должны указать игрока!'
-  auc-clear-confirm: '&cВы уверены что хотите очистить аукцион?'
-  auc-cleared: '&aАукцион очищен!'
-  count-req: '&cУкажите число для продажи определённого количества предметов!'
+  player-not-found: '&#fb093c» &fИгрок не найден!'
+  player-not-selected: '&#fb093c» &fВы должны указать игрока!'
+  auc-clear-confirm: '&#fb093c» &fВы уверены что хотите очистить аукцион?'
+  auc-cleared: '&#0dfb00» &fАукцион очищен!'
+  count-req: '&#fb093c» &fУкажите число для продажи определённого количества предметов!'
   sale-by-the-piece-format-off: 'отключена'
   sale-by-the-piece-format-on: 'включена'
-  item-in-black-list: '&cВы не можете выставить "{item_name}" на продажу!'
+  item-in-black-list: '&#fb093c» &fВы не можете выставить "{item_name}&f" на продажу!'
   update-msg-raw: '["",{"text":"[Bauction]","color":"green"},{"text":" Вышла новая версия плагина!"},{"text":"
   Текущая ''"},{"text":"%s","color":"red"},{"text":"'', новая ''"},{"text":"%s","color":"green"},{"text":"''","color":"#6AAB73"},{"text":"\n"},{"text":"[Bauction]","color":"green"},{"text":"
   Сылка на скачивание "},{"text":"%s","italic":true,"color":"aqua","clickEvent":{"action":"open_url","value":"%s"},"hoverEvent":{"action":"show_text","contents":"%s"}}]'
+  item-size-limit: '&#fb093c» &fВы не можете выставить этот предмет на продажу!'
 time-format:
   ago: 'назад'
   in: 'через'

@@ -151,7 +151,7 @@ public class PacketConnection implements Listener, PluginMessageListener {
         T packet = (T) type.getSuppler().get();
         packet.read(buffer);
         if (buffer.readableBytes() > 0){
-            System.out.println("extra bytes! " + buffer.readableBytes());
+            throw new IllegalArgumentException(String.format("Packet %s has extra bytes!, %s, %s", type.getId(), packet, buffer.readableBytes()));
         }
         return new Pair<>(type, packet);
     }

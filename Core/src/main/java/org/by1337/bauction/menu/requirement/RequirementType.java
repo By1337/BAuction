@@ -4,5 +4,5 @@ public enum RequirementType {
     HAS_PERMISSION,
     STRING_EQUALS,
     STRING_CONTAINS,
-    MATCH
+    MATH
 }

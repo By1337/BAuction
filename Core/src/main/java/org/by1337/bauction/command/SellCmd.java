@@ -13,7 +13,7 @@ import org.by1337.bauction.util.TimeCounter;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.CommandSyntaxError;
-import org.by1337.blib.command.argument.ArgumentIntegerAllowedMatch;
+import org.by1337.blib.command.argument.ArgumentIntegerAllowedMath;
 import org.by1337.blib.command.argument.ArgumentMap;
 import org.by1337.blib.command.requires.RequiresPermission;
 
@@ -24,7 +24,7 @@ public class SellCmd  extends Command<CommandSender> {
         super(command);
         requires(new RequiresPermission<>("bauc.sell"));
         requires(sender -> sender instanceof Player);
-        argument(new ArgumentIntegerAllowedMatch<>("price", List.of(Lang.getMessage("price_tag")),
+        argument(new ArgumentIntegerAllowedMath<>("price", List.of(Lang.getMessage("price_tag")),
                 Main.getCfg().getConfig().getAsInteger("offer-min-price", 1),
                 Main.getCfg().getConfig().getAsInteger("offer-max-price", Integer.MAX_VALUE)
         ));
@@ -45,7 +45,7 @@ public class SellCmd  extends Command<CommandSender> {
             try {
                 amount = Integer.parseInt(saleByThePieceS);
             } catch (NumberFormatException e) {
-                Main.getMessage().sendMsg(sender, "&cУкажите число для продажи определённого количества предметов!");
+                Main.getMessage().sendMsg(sender, Lang.getMessage("count-req"));
                 return;
             }
         }

@@ -465,7 +465,6 @@ CREATE TABLE IF NOT EXISTS logs (
             Main.getMessage().error(e);
         }
         for (ActionGiveMoney action : actions) {
-            System.out.println(action);
             OfflinePlayer player = Bukkit.getOfflinePlayer(action.getUuid());
             Main.getEcon().depositPlayer(player, action.getCount());
         }

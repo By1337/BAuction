@@ -43,7 +43,7 @@ item:
         type: has permission # hp
         permission: 'some.permission'
       check_4:
-        type: match # m
+        type: math # m
         input: '10 * 10 + 15 == 115 || 10 > 9'
         output: 'true' # если не указать, то будет true по умолчанию
     deny_commands:

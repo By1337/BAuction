@@ -2,6 +2,8 @@ package org.by1337.bauction.datafix;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
+import org.by1337.bauction.datafix.db.DBUpdate110;
+import org.by1337.bauction.datafix.db.mysql.MySqlDBUpdater2;
 import org.by1337.blib.configuration.YamlContext;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.datafix.config.*;
@@ -15,7 +17,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class UpdateManager {
-    private final static int CURRENT_VERSION = 5;
+    private final static int CURRENT_VERSION = 6;
 
     public static void checkUpdate() {
         Plugin plugin = Main.getInstance();
@@ -76,6 +78,15 @@ public class UpdateManager {
             new DBUpdate109().update();
             new MySqlDBUpdater1().update();
             new MessagesUpdater().update();
+            version++;
+            run(version, config);
+        } else if (version == 5) {
+            config.set("item-max-size", 70_000);
+            config.set("compress-if-more-than", 30_000);
+            config.set("maximum-uncompressed-item-size", 350000);
+            new MessagesUpdater().update();
+            new DBUpdate110().update();
+            new MySqlDBUpdater2().update();
             version++;
             run(version, config);
         }

@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.UUID;
 
+
 public class CSellItemTest extends TestCase {
 
     private CSellItem sellItem = new CSellItem(
@@ -32,7 +33,8 @@ public class CSellItemTest extends TestCase {
             10.3,
             new HashSet<>(),
             null,
-            "server-1"
+            "server-1",
+            false
 
     );
 
@@ -86,6 +88,7 @@ public class CSellItemTest extends TestCase {
             String str = invocation.getArgument(0);
             return switch (str) {
                 case "sale_by_the_piece" -> sellItem.saleByThePiece;
+                case "compressed" -> sellItem.compressed;
                 default -> throw new IllegalArgumentException();
             };
         }).when(resultSet).getBoolean(Mockito.anyString());

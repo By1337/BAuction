@@ -6,7 +6,7 @@
 
     <groupId>org.by1337.bauction</groupId>
     <artifactId>BAuction</artifactId>
-    <version>1.0.9.2</version>
+    <version>1.0.9.3</version>
     <packaging>jar</packaging>
 
     <name>Core</name>
@@ -91,7 +91,7 @@
         <dependency>
             <groupId>org.by1337.bauction.api</groupId>
             <artifactId>BaucApi</artifactId>
-            <version>1.0</version>
+            <version>1.0.9.2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -104,7 +104,7 @@
         <dependency>
             <groupId>org.by1337.blib</groupId>
             <artifactId>Blib-api</artifactId>
-            <version>1.0.5.2</version>
+            <version>1.0.5.3</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

@@ -1,6 +1,7 @@
 package org.by1337.bauction.datafix.db.mysql;
 
 import org.bukkit.Material;
+import org.by1337.bauction.util.DbCfg;
 import org.by1337.blib.configuration.YamlContext;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.CSellItem;
@@ -12,23 +13,18 @@ import java.util.*;
 public class MySqlDBUpdater1 {
 
     public void update() {
-        YamlContext context = Main.getDbCfg().getContext();
-        if (!context.getAsBoolean("mysql-settings.is-head")){
+        DbCfg dbCfg = Main.getDbCfg();
+        if (!dbCfg.isHead()) {
             return;
         }
-        String dbType = context.getAsString("db-type");
-        if (!"mysql".equals(dbType)) return;
+        if (dbCfg.getDbType() != DbCfg.DbType.MYSQL) return;
         Main.getMessage().logger("detected deprecated mysql db");
-        String host = context.getAsString("mysql-settings.host");
-        String name = context.getAsString("mysql-settings.db-name");
-        String user = context.getAsString("mysql-settings.user");
-        String password = context.getAsString("mysql-settings.password");
-        int port = context.getAsInteger("mysql-settings.port");
+
 
         try {
             Connection connection = DriverManager.getConnection(
-                    "jdbc:mysql://" + host + ":" + port + "/" + name + "?useUnicode=true&characterEncoding=utf8&autoReconnect=true",
-                    user, password
+                    "jdbc:mysql://" + dbCfg.getHost() + ":" + dbCfg.getPort() + "/" + dbCfg.getDbName() + "?useUnicode=true&characterEncoding=utf8&autoReconnect=true",
+                    dbCfg.getUser(), dbCfg.getPassword()
             );
 
             List<CSellItem> sellItems = parseSellItems(connection);

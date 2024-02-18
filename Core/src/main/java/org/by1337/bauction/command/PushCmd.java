@@ -14,7 +14,7 @@ import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.CommandSyntaxError;
 import org.by1337.blib.command.argument.ArgumentInteger;
-import org.by1337.blib.command.argument.ArgumentIntegerAllowedMatch;
+import org.by1337.blib.command.argument.ArgumentIntegerAllowedMath;
 import org.by1337.blib.command.argument.ArgumentMap;
 import org.by1337.blib.command.argument.ArgumentString;
 import org.by1337.blib.command.requires.RequiresPermission;
@@ -27,7 +27,7 @@ public class PushCmd extends Command<CommandSender> {
     public PushCmd(String command) {
         super(command);
         requires(new RequiresPermission<>("bauc.admin.debug.push"));
-        argument(new ArgumentIntegerAllowedMatch<>("price", List.of(Lang.getMessage("price_tag"))));
+        argument(new ArgumentIntegerAllowedMath<>("price", List.of(Lang.getMessage("price_tag"))));
         argument(new ArgumentInteger<>("amount", List.of(Lang.getMessage("quantity_tag"))));
         argument(new ArgumentString<>("time", List.of(Lang.getMessage("sale_time_tag"))));
 

@@ -22,7 +22,7 @@ public class MessagesUpdater {
         Map<String, String> map1 = file.getContext().getMap("messages", String.class, new HashMap<>());
         map.forEach((k, v) -> {
             if (!map1.containsKey(k)) {
-                file.getContext().set("messages." + k, v);
+                file.set("messages." + k, v);
             }
         });
         file.trySave();

@@ -19,7 +19,8 @@ public class CUnsoldItemTest extends TestCase {
             UUID.nameUUIDFromBytes("OfflinePlayer:_By1337_".getBytes()),
             new CUniqueName("key"),
             200,
-            null
+            null,
+            false
     );
     public CUnsoldItemTest() {
         BLibApi.setApi();
@@ -54,6 +55,13 @@ public class CUnsoldItemTest extends TestCase {
             };
         }).when(resultSet).getLong(Mockito.anyString());
 
+        Mockito.doAnswer(invocation -> {
+            String str = invocation.getArgument(0);
+            return switch (str) {
+                case "compressed" -> unsoldItem.compressed;
+                default -> throw new IllegalArgumentException();
+            };
+        }).when(resultSet).getBoolean(Mockito.anyString());
         return resultSet;
     }
 }

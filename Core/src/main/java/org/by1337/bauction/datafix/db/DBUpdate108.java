@@ -112,7 +112,7 @@ public class DBUpdate108 {
             Set<String> sellFor = new HashSet<>(SerializeUtils.readCollectionFromStream(in));
 
             return new CSellItem(
-                    item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, null, Main.getServerId()
+                    item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, null, Main.getServerId(),false
             );
         }
     }
@@ -131,7 +131,7 @@ public class DBUpdate108 {
             long deleteVia = in.readLong();
 
             return new CUnsoldItem(
-                    item, expired, sellerUuid, uniqueName, deleteVia
+                    item, expired, sellerUuid, uniqueName, deleteVia, false
             );
         }
     }

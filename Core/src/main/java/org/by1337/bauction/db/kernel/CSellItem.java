@@ -3,6 +3,7 @@ package org.by1337.bauction.db.kernel;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.by1337.bauction.db.kernel.util.InsertBuilder;
 import org.by1337.bauction.util.Placeholder;
 import org.by1337.blib.BLib;
 import org.by1337.bauction.Main;
@@ -38,6 +39,7 @@ public class CSellItem extends Placeholder implements SellItem {
     @Nullable
     transient ItemStack itemStack;
     final String server;
+    final boolean compressed;
 
     public static CSellItemBuilder builder() {
         return new CSellItemBuilder();
@@ -45,11 +47,23 @@ public class CSellItem extends Placeholder implements SellItem {
 
     @Override
     public String toSql(String table) {
-        return String.format(
-                "INSERT INTO %s (uuid, seller_uuid, item, seller_name, price, sale_by_the_piece, tags, time_listed_for_sale, removal_date, material, amount, price_for_one, sell_for, server)" +
-                        "VALUES('%s', '%s', '%s', '%s', %s, %s, '%s', %s, %s, '%s', %s, %s, '%s', '%s')",
-                table, uniqueName.getKey(), sellerUuid, item, sellerName, price, saleByThePiece, listToString(tags), timeListedForSale, removalDate, material.name(), amount, priceForOne, listToString(sellFor), server
-        );
+        InsertBuilder insertBuilder = new InsertBuilder(table);
+        insertBuilder.add("uuid", uniqueName.getKey());
+        insertBuilder.add("seller_uuid", sellerUuid.toString());
+        insertBuilder.add("item", item);
+        insertBuilder.add("seller_name", sellerName);
+        insertBuilder.add("price", price);
+        insertBuilder.add("sale_by_the_piece", saleByThePiece);
+        insertBuilder.add("tags", listToString(tags));
+        insertBuilder.add("time_listed_for_sale", timeListedForSale);
+        insertBuilder.add("removal_date", removalDate);
+        insertBuilder.add("material", material.name());
+        insertBuilder.add("amount", amount);
+        insertBuilder.add("price_for_one", priceForOne);
+        insertBuilder.add("sell_for", listToString(sellFor));
+        insertBuilder.add("server", server);
+        insertBuilder.add("compressed", compressed);
+        return insertBuilder.build();
     }
 
     public static CSellItem fromResultSet(ResultSet resultSet) throws SQLException {
@@ -75,6 +89,7 @@ public class CSellItem extends Placeholder implements SellItem {
                         )
                 )
                 .server(resultSet.getString("server"))
+                .compressed(resultSet.getBoolean("compressed"))
                 .build();
     }
 
@@ -82,7 +97,11 @@ public class CSellItem extends Placeholder implements SellItem {
         return String.join(",", collection);
     }
 
-    public CSellItem(String item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, UniqueName uniqueName, Material material, int amount, double priceForOne, Set<String> sellFor, ItemStack itemStack, String server) {
+    public CSellItem(String item, String sellerName, UUID sellerUuid,
+                     double price, boolean saleByThePiece, Set<String> tags,
+                     long timeListedForSale, long removalDate, UniqueName uniqueName,
+                     Material material, int amount, double priceForOne, Set<String> sellFor,
+                     @Nullable ItemStack itemStack, String server, boolean compressed) {
         this.server = server;
         this.item = item;
         this.sellerName = sellerName;
@@ -98,10 +117,14 @@ public class CSellItem extends Placeholder implements SellItem {
         this.priceForOne = priceForOne;
         this.sellFor = sellFor;
         this.itemStack = itemStack;
+        this.compressed = compressed;
         init();
     }
 
-    public CSellItem(String item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, UniqueName uniqueName, Material material, int amount, double priceForOne, ItemStack itemStack) {
+    public CSellItem(String item, String sellerName, UUID sellerUuid,
+                     double price, boolean saleByThePiece, Set<String> tags,
+                     long timeListedForSale, long removalDate, UniqueName uniqueName,
+                     Material material, int amount, double priceForOne, @Nullable ItemStack itemStack, boolean compressed) {
         this.item = item;
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
@@ -115,6 +138,7 @@ public class CSellItem extends Placeholder implements SellItem {
         this.amount = amount;
         this.priceForOne = priceForOne;
         this.itemStack = itemStack;
+        this.compressed = compressed;
         sellFor = new HashSet<>();
         server = Main.getServerId();
         init();
@@ -123,7 +147,7 @@ public class CSellItem extends Placeholder implements SellItem {
     public CSellItem(String item, String sellerName, UUID sellerUuid,
                      double price, boolean saleByThePiece, Set<String> tags,
                      long timeListedForSale, long removalDate, UniqueName uniqueName, Material material,
-                     int amount, double priceForOne) {
+                     int amount, double priceForOne, boolean compressed) {
         this.item = item;
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
@@ -136,12 +160,15 @@ public class CSellItem extends Placeholder implements SellItem {
         this.material = material;
         this.amount = amount;
         this.priceForOne = priceForOne;
+        this.compressed = compressed;
         sellFor = new HashSet<>();
         server = Main.getServerId();
         init();
     }
 
-    public CSellItem(@NotNull String item, @NotNull String sellerName, @NotNull UUID sellerUuid, double price, boolean saleByThePiece, @NotNull Set<String> tags, long saleDuration, @NotNull Material material, int amount) {
+    public CSellItem(@NotNull String item, @NotNull String sellerName, @NotNull UUID sellerUuid,
+                     double price, boolean saleByThePiece, @NotNull Set<String> tags, long saleDuration,
+                     @NotNull Material material, int amount, boolean compressed) {
         this.item = item;
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
@@ -153,6 +180,7 @@ public class CSellItem extends Placeholder implements SellItem {
         this.uniqueName = Main.getUniqueNameGenerator().getNextCombination();
         this.material = material;
         this.amount = amount;
+        this.compressed = compressed;
         priceForOne = price / amount;
         sellFor = new HashSet<>();
         server = Main.getServerId();
@@ -164,7 +192,14 @@ public class CSellItem extends Placeholder implements SellItem {
     }
 
     public CSellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
-        item = BLib.getApi().getItemStackSerialize().serialize(itemStack);
+        var temp = BLib.getApi().getItemStackSerialize().serialize(itemStack);
+        if (temp.getBytes().length > Main.getCfg().getCompressIfMoreThan()) {
+            item = BLib.getApi().getItemStackSerialize().serializeAndCompress(itemStack);
+            compressed = true;
+        } else {
+            item = temp;
+            compressed = false;
+        }
         sellerName = seller.getName();
         sellerUuid = seller.getUniqueId();
         this.price = price;
@@ -182,7 +217,14 @@ public class CSellItem extends Placeholder implements SellItem {
     }
 
     public CSellItem(String sellerName, UUID sellerUuid, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
-        item = BLib.getApi().getItemStackSerialize().serialize(itemStack);
+        var temp = BLib.getApi().getItemStackSerialize().serialize(itemStack);
+        if (temp.getBytes().length > Main.getCfg().getCompressIfMoreThan()) {
+            item = BLib.getApi().getItemStackSerialize().serializeAndCompress(itemStack);
+            compressed = true;
+        } else {
+            item = temp;
+            compressed = false;
+        }
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
         this.price = price;
@@ -199,7 +241,7 @@ public class CSellItem extends Placeholder implements SellItem {
         init();
     }
 
-    private void init(){
+    private void init() {
         registerPlaceholder("{seller_uuid}", sellerUuid::toString);
         registerPlaceholder("{seller_name}", () -> sellerName);
         registerPlaceholder("{price}", () -> NumberUtil.format(price));
@@ -234,13 +276,18 @@ public class CSellItem extends Placeholder implements SellItem {
                 item.getPriceForOne(),
                 new HashSet<>(),
                 item.getItemStack(),
-                item.getServer()
+                item.getServer(),
+                item.isCompressed()
         );
     }
 
     public ItemStack getItemStack() {
         if (itemStack == null) {
-            itemStack = BLib.getApi().getItemStackSerialize().deserialize(item);
+            if (compressed) {
+                itemStack = BLib.getApi().getItemStackSerialize().decompressAndDeserialize(item);
+            } else {
+                itemStack = BLib.getApi().getItemStackSerialize().deserialize(item);
+            }
         }
         return itemStack.clone();
     }
@@ -274,6 +321,7 @@ public class CSellItem extends Placeholder implements SellItem {
             data.writeDouble(priceForOne);
             SerializeUtils.writeCollectionToStream(data, sellFor);
             data.writeUTF(server);
+            data.writeBoolean(compressed);
             data.flush();
             return out.toByteArray();
         }
@@ -297,9 +345,9 @@ public class CSellItem extends Placeholder implements SellItem {
             double priceForOne = in.readDouble();
             Set<String> sellFor = new HashSet<>(SerializeUtils.readCollectionFromStream(in));
             String server = in.readUTF();
-
+            boolean compressed = in.readBoolean();
             return new CSellItem(
-                    item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, null, server
+                    item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, null, server, compressed
             );
         }
     }
@@ -401,12 +449,13 @@ public class CSellItem extends Placeholder implements SellItem {
                         Objects.equals(uniqueName, cSellItem.uniqueName) &&
                         material == cSellItem.material &&
                         Objects.equals(sellFor, cSellItem.sellFor) &&
-                        Objects.equals(server, cSellItem.server);
+                        Objects.equals(server, cSellItem.server) &&
+                        compressed == cSellItem.compressed;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, server);
+        return Objects.hash(item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, server, compressed);
     }
 
     public static class CSellItemBuilder {
@@ -425,6 +474,7 @@ public class CSellItem extends Placeholder implements SellItem {
         private Set<String> sellFor;
         private ItemStack itemStack;
         private String server;
+        private boolean compressed;
 
         CSellItemBuilder() {
         }
@@ -504,10 +554,18 @@ public class CSellItem extends Placeholder implements SellItem {
             return this;
         }
 
+        public CSellItemBuilder compressed(boolean compressed) {
+            this.compressed = compressed;
+            return this;
+        }
+
         public CSellItem build() {
-            return new CSellItem(this.item, this.sellerName, this.sellerUuid, this.price, this.saleByThePiece, this.tags, this.timeListedForSale, this.removalDate, this.uniqueName, this.material, this.amount, this.priceForOne, this.sellFor, this.itemStack, server);
+            return new CSellItem(this.item, this.sellerName, this.sellerUuid, this.price, this.saleByThePiece, this.tags, this.timeListedForSale, this.removalDate, this.uniqueName, this.material, this.amount, this.priceForOne, this.sellFor, this.itemStack, server, compressed);
         }
 
     }
 
+    public boolean isCompressed() {
+        return compressed;
+    }
 }

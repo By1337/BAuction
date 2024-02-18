@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.by1337.bauction.api.event.*;
+import org.by1337.blib.BLib;
 import org.by1337.blib.util.NameKey;
 import org.by1337.bauc.util.SyncDetectorManager;
 import org.by1337.bauction.Main;
@@ -118,7 +119,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
     @Override
     protected void expiredItem(SellItem item) {
         removeSellItem(item.getUniqueName());
-        CUnsoldItem unsoldItem = new CUnsoldItem(item.getItem(), item.getSellerUuid(), item.getRemovalDate(), item.getRemovalDate() + removeTime);
+        CUnsoldItem unsoldItem = new CUnsoldItem(item.getItem(), item.getSellerUuid(), item.getRemovalDate(), item.getRemovalDate() + removeTime, item.isCompressed());
         addUnsoldItem(unsoldItem);
     }
 
@@ -140,6 +141,19 @@ public class FileDataBase extends DataBaseCore implements Listener {
                 event.setValid(false);
                 event.setReason(sellItemProcess.getReason());
                 return;
+            }
+
+            if (sellItem.getItem().getBytes().length > Main.getCfg().getItemMaxSize()) {
+                event.setValid(false);
+                event.setReason(Lang.getMessage("item-size-limit"));
+                return;
+            } else if (sellItem.isCompressed()) {
+                int size = BLib.getApi().getItemStackSerialize().decompress(sellItem.getItem()).getBytes().length;
+                if (size > Main.getCfg().getMaximumUncompressedItemSize()) {
+                    event.setValid(false);
+                    event.setReason(Lang.getMessage("item-size-limit"));
+                    return;
+                }
             }
 
             if (Main.getCfg().getMaxSlots() <= (sellItemsCountByUser(user.uuid) - user.getExternalSlots())) {
@@ -349,6 +363,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
                         .sellFor(updated.sellFor)
                         .itemStack(itemStack)
                         .server(updated.server)
+                        .compressed(updated.compressed)
                         .build();
 
                 addSellItem(newItem);

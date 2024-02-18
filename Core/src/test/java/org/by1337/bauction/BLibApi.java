@@ -22,6 +22,7 @@ import org.by1337.blib.world.entity.PacketEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -124,8 +125,28 @@ public class BLibApi implements Api {
             }
 
             @Override
+            public @NotNull String serializeAndCompress(@NotNull ItemStack itemStack) throws IllegalArgumentException {
+                return "empty";
+            }
+
+            @Override
             public @NotNull ItemStack deserialize(@NotNull String s) throws IllegalArgumentException {
                 return new ItemStack(Material.DIRT);
+            }
+
+            @Override
+            public @NotNull ItemStack decompressAndDeserialize(@NotNull String data) throws IllegalArgumentException {
+                return new ItemStack(Material.DIRT);
+            }
+
+            @Override
+            public String compress(String raw) throws IOException {
+                return "";
+            }
+
+            @Override
+            public String decompress(String raw) throws IOException {
+                return "";
             }
         };
     }

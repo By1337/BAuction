@@ -51,10 +51,9 @@ public final class Main extends JavaPlugin {
     private static TimeUtil timeUtil;
     private PlaceholderHook placeholderHook;
     private static UniqueNameGenerator uniqueNameGenerator;
-    private static YamlConfig dbCfg;
+    private static DbCfg dbCfg;
     private boolean loaded;
     private static Set<String> blackList = new HashSet<>();
-    private static String serverId;
 
     @Override
     public void onLoad() {
@@ -71,7 +70,7 @@ public final class Main extends JavaPlugin {
         }
         getCommand("bauc").setPermission("bauc.use");
         registerAdapters();
-        loadCfgFromDbCfg();
+        loadSeed();
         Lang.load(this);
         cfg = new Config(this);
         timeUtil = new TimeUtil();
@@ -93,18 +92,18 @@ public final class Main extends JavaPlugin {
         if (storage != null) {
             throw new IllegalStateException("data base already loaded!");
         }
-        String dbType = dbCfg.getContext().getAsString("db-type");
-        if ("mysql".equals(dbType)) {
+
+        if (dbCfg.getDbType() == DbCfg.DbType.MYSQL) {
             new Thread(() -> {
                 TimeCounter timeCounter = new TimeCounter();
 
                 try {
                     storage = new MysqlDb(cfg.getCategoryMap(), cfg.getSortingMap(),
-                            dbCfg.getContext().getAsString("mysql-settings.host"),
-                            dbCfg.getContext().getAsString("mysql-settings.db-name"),
-                            dbCfg.getContext().getAsString("mysql-settings.user"),
-                            dbCfg.getContext().getAsString("mysql-settings.password"),
-                            dbCfg.getContext().getAsInteger("mysql-settings.port")
+                            dbCfg.getHost(),
+                            dbCfg.getDbName(),
+                            dbCfg.getUser(),
+                            dbCfg.getPassword(),
+                            dbCfg.getPort()
                     );
                     storage.load();
                     loaded = true;
@@ -118,10 +117,6 @@ public final class Main extends JavaPlugin {
                 getCommand("bauc").setExecutor(this::onCommand0);
             }).start();
         } else {
-            if (!"file".equals(dbType)) {
-                dbCfg.getContext().set("db-type", "file");
-                dbCfg.trySave();
-            }
             new Thread(() -> {
                 TimeCounter timeCounter = new TimeCounter();
                 storage = new FileDataBase(cfg.getCategoryMap(), cfg.getSortingMap());
@@ -176,7 +171,7 @@ public final class Main extends JavaPlugin {
             if (!file.exists()) {
                 saveResource("dbCfg.yml", false);
             }
-            dbCfg = new YamlConfig(file);
+            dbCfg = new DbCfg(new YamlConfig(file));
             return true;
         } catch (IOException | InvalidConfigurationException e) {
             message.error(e);
@@ -186,18 +181,19 @@ public final class Main extends JavaPlugin {
 
     public void reloadDbCfg() {
         loadDbCfg();
-        loadCfgFromDbCfg();
+        loadSeed();
     }
 
-    private void loadCfgFromDbCfg() {
-        int seed = dbCfg.getContext().getAsInteger("name-generator.last-seed");
-        serverId = dbCfg.getContext().getAsString("server-id");
+    private void loadSeed() {
+        int seed = dbCfg.getLastSeed();
         uniqueNameGenerator = new UniqueNameGenerator(seed);
         dbCfg.getContext().set("name-generator.last-seed", seed + 1);
-        dbCfg.trySave();
+        if (dbCfg.getContext() instanceof YamlConfig yamlConfig) {
+            yamlConfig.trySave();
+        }
     }
 
-    public static YamlConfig getDbCfg() {
+    public static DbCfg getDbCfg() {
         return dbCfg;
     }
 
@@ -309,7 +305,7 @@ public final class Main extends JavaPlugin {
     }
 
     public static String getServerId() {
-        return serverId;
+        return dbCfg.getServerId();
     }
 
     public static Set<String> getBlackList() {

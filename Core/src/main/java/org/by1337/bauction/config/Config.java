@@ -48,25 +48,14 @@ public class Config {
     private long defaultSellTime;
 
     private BoostManager boostManager;
-
     private MenuManger menuManger;
     private boolean allowBuyCount;
+    private int itemMaxSize;
+    private int compressIfMoreThan;
+    private int maximumUncompressedItemSize;
 
     public Config(Plugin plugin) {
-        loadConfigs(plugin);
-        sortingMap = new LinkedHashMap<>();
-        categoryMap = new LinkedHashMap<>();
-        sorting.getMap("sorting", Sorting.class).values().stream().sorted(Sorting::compareTo).forEach(sorting1 -> sortingMap.put(sorting1.nameKey(), sorting1));
-        sorting.getMap("categories", Category.class).values().stream().sorted(Category::compareTo).forEach(category -> categoryMap.put(category.nameKey(), category));
-
-
-        maxSlots = config.getAsInteger("max-slots");
-        defaultSellTime = NumberUtil.getTime(config.getAsString("default-offer-time"));
-
-        boostManager = new BoostManager(config);
-
-        menuManger = new MenuManger(this);
-        allowBuyCount = config.getAsBoolean("allow-buy-count");
+       reload(plugin);
     }
 
     public void reload(Plugin plugin){
@@ -84,6 +73,10 @@ public class Config {
 
         menuManger = new MenuManger(this);
         allowBuyCount = config.getAsBoolean("allow-buy-count");
+        allowBuyCount = config.getAsBoolean("allow-buy-count");
+        itemMaxSize = config.getAsInteger("item-max-size", 70_000);
+        compressIfMoreThan = config.getAsInteger("compress-if-more-than", 30_000);
+        maximumUncompressedItemSize = config.getAsInteger("maximum-uncompressed-item-size", 350000);
     }
 
     public void loadConfigs(Plugin plugin){
@@ -215,5 +208,17 @@ public class Config {
 
     public boolean isAllowBuyCount() {
         return allowBuyCount;
+    }
+
+    public int getItemMaxSize() {
+        return itemMaxSize;
+    }
+
+    public int getCompressIfMoreThan() {
+        return compressIfMoreThan;
+    }
+
+    public int getMaximumUncompressedItemSize() {
+        return maximumUncompressedItemSize;
     }
 }

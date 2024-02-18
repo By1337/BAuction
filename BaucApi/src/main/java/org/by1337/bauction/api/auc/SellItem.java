@@ -108,4 +108,5 @@ public interface SellItem extends Placeholderable, SerializableToByteArray {
     String getServer();
 
     String toSql(String table);
+    boolean isCompressed();
 }

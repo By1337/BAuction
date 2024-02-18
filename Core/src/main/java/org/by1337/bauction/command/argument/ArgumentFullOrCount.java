@@ -4,7 +4,7 @@ import org.bukkit.command.CommandSender;
 import org.by1337.blib.command.CommandSyntaxError;
 import org.by1337.blib.command.argument.Argument;
 import org.by1337.blib.command.argument.ArgumentInteger;
-import org.by1337.blib.command.argument.ArgumentIntegerAllowedMatch;
+import org.by1337.blib.command.argument.ArgumentIntegerAllowedMath;
 import org.by1337.blib.command.argument.ArgumentSetList;
 import org.by1337.bauction.Main;
 
@@ -12,7 +12,7 @@ import java.util.List;
 
 public class ArgumentFullOrCount extends Argument<CommandSender> {
 
-    private final ArgumentInteger<CommandSender> argumentInteger = new ArgumentIntegerAllowedMatch<>("amount", 1, 64);
+    private final ArgumentInteger<CommandSender> argumentInteger = new ArgumentIntegerAllowedMath<>("amount", 1, 64);
 
 
     public ArgumentFullOrCount(String name) {

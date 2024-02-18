@@ -27,8 +27,6 @@ public class ViewCommand extends Command<CommandSender> {
         super(command);
         requires(new RequiresPermission<>("bauc.view"));
         requires(sender -> sender instanceof Player);
-        requires(new RequiresPermission<>("bauc.view"));
-        requires(sender -> sender instanceof Player);
         argument(new ArgumentOfflinePlayerUUID("player"));
 
         executor(this::execute);
@@ -54,7 +52,7 @@ public class ViewCommand extends Command<CommandSender> {
         menu.open();
     }
 
-    private class ArgumentOfflinePlayerUUID extends Argument<CommandSender> {
+    private static class ArgumentOfflinePlayerUUID extends Argument<CommandSender> {
         private static final Pattern UUID_REGEX =
                 Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
@@ -70,7 +68,7 @@ public class ViewCommand extends Command<CommandSender> {
             Player player = Bukkit.getPlayerExact(str);
             if (player != null) return player.getUniqueId();
 
-            return UUID.nameUUIDFromBytes(("OfflinePlayer:" + player).getBytes(Charsets.UTF_8));
+            return UUID.nameUUIDFromBytes(("OfflinePlayer:" + str).getBytes(Charsets.UTF_8));
         }
 
         @Override

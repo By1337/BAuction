@@ -7,7 +7,7 @@ import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.test.FakePlayer;
 import org.by1337.bauction.util.TimeCounter;
 import org.by1337.blib.command.Command;
-import org.by1337.blib.command.argument.ArgumentIntegerAllowedMatch;
+import org.by1337.blib.command.argument.ArgumentIntegerAllowedMath;
 import org.by1337.blib.command.argument.ArgumentMap;
 import org.by1337.blib.command.requires.RequiresPermission;
 
@@ -19,10 +19,10 @@ public class StressCmd extends Command<CommandSender> {
     public StressCmd(String command) {
         super(command);
         requires(new RequiresPermission<>("bauc.admin.debug.stress"));
-        argument(new ArgumentIntegerAllowedMatch<>("count", List.of("[count]")));
-        argument(new ArgumentIntegerAllowedMatch<>("repeat", List.of("[repeat]")));
-        argument(new ArgumentIntegerAllowedMatch<>("cd", List.of("[cd]")));
-        argument(new ArgumentIntegerAllowedMatch<>("limit", List.of("[limit]")));
+        argument(new ArgumentIntegerAllowedMath<>("count", List.of("[count]")));
+        argument(new ArgumentIntegerAllowedMath<>("repeat", List.of("[repeat]")));
+        argument(new ArgumentIntegerAllowedMath<>("cd", List.of("[cd]")));
+        argument(new ArgumentIntegerAllowedMath<>("limit", List.of("[limit]")));
         executor(this::execute);
     }
 
