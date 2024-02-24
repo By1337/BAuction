@@ -37,7 +37,7 @@ messages:
   item-in-black-list: '&#fb093c» &fВы не можете выставить "{item_name}&f" на продажу!'
   update-msg-raw: '["",{"text":"[Bauction]","color":"green"},{"text":" Вышла новая версия плагина!"},{"text":"
   Текущая ''"},{"text":"%s","color":"red"},{"text":"'', новая ''"},{"text":"%s","color":"green"},{"text":"''","color":"#6AAB73"},{"text":"\n"},{"text":"[Bauction]","color":"green"},{"text":"
-  Сылка на скачивание "},{"text":"%s","italic":true,"color":"aqua","clickEvent":{"action":"open_url","value":"%s"},"hoverEvent":{"action":"show_text","contents":"%s"}}]'
+  Ссылка на скачивание "},{"text":"%s","italic":true,"color":"aqua","clickEvent":{"action":"open_url","value":"%s"},"hoverEvent":{"action":"show_text","contents":"%s"}}]'
   item-size-limit: '&#fb093c» &fВы не можете выставить этот предмет на продажу!'
 time-format:
   ago: 'назад'
