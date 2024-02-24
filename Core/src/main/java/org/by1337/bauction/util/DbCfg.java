@@ -23,17 +23,25 @@ public class DbCfg {
 
     private void load() {
         dbType = context.getAsString("db-type").equals("file") ? DbType.FILE : DbType.MYSQL;
-        serverId = Objects.requireNonNull(context.getAsString("server-id"), "missing server-id!");
+        serverId = context.getAsString("server-id");
         lastSeed = context.getAsInteger("name-generator.last-seed");
 
-        isHead = Objects.requireNonNull(context.getAsBoolean( "mysql-settings.is-head"), "missing mysql-settings.is-head");
-        host = Objects.requireNonNull(context.getAsString(    "mysql-settings.host"), "missing mysql-settings.host");
-        dbName = Objects.requireNonNull(context.getAsString(  "mysql-settings.db-name"), "missing mysql-settings.db-name");
-        user = Objects.requireNonNull(context.getAsString(    "mysql-settings.user"), "missing mysql-settings.user");
-        password = Objects.requireNonNull(context.getAsString("mysql-settings.password"), "missing mysql-settings.password");
-        port = Objects.requireNonNull(context.getAsInteger(   "mysql-settings.port"), "missing mysql-settings.port");
-
+        isHead = context.getAsBoolean("mysql-settings.is-head");
+        host = context.getAsString("mysql-settings.host");
+        dbName = context.getAsString("mysql-settings.db-name");
+        user = context.getAsString("mysql-settings.user");
+        password = context.getAsString("mysql-settings.password");
+        port = context.getAsInteger("mysql-settings.port");
     }
+
+    public void validate() {
+        Objects.requireNonNull(serverId, "missing server-id!");
+        Objects.requireNonNull(host, "missing mysql-settings.host");
+        Objects.requireNonNull(dbName, "missing mysql-settings.db-name");
+        Objects.requireNonNull(user, "missing mysql-settings.user");
+        Objects.requireNonNull(password, "missing mysql-settings.password");
+    }
+
 
     public DbType getDbType() {
         return dbType;
@@ -71,11 +79,10 @@ public class DbCfg {
         return port;
     }
 
-    public static enum DbType {
+    public enum DbType {
         MYSQL,
         FILE
     }
-
     public YamlContext getContext() {
         return context;
     }

@@ -77,6 +77,7 @@ public final class Main extends JavaPlugin {
         trieManager = new TrieManager(this);
         TagUtil.loadAliases(this);
         UpdateManager.checkUpdate();
+        dbCfg.validate();
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
         econ = Objects.requireNonNull(rsp, "Economy not found!").getProvider();
         initCommand();

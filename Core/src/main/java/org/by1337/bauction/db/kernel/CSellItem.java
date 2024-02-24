@@ -14,6 +14,7 @@ import org.by1337.bauction.util.CUniqueName;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.TagUtil;
 import org.by1337.bauction.api.util.UniqueName;
+import org.by1337.blib.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -192,14 +193,9 @@ public class CSellItem extends Placeholder implements SellItem {
     }
 
     public CSellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
-        var temp = BLib.getApi().getItemStackSerialize().serialize(itemStack);
-        if (temp.getBytes().length > Main.getCfg().getCompressIfMoreThan()) {
-            item = BLib.getApi().getItemStackSerialize().serializeAndCompress(itemStack);
-            compressed = true;
-        } else {
-            item = temp;
-            compressed = false;
-        }
+        var pair = serializeItemStack(itemStack);
+        item = pair.getLeft();
+        compressed = pair.getRight();
         sellerName = seller.getName();
         sellerUuid = seller.getUniqueId();
         this.price = price;
@@ -216,15 +212,18 @@ public class CSellItem extends Placeholder implements SellItem {
         init();
     }
 
-    public CSellItem(String sellerName, UUID sellerUuid, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
+    public static Pair<String, Boolean> serializeItemStack(ItemStack itemStack){
         var temp = BLib.getApi().getItemStackSerialize().serialize(itemStack);
         if (temp.getBytes().length > Main.getCfg().getCompressIfMoreThan()) {
-            item = BLib.getApi().getItemStackSerialize().serializeAndCompress(itemStack);
-            compressed = true;
+            return Pair.of(BLib.getApi().getItemStackSerialize().serializeAndCompress(itemStack), true);
         } else {
-            item = temp;
-            compressed = false;
+            return Pair.of(temp, false);
         }
+    }
+    public CSellItem(String sellerName, UUID sellerUuid, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
+        var pair = serializeItemStack(itemStack);
+        item = pair.getLeft();
+        compressed = pair.getRight();
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
         this.price = price;

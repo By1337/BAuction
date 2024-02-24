@@ -20,6 +20,7 @@ import org.by1337.bauction.db.event.*;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.serialize.FileUtil;
 import org.by1337.bauction.util.*;
+import org.by1337.blib.util.Pair;
 
 import java.io.File;
 import java.io.IOException;
@@ -343,12 +344,13 @@ public class FileDataBase extends DataBaseCore implements Listener {
                 owner.dealSum += updated.priceForOne * event.getCount();
             }
             int newCount = updated.getAmount() - event.getCount();
-            ItemStack itemStack = updated.getItemStack().clone();
+            ItemStack itemStack = updated.getItemStack();
             itemStack.setAmount(newCount);
 
+            Pair<String, Boolean> item = CSellItem.serializeItemStack(itemStack);
             if (newCount != 0) {
                 CSellItem newItem = CSellItem.builder()
-                        .item(updated.item)
+                        .item(item.getLeft())
                         .sellerName(updated.sellerName)
                         .sellerUuid(updated.sellerUuid)
                         .price(updated.priceForOne * newCount)
@@ -356,14 +358,14 @@ public class FileDataBase extends DataBaseCore implements Listener {
                         .tags(updated.tags)
                         .timeListedForSale(updated.timeListedForSale)
                         .removalDate(updated.removalDate)
-                        .uniqueName(updated.uniqueName)
+                        .uniqueName(Main.getUniqueNameGenerator().getNextCombination())
                         .material(updated.material)
                         .amount(newCount)
                         .priceForOne(updated.priceForOne)
                         .sellFor(updated.sellFor)
                         .itemStack(itemStack)
                         .server(updated.server)
-                        .compressed(updated.compressed)
+                        .compressed(item.getRight())
                         .build();
 
                 addSellItem(newItem);
