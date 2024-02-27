@@ -4,6 +4,7 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.lang.Lang;
+import org.by1337.blib.util.NameKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,8 +28,17 @@ public class PlaceholderHook extends PlaceholderExpansion {
 
     @Override
     @Nullable
-    public String onPlaceholderRequest(final Player player, @NotNull final String params) {// %bairdrop_test% = test %bairdrop_time_to_open_<air id>%
-        return placeholder.process(player, params.split("_"));
+    public String onPlaceholderRequest(final Player player, @NotNull final String params) {
+        String[] args = params.split("_");
+
+        if (params.startsWith("ah_size_")) {
+            String s = params.substring("ah_size_".length());
+            if (s.equals("any")) return String.valueOf(Main.getStorage().getSellItemsSize());
+            NameKey category = new NameKey(s);
+            return String.valueOf(Main.getStorage().getCountItemsByCategory(category));
+        } else {
+            return placeholder.process(player, args);
+        }
     }
 
     static {
@@ -92,6 +102,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
                                         )
                                 )
                         )
+
 
                 )
         ;

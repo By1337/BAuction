@@ -39,6 +39,9 @@ public class SortingItems {
     public Collection<SellItem> getItems() {
         return items;
     }
+    public int size(){
+        return items.size();
+    }
 
     public NameKey getSortingName() {
         return sortingName;

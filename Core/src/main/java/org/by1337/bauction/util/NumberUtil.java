@@ -18,6 +18,25 @@ public class NumberUtil {
         return df.format(value);
     }
 
+    public static String formatNumberWithThousandsSeparator(double raw) {
+        return formatNumberWithThousandsSeparator(format(raw));
+    }
+
+    public static String formatNumberWithThousandsSeparator(String raw) {
+        StringBuilder formatted = new StringBuilder();
+        String[] parts = raw.split("\\.");
+        String integerPart = parts[0];
+        String decimalPart = (parts.length > 1) ? "." + parts[1] : "";
+
+        char[] integerDigits = integerPart.toCharArray();
+        for (int i = integerDigits.length - 1, count = 0; i >= 0; i--, count++) {
+            if (count > 0 && count % 3 == 0) {
+                formatted.append(" ");
+            }
+            formatted.append(integerDigits[i]);
+        }
+        return formatted.reverse() + decimalPart;
+    }
     /**
      * Обрезает строку по аналогии с NumberUtil.format только возвращает обрезанный double
      * @param value 1272.3443284

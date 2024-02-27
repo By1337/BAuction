@@ -76,44 +76,44 @@ special:
   # Это категория по поиску /ah search <>. Она появится только если игрок ввёл эту команду
   search:
     name: search
-    selected-name: '&r  &6✔ Поиск'
-    unselected-name: '&r&7⏺ Поиск'
+    selected-name: '&r  &6✔ Поиск  &8(&7{custom_category_size} шт.&8)'
+    unselected-name: '&r&7⏺ Поиск  &8(&7{custom_category_size} шт.&8)'
     priority: 0 # приоритет он влияет на то в каком порядке будут категории
     tags: [ ] # Теги сами подставятся
   # Все категории ниже можно изменять как угодно плагин не привязан к их ключам
 categories:
   any:
     name: any
-    selected-name: '&r  &6✔ Всё подряд'
-    unselected-name: '&r&7⏺ Всё подряд'
+    selected-name: '&r  &6✔ Всё подряд &8(&7%bauction_ah_size_any% шт.&8)'
+    unselected-name: '&r&7⏺ Всё подряд &8(&7%bauction_ah_size_any% шт.&8)'
     priority: 1
     tags:
       - 'any'
   tools:
     name: tools
-    selected-name: '&r  &6✔ Инструменты'
-    unselected-name: '&r&7⏺ Инструменты'
+    selected-name: '&r  &6✔ Инструменты &8(&7%bauction_ah_size_tools% шт.&8)'
+    unselected-name: '&r&7⏺ Инструменты &8(&7%bauction_ah_size_tools% шт.&8)'
     priority: 2
     tags:
       - 'is_tool'
   weapon:
     name: weapon
-    selected-name: '&r  &6✔ Оружие'
-    unselected-name: '&r&7⏺ Оружие'
+    selected-name: '&r  &6✔ Оружие &8(&7%bauction_ah_size_weapon% шт.&8)'
+    unselected-name: '&r&7⏺ Оружие &8(&7%bauction_ah_size_weapon% шт.&8)'
     priority: 3
     tags:
       - 'is_weapon'
   blocks:
     name: blocks
-    selected-name: '&r  &6✔ Блоки'
-    unselected-name: '&r&7⏺ Блоки'
+    selected-name: '&r  &6✔ Блоки &8(&7%bauction_ah_size_blocks% шт.&8)'
+    unselected-name: '&r&7⏺ Блоки &8(&7%bauction_ah_size_blocks% шт.&8)'
     priority: 4
     tags:
       - 'is_block'
   mechanisms:
     name: mechanisms
-    selected-name: '&r  &6✔ Механизмы'
-    unselected-name: '&r&7⏺ Механизмы'
+    selected-name: '&r  &6✔ Механизмы &8(&7%bauction_ah_size_mechanisms% шт.&8)'
+    unselected-name: '&r&7⏺ Механизмы &8(&7%bauction_ah_size_mechanisms% шт.&8)'
     priority: 5
     tags:
       - 'tnt'
@@ -133,8 +133,8 @@ categories:
       - 'redstone'
   alchemy:
     name: alchemy
-    selected-name: '&r  &6✔ Алхимия'
-    unselected-name: '&r&7⏺ Алхимия'
+    selected-name: '&r  &6✔ Алхимия &8(&7%bauction_ah_size_alchemy% шт.&8)'
+    unselected-name: '&r&7⏺ Алхимия &8(&7%bauction_ah_size_alchemy% шт.&8)'
     priority: 6
     tags:
       - 'glass_bottle'
@@ -160,16 +160,16 @@ categories:
 
   food:
     name: food
-    selected-name: '&r  &6✔ Еда'
-    unselected-name: '&r&7⏺ Еда'
+    selected-name: '&r  &6✔ Еда &8(&7%bauction_ah_size_food% шт.&8)'
+    unselected-name: '&r&7⏺ Еда &8(&7%bauction_ah_size_food% шт.&8)'
     priority: 7
     tags:
       - 'is_edible'
 
   potions:
     name: potions
-    selected-name: '&r  &6✔ Зелья'
-    unselected-name: '&r&7⏺ Зелья'
+    selected-name: '&r  &6✔ Зелья &8(&7%bauction_ah_size_potions% шт.&8)'
+    unselected-name: '&r&7⏺ Зелья &8(&7%bauction_ah_size_potions% шт.&8)'
     priority: 8
     tags:
       - 'potion'
@@ -179,8 +179,8 @@ categories:
 
   enchanted:
     name: enchanted
-    selected-name: '&r  &6✔ Зачарование'
-    unselected-name: '&r&7⏺ Зачарование'
+    selected-name: '&r  &6✔ Зачарование &8(&7%bauction_ah_size_enchanted% шт.&8)'
+    unselected-name: '&r&7⏺ Зачарование &8(&7%bauction_ah_size_enchanted% шт.&8)'
     priority: 9
     tags:
       - 'experience_bottle'
@@ -191,16 +191,16 @@ categories:
 
   armor:
     name: armor
-    selected-name: '&r  &6✔ Броня'
-    unselected-name: '&r&7⏺ Броня'
+    selected-name: '&r  &6✔ Броня &8(&7%bauction_ah_size_armor% шт.&8)'
+    unselected-name: '&r&7⏺ Броня &8(&7%bauction_ah_size_armor% шт.&8)'
     priority: 10
     tags:
       - 'is_armor'
 
   unique_items:
     name: unique_items
-    selected-name: '&r  &6✔ Уникальные предметы'
-    unselected-name: '&r&7⏺ Уникальные предметы'
+    selected-name: '&r  &6✔ Уникальные предметы &8(&7%bauction_ah_size_unique_items% шт.&8)'
+    unselected-name: '&r&7⏺ Уникальные предметы &8(&7%bauction_ah_size_unique_items% шт.&8)'
     priority: 11
     tags:
       - 'is_spawn_agg'
@@ -208,8 +208,8 @@ categories:
 
   donat_items:
     name: donat_items
-    selected-name: '&r  &6✔ Донатные предметы'
-    unselected-name: '&r&7⏺ Донатные предметы'
+    selected-name: '&r  &6✔ Донатные предметы &8(&7%bauction_ah_size_donat_items% шт.&8)'
+    unselected-name: '&r&7⏺ Донатные предметы &8(&7%bauction_ah_size_donat_items% шт.&8)'
     priority: 12
     tags:
       - 'is_spawn_agg'
@@ -217,8 +217,8 @@ categories:
 
   jewelry:
     name: jewelry
-    selected-name: '&r  &6✔ Драгоценности'
-    unselected-name: '&r&7⏺ Драгоценности'
+    selected-name: '&r  &6✔ Драгоценности &8(&7%bauction_ah_size_jewelry% шт.&8)'
+    unselected-name: '&r&7⏺ Драгоценности &8(&7%bauction_ah_size_jewelry% шт.&8)'
     priority: 12
     tags:
       - 'totem_of_undying'

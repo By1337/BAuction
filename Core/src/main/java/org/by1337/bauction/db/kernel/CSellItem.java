@@ -244,11 +244,13 @@ public class CSellItem extends Placeholder implements SellItem {
         registerPlaceholder("{seller_uuid}", sellerUuid::toString);
         registerPlaceholder("{seller_name}", () -> sellerName);
         registerPlaceholder("{price}", () -> NumberUtil.format(price));
+        registerPlaceholder("{price_format}", () -> NumberUtil.formatNumberWithThousandsSeparator(price));
         registerPlaceholder("{sale_by_the_piece}", () -> String.valueOf(saleByThePiece));
         registerPlaceholder("{sale_by_the_piece_format}", () -> saleByThePiece ?
                 Lang.getMessage("sale-by-the-piece-format-on") : Lang.getMessage("sale-by-the-piece-format-off"));
         registerPlaceholder("{expires}", () -> Main.getTimeUtil().getFormat(removalDate));
         registerPlaceholder("{price_for_one}", () -> NumberUtil.format(priceForOne));
+        registerPlaceholder("{price_for_one_format}", () -> NumberUtil.formatNumberWithThousandsSeparator(priceForOne));
         registerPlaceholder("{material}", () -> String.valueOf(material));
         registerPlaceholder("{amount}", () -> String.valueOf(amount));
         registerPlaceholder("{id}", () -> String.valueOf(uniqueName.getKey()));

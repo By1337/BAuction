@@ -36,6 +36,7 @@ public class MainMenu extends Menu {
     protected CyclicList<Sorting> sortings = new CyclicList<>();
     protected CyclicList<Category> categories = new CyclicList<>();
     protected Category custom;
+    protected int lastCustomCategorySize;
 
     protected List<Integer> slots;
 
@@ -123,6 +124,7 @@ public class MainMenu extends Menu {
 //                }
 //            }
             sellItems.sort(lastSorting.getComparator());
+            lastCustomCategorySize = sellItems.size();
         } else {
             sellItems = new ArrayList<>();
             Main.getStorage().forEachSellItemsBy(item -> {
@@ -170,6 +172,12 @@ public class MainMenu extends Menu {
             if (sb.indexOf("{categories}") != -1) {
                 sb.replace(sb.indexOf("{categories}"), sb.indexOf("{categories}") + "{categories}".length(),
                         getCategoriesNames()
+                );
+                continue;
+            }
+            if (sb.indexOf("{custom_category_size}") != -1) {
+                sb.replace(sb.indexOf("{custom_category_size}"), sb.indexOf("{custom_category_size}") + "{custom_category_size}".length(),
+                        String.valueOf(lastCustomCategorySize)
                 );
                 continue;
             }

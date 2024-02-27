@@ -257,6 +257,19 @@ public abstract class DataBaseCore {
         });
     }
 
+    public int getCountItemsByCategory(@NotNull NameKey category) {
+        return readLock(() -> {
+            Map<NameKey, SortingItems> map = sortedItems.get(category);
+            if (map == null) {
+                throw new IllegalStateException("unknown category: " + category.getName());
+            }
+            for (SortingItems value : map.values()) {
+                return value.size();
+            }
+            return 0;
+        });
+    }
+
     public boolean hasUser(UUID uuid) {
         return readLock(() -> users.containsKey(uuid));
     }

@@ -298,7 +298,7 @@ public final class Main extends JavaPlugin {
     @Nullable
     private List<String> onTabComplete0(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String alias, @NotNull String[] args) {
         if (args[0].equals("search") && sender.hasPermission("bauc.search")) {
-            String last = args[args.length - 1];
+            String last = args[args.length - 1].toLowerCase();
             if (last.isEmpty()) return List.of(Lang.getMessage("start_entering_item_name"));
             return trieManager.getTrie().getAllKeysWithPrefix(last);
         }
