@@ -28,7 +28,7 @@ public class DefaultMenuCommand {
                         .argument(new ArgumentStrings<>("cmd"))
                         .executor((pair, args) -> {
                                     String cmd = (String) args.getOrThrow("cmd");
-                                    Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                                    AsyncClickListener.syncUtil(() -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd));
                                 }
                         )
                 )
@@ -36,7 +36,7 @@ public class DefaultMenuCommand {
                         .argument(new ArgumentStrings<>("cmd"))
                         .executor((sender, args) -> {
                                     String cmd = (String) args.getOrThrow("cmd");
-                                    Objects.requireNonNull(sender.getValue(), "player is null!").performCommand(cmd);
+                                    AsyncClickListener.syncUtil(() -> Objects.requireNonNull(sender.getValue(), "player is null!").performCommand(cmd));
                                 }
                         )
 
@@ -50,7 +50,9 @@ public class DefaultMenuCommand {
                         )
                 )
                 .addSubCommand(new Command<Pair<Menu, Player>>("[CLOSE]")
-                        .executor((sender, args) -> Objects.requireNonNull(sender.getValue(), "player is null!").closeInventory()
+                        .executor((sender, args) ->
+                                AsyncClickListener.syncUtil(() ->
+                                        Objects.requireNonNull(sender.getValue(), "player is null!").closeInventory())
                         )
                 )
                 .addSubCommand(new Command<Pair<Menu, Player>>("[BACK]")
