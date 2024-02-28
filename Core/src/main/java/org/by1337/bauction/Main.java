@@ -17,6 +17,9 @@ import org.by1337.bauction.config.adapter.*;
 import org.by1337.bauction.datafix.UpdateManager;
 import org.by1337.bauction.db.kernel.FileDataBase;
 import org.by1337.bauction.db.kernel.MysqlDb;
+import org.by1337.bauction.hook.EconomyHook;
+import org.by1337.bauction.hook.impl.PlayerPointsHook;
+import org.by1337.bauction.hook.impl.VaultHook;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.impl.MainMenu;
@@ -46,7 +49,7 @@ public final class Main extends JavaPlugin {
     private static Config cfg;
     private static FileDataBase storage;
     private Command<CommandSender> command;
-    private static Economy econ;
+    private static EconomyHook econ;
     private static TrieManager trieManager;
     private static TimeUtil timeUtil;
     private PlaceholderHook placeholderHook;
@@ -78,8 +81,16 @@ public final class Main extends JavaPlugin {
         TagUtil.loadAliases(this);
         UpdateManager.checkUpdate();
         dbCfg.validate();
-        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        econ = Objects.requireNonNull(rsp, "Economy not found!").getProvider();
+
+        String econType = Objects.requireNonNull(cfg.getConfig().getAsString("economy"), "тип экономики не указан!");
+        if (econType.equalsIgnoreCase("vault")) {
+            econ = new VaultHook();
+        } else if (econType.equalsIgnoreCase("playerpoints")) {
+            econ = new PlayerPointsHook();
+        } else {
+            throw new IllegalStateException("Параметр economy имеет не правильное значение! '" + econType + "'. Ожидалось 'Vault' | 'PlayerPoints'");
+        }
+
         initCommand();
         new Metrics(this, 20300);
         placeholderHook = new PlaceholderHook();
@@ -218,7 +229,7 @@ public final class Main extends JavaPlugin {
         return storage;
     }
 
-    public static Economy getEcon() {
+    public static EconomyHook getEcon() {
         return econ;
     }
 

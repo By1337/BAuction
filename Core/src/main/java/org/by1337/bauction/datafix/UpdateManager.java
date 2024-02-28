@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class UpdateManager {
-    private final static int CURRENT_VERSION = 6;
+    private final static int CURRENT_VERSION = 7;
 
     public static void checkUpdate() {
         Plugin plugin = Main.getInstance();
@@ -87,6 +87,10 @@ public class UpdateManager {
             new MessagesUpdater().update();
             new DBUpdate110().update();
             new MySqlDBUpdater2().update();
+            version++;
+            run(version, config);
+        } else if (version == 6) {
+            config.set("economy", "Vault");
             version++;
             run(version, config);
         }

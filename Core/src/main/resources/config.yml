@@ -1,4 +1,4 @@
-version: 6 # НЕ МЕНЯТЬ
+version: 7 # НЕ МЕНЯТЬ
 # список бустов
 boosts: # it's list
   - name: donat-1 # имя (может быть любым)
@@ -35,6 +35,8 @@ default-offer-time: '2d'
 offer-min-price: 10
 offer-max-price: 100000000
 
+economy: 'Vault' # Vault | PlayerPoints
+
 remove-expired-items:
   enable: true # Удалять ли просроченные предметы?
   time: '2d' # Если да то через сколько
@@ -62,7 +64,7 @@ selling-item-one:
   lore:
     - '&r '
     - '&#5AD9FB&n▌&r &fПродавец: &#5AD9FB{seller_name}'
-    - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price}'
+    - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price_format}'
     - '&#5AD9FB▌&r &fИстекает: &#5AD9FB{expires}'
     - '&r '
   left_click_commands:
@@ -78,7 +80,7 @@ take-item:
   lore:
     - '&r '
     - '&#5AD9FB&n▌&r &fПродавец: &#5AD9FB{seller_name}'
-    - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price}'
+    - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price_format}'
     - '&#5AD9FB&n▌&r &fИстекает: &#5AD9FB{expires}'
     - '&#5AD9FB▌&r &fПродажа по штучно: &#5AD9FB{sale_by_the_piece_format}'
     - '&r '
@@ -93,8 +95,8 @@ selling-item:
   lore:
     - '&r '
     - '&#5AD9FB&n▌&r &fПродавец: &#5AD9FB{seller_name}'
-    - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price}'
-    - '&#5AD9FB&n▌&r &fЦена за штуку &#5AD9FB{price_for_one}'
+    - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price_format}'
+    - '&#5AD9FB&n▌&r &fЦена за штуку &#5AD9FB{price_for_one_format}'
     - '&#5AD9FB▌&r &fИстекает: &#5AD9FB{expires}'
     - '&r '
     - '&#5AD9FB&n▌&r &fЧтобы купить всё нажмите &#5AD9FBлкм'
@@ -111,7 +113,7 @@ selling-item-only-full:
   lore:
     - '&r '
     - '&#5AD9FB&n▌&r &fПродавец: &#5AD9FB{seller_name}'
-    - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price}'
+    - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price_format}'
     - '&#5AD9FB▌&r &fИстекает: &#5AD9FB{expires}'
     - '&r '
     - '&#5AD9FB&n▌&r &fПродавец &#ABF0FAограничил &fуказание'
