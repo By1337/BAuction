@@ -24,6 +24,11 @@ public class PlaceholderHook extends PlaceholderExpansion {
         return Main.getInstance().getDescription().getVersion();
     }
 
+    @Override
+    public boolean persist() {
+        return true;
+    }
+
     private static final Placeholder placeholder;
 
     @Override
