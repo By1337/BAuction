@@ -31,7 +31,7 @@ public class TagUtil {
 
         for (String tag : context.getHandle().getConfigurationSection("tags").getKeys(false)) {
             List<String> list = context.getList("tags." + tag, String.class);
-            list.forEach(str -> tagAliases.put(str, tag));
+            list.forEach(str -> tagAliases.put(str.toLowerCase(Locale.ENGLISH), tag));
         }
 
     }
@@ -68,6 +68,8 @@ public class TagUtil {
             }
         }
 
+        list.replaceAll(String::toLowerCase);
+
         for (String str : list.toArray(new String[0])) {
             String s = tagAliases.get(str);
             if (s != null) {
@@ -75,7 +77,6 @@ public class TagUtil {
             }
         }
 
-        list.replaceAll(String::toLowerCase);
         return new HashSet<>(list);
     }
 
