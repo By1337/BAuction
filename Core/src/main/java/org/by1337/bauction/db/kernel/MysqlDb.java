@@ -82,7 +82,8 @@ CREATE TABLE IF NOT EXISTS sell_items (
   amount TINYINT NOT NULL,
   price_for_one DOUBLE NOT NULL,
   sell_for TEXT NOT NULL,
-  server VARBINARY(36) NOT NULL
+  server VARBINARY(36) NOT NULL,
+  compressed BOOLEAN NOT NULL
 )
 """,
                 """
