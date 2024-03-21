@@ -1,8 +1,10 @@
 package org.by1337.bauction;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.blib.Api;
 import org.by1337.blib.BLib;
@@ -14,7 +16,10 @@ import org.by1337.blib.factory.PacketFactory;
 import org.by1337.blib.inventory.FakeTitle;
 import org.by1337.blib.inventory.FakeTitleFactory;
 import org.by1337.blib.inventory.ItemStackSerialize;
+import org.by1337.blib.nbt.ParseCompoundTag;
+import org.by1337.blib.nbt.impl.CompoundTag;
 import org.by1337.blib.network.clientbound.entity.*;
+import org.by1337.blib.text.LegacyConvertor;
 import org.by1337.blib.util.AsyncCatcher;
 import org.by1337.blib.world.BLocation;
 import org.by1337.blib.world.entity.BEquipmentSlot;
@@ -153,7 +158,14 @@ public class BLibApi implements Api {
 
     @Override
     public @NotNull FakeTitleFactory getFakeTitleFactory() {
-        return () -> (FakeTitle) (inventory, s) -> {
+        return () -> new FakeTitle() {
+            @Override
+            public void send(Inventory inventory, String newTitle) {
+            }
+
+            @Override
+            public void send(Inventory inventory, Component newTitle) {
+            }
         };
     }
 
@@ -168,5 +180,25 @@ public class BLibApi implements Api {
             public void unregister(BukkitCommand bukkitCommand) {
             }
         };
+    }
+
+    @Override
+    public @NotNull ParseCompoundTag getParseCompoundTag() {
+        return new ParseCompoundTag() {
+            @Override
+            public CompoundTag copy(ItemStack itemStack) {
+                return new CompoundTag();
+            }
+
+            @Override
+            public ItemStack create(CompoundTag compoundTag) {
+                return new ItemStack(Material.AIR);
+            }
+        };
+    }
+
+    @Override
+    public @NotNull LegacyConvertor getLegacyConvertor() {
+        return legacy -> Component.text(legacy);
     }
 }
