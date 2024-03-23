@@ -1,63 +1,78 @@
 package org.by1337.bauction.menu;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.by1337.blib.chat.Placeholderable;
-import org.by1337.bauction.api.auc.User;
+import org.by1337.bauction.action.BuyItemProcess;
+import org.by1337.bauction.api.auc.SellItem;
+import org.by1337.bauction.api.util.UniqueName;
+import org.by1337.bauction.lang.Lang;
+import org.by1337.bauction.util.CUniqueName;
+import org.by1337.bauction.util.OptionParser;
+import org.by1337.blib.command.Command;
+import org.by1337.blib.command.CommandException;
+import org.by1337.blib.command.argument.ArgumentEnumValue;
+import org.by1337.blib.command.argument.ArgumentString;
+import org.by1337.blib.command.argument.ArgumentStrings;
+import org.by1337.bauction.Main;
 import org.by1337.bauction.menu.requirement.Requirements;
-
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
-public abstract class Menu extends AsyncClickListener implements Placeholderable {
+public abstract class Menu extends AsyncClickListener {
 
-    private final List<CustomItemStack> items;
-    protected List<CustomItemStack> customItemStacks = new LinkedList<>();
+    protected final List<MenuItemBuilder> items;
+    protected List<MenuItem> customItems = new ArrayList<>();
+    protected List<MenuItem> currentItems = new ArrayList<>();
     protected final String title;
     protected final int size;
-    protected final int updateInterval;
     protected Requirements openRequirements;
-    protected List<Placeholderable> customPlaceHolders = new ArrayList<>();
     @Nullable
-    protected final Menu backMenu;
-    protected User user;
+    protected final Menu previousMenu;
+    protected static final Command<Menu> commands;
+    protected List<String> openCommands = new ArrayList<>();
+    protected final OptionParser optionParser;
+    protected final MenuSetting setting;
 
 
-    public Menu(MenuSetting setting, Player player, @Nullable Menu backMenu, User user) {
-        this(setting.getItems(), setting.getTitle(), setting.getSize(), setting.getUpdateInterval(), setting.getViewRequirement(), player, setting.getType(), backMenu, user);
+    public Menu(MenuSetting setting, Player player, @Nullable Menu previousMenu, OptionParser optionParser) {
+        this(setting, player, previousMenu, true, optionParser);
     }
 
-    public Menu(List<CustomItemStack> items, String title, int size, int updateInterval, @Nullable Requirements viewRequirement, Player player, InventoryType type, @Nullable Menu backMenu, User user) {
-        super(player);
-        openRequirements = viewRequirement;
-        this.items = items;
-        this.title = title;
-        this.size = size;
-        this.updateInterval = updateInterval;
-        this.backMenu = backMenu;
-        this.user = user;
-        createInventory(size, replace(title), type);
+    public Menu(MenuSetting setting, Player player, @Nullable Menu previousMenu, boolean async, OptionParser optionParser) {
+        super(player, async);
+        this.setting = setting;
+        openCommands = setting.getOpenCommands();
+        this.optionParser = optionParser;
+        openRequirements = setting.getViewRequirement();
+        this.items = setting.getItems();
+        this.title = setting.getTitle();
+        this.size = setting.getSize();
+        this.previousMenu = previousMenu;
+        createInventory(size, replace(title), setting.getType());
+        registerPlaceholder("{has-back-menu}", () -> String.valueOf(previousMenu != null));
     }
 
     public void open() {
         Menu menu = this;
-        syncUtil(() -> { // CancelledPacketHandleException bypass
-            if (openRequirements != null) {
-                if (openRequirements.check(menu, menu)) {
-                    viewer.openInventory(inventory);
-                    generate0();
-                } else {
-                    openRequirements.runDenyCommands(menu, menu);
-                }
+        syncUtil(() -> {
+            if (openRequirements != null && !openRequirements.check(menu, viewer)) {
+                List<String> list = new ArrayList<>(openRequirements.getDenyCommands());
+                list.replaceAll(this::replace);
+                runCommands(list);
             } else {
+                if (!openCommands.isEmpty()) runCommands(openCommands);
                 viewer.openInventory(inventory);
                 generate0();
             }
@@ -68,23 +83,38 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
 
     protected void generate0() {
         inventory.clear();
+        currentItems.clear();
+        currentItems = new ArrayList<>(items.stream().map(m -> m.build(this)).filter(Objects::nonNull).toList());
         generate();
-        LinkedList<CustomItemStack> list = new LinkedList<>();
-        list.addAll(items);
-        list.addAll(customItemStacks);
-        for (CustomItemStack customItemStack : list) {
-            // if (customItemStack.getViewRequirement() == null || customItemStack.getViewRequirement().check(this, this)) {
-            for (int slot : customItemStack.getSlots()) {
-                ItemStack item = customItemStack.getItem(this, this);
-                if (item != null)
-                    inventory.setItem(slot, item);
-            }
-            //  }
-        }
+        setItems(currentItems);
+        setItems(customItems);
         sendFakeTitle(replace(title));
     }
 
-    public abstract void runCommand(Placeholderable holder, String... commands);
+    protected void setItems(List<MenuItem> list) {
+        for (MenuItem menuItem : list) {
+            for (int slot : menuItem.getSlots()) {
+                ItemStack item = menuItem.getItemStack();
+                inventory.setItem(slot, item);
+            }
+        }
+    }
+
+    protected abstract boolean runCommand(String[] cmd) throws CommandException;
+
+    public void runCommands(List<String> commands) {
+        for (String command : commands) {
+            String[] args = replace(command).split(" ");
+            args[0] = args[0].toUpperCase(Locale.ENGLISH);
+            try {
+                if (!runCommand(args)) {
+                    Menu.commands.process(this, args);
+                }
+            } catch (CommandException e) {
+                Main.getMessage().error(e);
+            }
+        }
+    }
 
     @Override
     protected void onClick(InventoryDragEvent e) {
@@ -92,27 +122,29 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
 
     @Override
     public void onClick(InventoryClickEvent e) {
-        if (e.getCurrentItem() == null) {
+        if (e.getCurrentItem() == null || e.getCurrentItem().getItemMeta() == null) {
             return;
         }
 
         ItemStack itemStack = e.getCurrentItem();
         ItemMeta im = itemStack.getItemMeta();
-        if (!im.getPersistentDataContainer().has(CustomItemStack.MENU_ITEM_KEY, PersistentDataType.INTEGER)) {
+        if (!im.getPersistentDataContainer().has(MenuItemBuilder.MENU_ITEM_KEY, PersistentDataType.INTEGER)) {
             inventory.clear();
             generate0();
             return;
         }
-        int id = im.getPersistentDataContainer().get(CustomItemStack.MENU_ITEM_KEY, PersistentDataType.INTEGER);
+        Integer id = im.getPersistentDataContainer().get(MenuItemBuilder.MENU_ITEM_KEY, PersistentDataType.INTEGER);
+        if (id == null) return;
 
-        CustomItemStack customItemStack = getItemById(id);
+        MenuItem menuItem = getItemById(id);
 
-        if (customItemStack == null) {
+        if (menuItem == null) {
             inventory.clear();
             generate0();
             return;
         }
-        customItemStack.run(e, this);
+
+        runCommands(menuItem.getCommands(e, viewer));
     }
 
 
@@ -121,21 +153,19 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
 
 
     @Nullable
-    private CustomItemStack getItemById(int id) {
-        LinkedList<CustomItemStack> list = new LinkedList<>();
-        list.addAll(items);
-        list.addAll(customItemStacks);
-        for (CustomItemStack item : list) {
+    protected MenuItem getItemById(int id) {
+        var item = findItemIn(id, customItems);
+        return item == null ? findItemIn(id, currentItems) : item;
+    }
+
+    @Nullable
+    protected MenuItem findItemIn(int id, List<MenuItem> list) {
+        for (MenuItem item : list) {
             if (item.getId() == id) {
                 return item;
             }
         }
         return null;
-    }
-
-    @Deprecated(forRemoval = true)
-    public static List<ItemStack> giveItems(Player player, ItemStack... itemStack) {
-        return new ArrayList<>(player.getInventory().addItem(itemStack).values());
     }
 
     public Inventory getInventory() {
@@ -146,18 +176,119 @@ public abstract class Menu extends AsyncClickListener implements Placeholderable
         return viewer;
     }
 
-    public void registerPlaceholderable(Placeholderable customPlaceHolder) {
-        customPlaceHolders.add(customPlaceHolder);
+    public void reopen() {
+        if (getPlayer() == null || !getPlayer().isOnline()) {
+            throw new IllegalArgumentException();
+        }
+        syncUtil(() -> {
+            reRegister();
+            if (!viewer.getOpenInventory().getTopInventory().equals(inventory))
+                viewer.openInventory(getInventory());
+            generate0();
+        });
     }
-
-    abstract public void reopen();
 
     @Nullable
-    public Menu getBackMenu() {
-        return backMenu;
+    public Menu getPreviousMenu() {
+        return previousMenu;
     }
 
-    public User getUser() {
-        return user;
+    @Override
+    public String replace(String string) {
+        return super.replace(Main.getMessage().setPlaceholders(viewer, string));
+    }
+
+    public void back() {
+        getPreviousMenu().reopen();
+    }
+
+    static {
+        commands = new Command<>("cmd");
+        commands.addSubCommand(new Command<Menu>("[CONSOLE]")
+                .argument(new ArgumentStrings<>("cmd"))
+                .executor((v, args) -> {
+                            String cmd = (String) args.getOrThrow("cmd");
+                            AsyncClickListener.syncUtil(() -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd));
+                        }
+                )
+        );
+        commands.addSubCommand(new Command<Menu>("[PLAYER]")
+                .argument(new ArgumentStrings<>("cmd"))
+                .executor((v, args) -> {
+                            String cmd = (String) args.getOrThrow("cmd");
+                            AsyncClickListener.syncUtil(() -> Objects.requireNonNull(v.viewer, "player is null!").performCommand(cmd));
+                        }
+                )
+        );
+        commands.addSubCommand(new Command<Menu>("[SOUND]")
+                .argument(new ArgumentEnumValue<>("sound", Sound.class))
+                .executor((v, args) -> {
+                            Sound sound = (Sound) args.getOrThrow("sound");
+                            Main.getMessage().sendSound(Objects.requireNonNull(v.viewer, "player is null!"), sound);
+                        }
+                )
+        );
+        commands.addSubCommand(new Command<Menu>("[CLOSE]")
+                .executor((v, args) -> AsyncClickListener.syncUtil(() -> Objects.requireNonNull(v.viewer, "player is null!").closeInventory()))
+        );
+        commands.addSubCommand(new Command<Menu>("[BACK_OR_CLOSE]")
+                .executor((v, args) -> AsyncClickListener.syncUtil(() -> {
+                    if (v.previousMenu != null) {
+                        v.previousMenu.reopen();
+                    } else {
+                        Objects.requireNonNull(v.viewer, "player is null!").closeInventory();
+                    }
+                }))
+        );
+        commands.addSubCommand(new Command<Menu>("[BACK]")
+                .executor((v, args) -> AsyncClickListener.syncUtil(() -> Objects.requireNonNull(v.previousMenu, "does not have a previous menu!").reopen()))
+        );
+        commands.addSubCommand(new Command<Menu>("[REFRESH]")
+                .executor((v, args) -> v.generate0())
+        );
+        commands.addSubCommand(new Command<Menu>("[MESSAGE]")
+                .argument(new ArgumentStrings<>("msg"))
+                .executor((v, args) -> {
+                            String cmd = (String) args.getOrThrow("msg");
+                            Main.getMessage().sendMsg(v.viewer, cmd);
+                        }
+                )
+        );
+        commands.addSubCommand(new Command<Menu>("[BUY_ITEM_FULL]")
+                .argument(new ArgumentString<>("uuid"))
+                .executor((v, args) -> {
+                            String uuidS = (String) args.getOrThrow("uuid");
+                            UniqueName uuid = new CUniqueName(uuidS);
+                            SellItem item = Main.getStorage().getSellItem(uuid);
+                            if (item == null) {
+                                Main.getMessage().sendMsg(v.viewer, Lang.getMessage("item_already_sold_or_removed"));
+                                v.generate0();
+                                return;
+                            }
+
+                            if (Main.getEcon().getBalance(v.viewer) < item.getPrice()) {
+                                Main.getMessage().sendMsg(v.viewer, Lang.getMessage("insufficient_balance"));
+                                return;
+                            }
+                            new BuyItemProcess(item, Main.getStorage().getUserOrCreate(v.viewer), v.viewer).process();
+                        }
+                )
+        );
+        commands.addSubCommand(new Command<Menu>("[OPEN_MENU]")
+                .argument(new ArgumentString<>("menu"))
+                .argument(new ArgumentStrings<>("options"))
+                .executor((v, args) -> {
+                            String menu = (String) args.getOrThrow("menu", "Меню не указано");
+                            String options = (String) args.getOrDefault("options", "");
+                            OptionParser optionParser1 = new OptionParser(options);
+                            var settings = Main.getMenuLoader().getMenu(menu);
+                            if (settings == null) {
+                                throw new CommandException("Неизвестное меню %s", menu);
+                            }
+                            var m = settings.create(v.viewer, v, optionParser1);
+                            m.open();
+                        }
+                )
+        );
     }
 }

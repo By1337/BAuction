@@ -4,7 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.db.kernel.util.InsertBuilder;
-import org.by1337.bauction.util.Placeholder;
+import org.by1337.bauction.util.placeholder.Placeholder;
 import org.by1337.blib.BLib;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.SellItem;
@@ -258,6 +258,7 @@ public class CSellItem extends Placeholder implements SellItem {
         registerPlaceholder("{item_name}", () -> getItemStack().getItemMeta() != null && getItemStack().getItemMeta().hasDisplayName() ?
                 getItemStack().getItemMeta().getDisplayName() :
                 Lang.getMessage(getMaterial().name().toLowerCase()));
+        registerPlaceholder("{is-valid}", () -> Main.getStorage().getSellItem(uniqueName) != null);
     }
 
     static CSellItem parse(SellItem item) {

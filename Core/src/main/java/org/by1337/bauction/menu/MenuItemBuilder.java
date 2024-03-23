@@ -1,31 +1,35 @@
 package org.by1337.bauction.menu;
 
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
+import org.by1337.bauction.hook.basehead.BaseHeadHook;
+import org.by1337.bauction.util.CUniqueName;
+import org.by1337.bauction.util.placeholder.MultiPlaceholder;
 import org.by1337.blib.chat.Placeholderable;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.menu.click.ClickType;
 import org.by1337.bauction.menu.click.IClick;
 import org.by1337.bauction.menu.requirement.Requirements;
 import org.by1337.bauction.menu.util.EnchantmentBuilder;
-
-import org.by1337.bauction.util.BaseHeadHook;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
-public class CustomItemStack implements Comparable<CustomItemStack>, Placeholderable {
+public class MenuItemBuilder implements Comparable<MenuItemBuilder> {
+    private static final AtomicInteger counter = new AtomicInteger();
     public static final NamespacedKey MENU_ITEM_KEY = Objects.requireNonNull(NamespacedKey.fromString("bauc_menu_item"));
     private int[] slots;
     private List<String> lore;
@@ -34,6 +38,7 @@ public class CustomItemStack implements Comparable<CustomItemStack>, Placeholder
     private int amount;
     private String material;
     private Requirements viewRequirement = null;
+    private Requirements anyClickRequirement = null;
     private int modelData = 0;
     private List<ItemFlag> itemFlags = new ArrayList<>();
     private List<PotionEffect> potionEffects = new ArrayList<>();
@@ -45,51 +50,61 @@ public class CustomItemStack implements Comparable<CustomItemStack>, Placeholder
     private boolean hideEffects = false;
     private boolean hideUnbreakable = false;
     private boolean unbreakable = false;
-    private final int id;
-    private final List<Placeholderable> holders = new ArrayList<>();
-    private String clone;
 
-    public CustomItemStack(int[] slots, ItemStack itemStack) {
-        this.slots = slots;
-        this.itemStack = itemStack;
-        id = new Random().nextInt(Integer.MAX_VALUE);
-        name = null;
-    }
 
-    private ItemStack itemStack = null;
-
-    public CustomItemStack(int[] slots, List<String> lore, @Nullable String name, Map<ClickType, IClick> clicks, int amount, String material) {
+    public MenuItemBuilder(int[] slots, List<String> lore, @Nullable String name, Map<ClickType, IClick> clicks, int amount, String material, Requirements anyClickRequirement) {
+        this.anyClickRequirement = anyClickRequirement;
         this.slots = slots;
         this.lore = lore;
         this.name = name;
         this.clicks = clicks;
         this.amount = amount;
         this.material = material;
-        id = new Random().nextInt(Integer.MAX_VALUE);
     }
 
+    public MenuItem build(Menu menu) {
+        return build(menu, null);
+    }
 
-    @Nullable
-    public ItemStack getItem(Placeholderable holder, Menu menu) {
-        Placeholderable holder1 = s -> replace(holder.replace(s));
-        if (viewRequirement != null && !viewRequirement.check(holder1, menu)) {
+    public MenuItem build(Menu menu, @Nullable ItemStack itemStack, Placeholderable... placeholderables) {
+        MultiPlaceholder placeholder = new MultiPlaceholder(placeholderables);
+        placeholder.add(menu);
+
+        if (viewRequirement != null && !viewRequirement.check(placeholder, menu.viewer)) {
+            menu.runCommands(viewRequirement.getDenyCommands());
             return null;
         }
+        int id = counter.getAndIncrement();
 
-        ItemStack itemStack;
-        if (this.itemStack == null) {
-            String tmpMaterial = holder1.replace(material);
-            if (tmpMaterial.startsWith("basehead-")) {
+        if (itemStack == null) {
+            String tmpMaterial = placeholder.replace(material);
+            if (tmpMaterial.startsWith("sellitem-")) {
+                var sellItem = Main.getStorage().getSellItem(new CUniqueName(tmpMaterial.substring("sellitem-".length())));
+                if (sellItem == null) {
+                    itemStack = new ItemStack(Material.JIGSAW);
+                    Main.getMessage().error(new Throwable("Unknown sell item" + tmpMaterial));
+                } else {
+                    itemStack = sellItem.getItemStack();
+                }
+            } else if (tmpMaterial.startsWith("unsolditem-")) {
+                var sellItem = Main.getStorage().getUnsoldItem(new CUniqueName(tmpMaterial.substring("unsolditem-".length())));
+                if (sellItem == null) {
+                    itemStack = new ItemStack(Material.JIGSAW);
+                    Main.getMessage().error(new Throwable("Unknown unsold item" + tmpMaterial));
+                } else {
+                    itemStack = sellItem.getItemStack();
+                }
+            } else if (tmpMaterial.startsWith("basehead-")) {
                 itemStack = BaseHeadHook.getItem(tmpMaterial);
             } else {
-                itemStack = new ItemStack(Material.valueOf(holder1.replace(tmpMaterial)));
+                itemStack = new ItemStack(Material.valueOf(menu.replace(tmpMaterial).toUpperCase(Locale.ENGLISH)));
             }
         } else {
-                itemStack = this.itemStack.clone();
+            itemStack = itemStack.clone();
         }
 
-        ItemMeta im = itemStack.getItemMeta();
 
+        ItemMeta im = itemStack.getItemMeta();
         if (im == null) {
             Main.getMessage().error(new Throwable("ItemMeta is null! " + itemStack.getType()));
             itemStack = new ItemStack(Material.JIGSAW);
@@ -98,25 +113,21 @@ public class CustomItemStack implements Comparable<CustomItemStack>, Placeholder
 
         im.getPersistentDataContainer().set(MENU_ITEM_KEY, PersistentDataType.INTEGER, id);
 
-        if (this.itemStack != null && im.getLore() != null) {
-            List<String> tLore = new ArrayList<>(im.getLore());
-            tLore.addAll(lore);
-            tLore.replaceAll(holder1::replace);
-
-            im.setLore(tLore.stream()
-                    .flatMap(line -> Arrays.stream(line.split("\n")))
-                    .collect(Collectors.toList()));
-        } else {
-            List<String> tLore = new ArrayList<>(lore);
-            tLore.replaceAll(holder1::replace);
-
-            im.setLore(tLore.stream()
-                    .flatMap(line -> Arrays.stream(line.split("\n")))
-                    .collect(Collectors.toList()));
+        List<Component> lore = new ArrayList<>(getOrDefault(im.lore(), ArrayList::new));
+        for (String s : this.lore) {
+            String s1 = placeholder.replace(s);
+            if (s1.contains("\n")) {
+                for (String string : s1.split("\n")) {
+                    lore.add(Main.getMessage().componentBuilder(string).decoration(TextDecoration.ITALIC, false));
+                }
+            } else {
+                lore.add(Main.getMessage().componentBuilder(s1).decoration(TextDecoration.ITALIC, false));
+            }
         }
+        im.lore(lore);
 
         if (name != null)
-            im.setDisplayName(holder1.replace(name));
+            im.displayName(Main.getMessage().componentBuilder(placeholder.replace(name)).decoration(TextDecoration.ITALIC, false));
 
         for (ItemFlag itemFlag : itemFlags)
             im.addItemFlags(itemFlag);
@@ -151,34 +162,20 @@ public class CustomItemStack implements Comparable<CustomItemStack>, Placeholder
         }
         itemStack.setItemMeta(im);
         itemStack.setAmount(amount);
-        return itemStack;
+
+        return new MenuItem(
+                slots, itemStack, clicks, id, placeholder, anyClickRequirement
+        );
     }
 
-    public void run(InventoryClickEvent e, Menu menu) {
-        Placeholderable holder1 = s -> {
-            for (Placeholderable customPlaceHolder : holders) {
-                s = customPlaceHolder.replace(s);
-            }
-            return menu.replace(s);
-        };
-        ClickType clickType1 = ClickType.adapter(e);
-        if (clickType1 == null) return;
-        IClick click = clicks.get(clickType1);
-        if (click != null) {
-            click.run(menu, holder1);
-        }
-        IClick click1 = clicks.get(ClickType.ANY_CLICK);
-        if (click1 != null) {
-            click1.run(menu, holder1);
-        }
+    public <T> T getOrDefault(@Nullable T value, Supplier<T> supplier) {
+        if (value == null) return supplier.get();
+        return value;
     }
 
-    public void registerPlaceholder(Placeholderable holder) {
-        holders.add(holder);
-    }
 
     @Override
-    public int compareTo(@NotNull CustomItemStack o) {
+    public int compareTo(@NotNull MenuItemBuilder o) {
         return Integer.compare(priority, o.getPriority());
     }
 
@@ -255,13 +252,6 @@ public class CustomItemStack implements Comparable<CustomItemStack>, Placeholder
         return this.unbreakable;
     }
 
-    public int getId() {
-        return this.id;
-    }
-
-    public List<Placeholderable> getHolders() {
-        return this.holders;
-    }
 
     public void setSlots(int[] slots) {
         this.slots = slots;
@@ -270,10 +260,6 @@ public class CustomItemStack implements Comparable<CustomItemStack>, Placeholder
     public void setLore(List<String> lore) {
         this.lore = lore;
     }
-
-//    public void setName(String name) {
-//        this.name = name;
-//    }
 
     public void setClicks(HashMap<ClickType, IClick> clicks) {
         this.clicks = clicks;
@@ -335,27 +321,4 @@ public class CustomItemStack implements Comparable<CustomItemStack>, Placeholder
         this.unbreakable = unbreakable;
     }
 
-    public ItemStack getItemStack() {
-        return this.itemStack;
-    }
-
-    public void setItemStack(ItemStack itemStack) {
-        this.itemStack = itemStack;
-    }
-
-    public String getClone() {
-        return clone;
-    }
-
-    public void setClone(String clone) {
-        this.clone = clone;
-    }
-
-    @Override
-    public String replace(String s) {
-        for (Placeholderable customPlaceHolder : getHolders()) {
-            s = customPlaceHolder.replace(s);
-        }
-        return s;
-    }
 }

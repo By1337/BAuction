@@ -5,7 +5,7 @@ import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.menu.impl.MainMenu;
+//import org.by1337.bauction.menu.impl.MainMenu;
 import org.by1337.bauction.util.Category;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
@@ -19,7 +19,7 @@ public class OpenCmd extends Command<CommandSender> {
 
     public OpenCmd(String command) {
         super(command);
-        requires(new RequiresPermission<>("bauc.admin.open"));
+        requires(new RequiresPermission<>("bauc.admin.create"));
         argument(new ArgumentPlayer<>("player"));
         argument(new ArgumentSetList<>("category", Main.getCfg().getCategoryMap().keySet().stream().map(NameKey::getName).toList()));
         executor(this::execute);
@@ -36,17 +36,17 @@ public class OpenCmd extends Command<CommandSender> {
             return;
         }
 
-        User user = Main.getStorage().getUserOrCreate(player);
-        MainMenu menu = new MainMenu(user, player);
-
-        int index = menu.getCategories().indexOf(category);
-
-        if (index == -1) {
-            Main.getMessage().sendMsg(sender, "unknown category %s", categoryS);
-            menu.close();
-            return;
-        }
-        menu.getCategories().current = index;
-        menu.open();
+//        User user = Main.getStorage().getUserOrCreate(player);
+//        MainMenu menu = new MainMenu(user, player);
+//
+//        int index = menu.getCategories().indexOf(category);
+//
+//        if (index == -1) {
+//            Main.getMessage().sendMsg(sender, "unknown category %s", categoryS);
+//            menu.close();
+//            return;
+//        }
+//        menu.getCategories().current = index;
+//        menu.create();
     }
 }

@@ -2,8 +2,7 @@ package org.by1337.bauction.db.kernel;
 
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.db.kernel.util.InsertBuilder;
-import org.by1337.bauction.network.ByteBuffer;
-import org.by1337.bauction.util.Placeholder;
+import org.by1337.bauction.util.placeholder.Placeholder;
 import org.by1337.blib.BLib;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.UnsoldItem;
@@ -92,6 +91,7 @@ public class CUnsoldItem extends Placeholder implements UnsoldItem {
         registerPlaceholder("{item_name}", () -> getItemStack().getItemMeta() != null && getItemStack().getItemMeta().hasDisplayName() ?
                 getItemStack().getItemMeta().getDisplayName() :
                 Lang.getMessage(getItemStack().getType().name().toLowerCase()));
+        registerPlaceholder("{is-valid}", () -> Main.getStorage().hasUnsoldItem(uniqueName));
     }
 
     public ItemStack getItemStack() {

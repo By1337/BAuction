@@ -1,4 +1,4 @@
-package org.by1337.bauction.util;
+package org.by1337.bauction.hook.basehead;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;

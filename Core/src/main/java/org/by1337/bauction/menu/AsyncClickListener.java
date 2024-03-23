@@ -13,6 +13,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.by1337.bauction.util.placeholder.Placeholder;
 import org.by1337.blib.BLib;
 import org.by1337.bauction.Main;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +25,7 @@ import java.util.concurrent.Executors;
 /**
  * Abstract class representing an asynchronous click listener for inventories.
  */
-public abstract class AsyncClickListener implements Listener {
+public abstract class AsyncClickListener extends Placeholder implements Listener {
     /**
      * The inventory associated with this click listener.
      */
@@ -57,7 +58,13 @@ public abstract class AsyncClickListener implements Listener {
         this.viewer = viewer;
         this.async = async;
         Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
-        createRunManager();
+
+        if (async) {
+            executor = Executors.newSingleThreadExecutor();
+            runManager = executor::execute;
+        } else {
+            runManager = Runnable::run;
+        }
     }
 
     protected void createInventory(int size, String title, InventoryType type) {
@@ -69,7 +76,7 @@ public abstract class AsyncClickListener implements Listener {
     }
 
     /**
-     * Abstract method to be implemented for handling inventory close events.
+     * Abstract method to be implemented for handling inventory clearCommandMap events.
      *
      * @param e The InventoryCloseEvent.
      */
@@ -105,7 +112,7 @@ public abstract class AsyncClickListener implements Listener {
                     if (itemStack == null) continue;
                     ItemMeta im = itemStack.getItemMeta();
                     if (im == null) continue;
-                    if (im.getPersistentDataContainer().has(CustomItemStack.MENU_ITEM_KEY, PersistentDataType.INTEGER)) {
+                    if (im.getPersistentDataContainer().has(MenuItemBuilder.MENU_ITEM_KEY, PersistentDataType.INTEGER)) {
                         viewer.getInventory().remove(itemStack);
                     }
                 }
@@ -113,11 +120,11 @@ public abstract class AsyncClickListener implements Listener {
         }
     }
 
+
     public void close() {
         HandlerList.unregisterAll(this);
         if (executor != null)
             executor.shutdown();
-        runManager = null;
     }
 
     /**
@@ -160,13 +167,14 @@ public abstract class AsyncClickListener implements Listener {
      * Re-registers the click listener with the Bukkit plugin manager.
      */
     protected void reRegister() {
-        if (runManager != null){
-            throw new IllegalStateException("The menu was not closed!");
-        }
         Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
-        createRunManager();
+        if (async) {
+            executor = Executors.newSingleThreadExecutor();
+            runManager = executor::execute;
+        } else {
+            runManager = Runnable::run;
+        }
     }
-
 
     /**
      * Sends a fake title to the player viewing the inventory.
@@ -174,7 +182,7 @@ public abstract class AsyncClickListener implements Listener {
      * @param title The title to be sent.
      */
     protected void sendFakeTitle(String title) {
-        BLib.getApi().getFakeTitleFactory().get().send(inventory, title);
+        BLib.getApi().getFakeTitleFactory().get().send(inventory, Main.getMessage().componentBuilder(title));
     }
 
     /**
@@ -189,15 +197,6 @@ public abstract class AsyncClickListener implements Listener {
 
     public static void syncUtil(Runnable runnable, long delay) {
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), runnable, delay);
-    }
-
-    private void createRunManager() {
-        if (async) {
-            executor = Executors.newSingleThreadExecutor();
-            runManager = executor::execute;
-        } else {
-            runManager = Runnable::run;
-        }
     }
 
     @FunctionalInterface

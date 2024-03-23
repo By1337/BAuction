@@ -1,15 +1,12 @@
 package org.by1337.bauction;
 
-import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.boost.Boost;
 import org.by1337.bauction.command.*;
 import org.by1337.bauction.config.Config;
@@ -17,13 +14,15 @@ import org.by1337.bauction.config.adapter.*;
 import org.by1337.bauction.datafix.UpdateManager;
 import org.by1337.bauction.db.kernel.FileDataBase;
 import org.by1337.bauction.db.kernel.MysqlDb;
-import org.by1337.bauction.hook.EconomyHook;
-import org.by1337.bauction.hook.impl.PlayerPointsHook;
-import org.by1337.bauction.hook.impl.VaultHook;
+import org.by1337.bauction.hook.econ.EconomyHook;
+import org.by1337.bauction.hook.econ.impl.PlayerPointsHook;
+import org.by1337.bauction.hook.econ.impl.VaultHook;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.menu.CustomItemStack;
-import org.by1337.bauction.menu.impl.MainMenu;
-import org.by1337.bauction.menu.requirement.IRequirement;
+import org.by1337.bauction.menu.ItemSelector;
+import org.by1337.bauction.menu.MenuItemBuilder;
+import org.by1337.bauction.menu.MenuLoader;
+import org.by1337.bauction.menu.menu.MainMenu;
+import org.by1337.bauction.menu.requirement.Requirement;
 import org.by1337.bauction.menu.requirement.Requirements;
 import org.by1337.bauction.placeholder.PlaceholderHook;
 import org.by1337.bauction.search.TrieManager;
@@ -45,7 +44,7 @@ import java.util.*;
 
 public final class Main extends JavaPlugin {
     private static Message message;
-    private static Plugin instance;
+    private static Main instance;
     private static Config cfg;
     private static FileDataBase storage;
     private Command<CommandSender> command;
@@ -57,6 +56,7 @@ public final class Main extends JavaPlugin {
     private static DbCfg dbCfg;
     private boolean loaded;
     private static Set<String> blackList = new HashSet<>();
+    private MenuLoader menuLoader;
 
     @Override
     public void onLoad() {
@@ -90,7 +90,8 @@ public final class Main extends JavaPlugin {
         } else {
             throw new IllegalStateException("Параметр economy имеет не правильное значение! '" + econType + "'. Ожидалось 'Vault' | 'PlayerPoints'");
         }
-
+        menuLoader = new MenuLoader(this);
+        menuLoader.load();
         initCommand();
         new Metrics(this, 20300);
         placeholderHook = new PlaceholderHook();
@@ -160,9 +161,10 @@ public final class Main extends JavaPlugin {
         AdapterRegistry.unregisterAdapter(Sorting.class);
         AdapterRegistry.unregisterAdapter(Category.class);
         AdapterRegistry.unregisterAdapter(Requirements.class);
-        AdapterRegistry.unregisterAdapter(CustomItemStack.class);
         AdapterRegistry.unregisterAdapter(Boost.class);
-        AdapterRegistry.unregisterAdapter(IRequirement.class);
+        AdapterRegistry.unregisterAdapter(MenuItemBuilder.class);
+        AdapterRegistry.unregisterAdapter(Requirement.class);
+        AdapterRegistry.unregisterAdapter(ItemSelectorAdapter.class);
         placeholderHook.unregister();
     }
 
@@ -171,10 +173,11 @@ public final class Main extends JavaPlugin {
         AdapterRegistry.registerPrimitiveAdapter(InventoryType.class, new AdapterEnum<>(InventoryType.class));
         AdapterRegistry.registerAdapter(Sorting.class, new AdapterSortingType());
         AdapterRegistry.registerAdapter(Category.class, new AdapterCategory());
-        AdapterRegistry.registerAdapter(Requirements.class, new AdapterRequirements());
-        AdapterRegistry.registerAdapter(CustomItemStack.class, new AdapterCustomItemStack());
         AdapterRegistry.registerAdapter(Boost.class, new AdapterBoost());
-        AdapterRegistry.registerAdapter(IRequirement.class, new AdapterIRequirement());
+        AdapterRegistry.registerAdapter(Requirements.class, new AdapterRequirements());
+        AdapterRegistry.registerAdapter(MenuItemBuilder.class, new AdapterCustomItemStack());
+        AdapterRegistry.registerAdapter(Requirement.class, new AdapterIRequirement());
+        AdapterRegistry.registerAdapter(ItemSelector.class, new ItemSelectorAdapter());
     }
 
     private boolean loadDbCfg() {
@@ -275,7 +278,7 @@ public final class Main extends JavaPlugin {
                                 .addSubCommand(new StressCmd("stress"))
                         )
                         .addSubCommand(new AddTagCmd("addTag"))
-                        .addSubCommand(new OpenCmd("open"))
+                        .addSubCommand(new OpenCmd("create"))
                         .addSubCommand(new Command<CommandSender>("parse")
                                 .requires(new RequiresPermission<>("bauc.parse"))
                                 .addSubCommand(new ParseTagsCmd("tags"))
@@ -288,9 +291,12 @@ public final class Main extends JavaPlugin {
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))
                         throw new CommandException(Lang.getMessage("must_be_player"));
-                    User user = storage.getUserOrCreate(player);
-                    MainMenu menu = new MainMenu(user, player);
+                    var settings = menuLoader.getMenu("main");
+                    var menu = settings.create(player, null, new OptionParser());
                     menu.open();
+//                    User user = storage.getUserOrCreate(player);
+//                    MainMenu menu = new MainMenu(user, player);
+//                    menu.create();
                 }))
         ;
     }
@@ -338,5 +344,9 @@ public final class Main extends JavaPlugin {
 
     public boolean isLoaded() {
         return loaded;
+    }
+
+    public static MenuLoader getMenuLoader() {
+        return instance.menuLoader;
     }
 }

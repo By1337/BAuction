@@ -1,9 +1,9 @@
-package org.by1337.bauction.hook.impl;
+package org.by1337.bauction.hook.econ.impl;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.hook.EconomyHook;
+import org.by1337.bauction.hook.econ.EconomyHook;
 import org.by1337.blib.configuration.YamlContext;
 
 import java.util.UUID;

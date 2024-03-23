@@ -3,7 +3,7 @@ package org.by1337.bauction.db.kernel;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.serialize.SerializeUtils;
-import org.by1337.bauction.util.Placeholder;
+import org.by1337.bauction.util.placeholder.Placeholder;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;

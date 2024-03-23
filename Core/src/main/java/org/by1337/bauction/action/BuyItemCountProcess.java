@@ -11,9 +11,7 @@ import org.by1337.bauction.db.event.BuyItemCountEvent;
 import org.by1337.bauction.db.kernel.MysqlDb;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.Menu;
-import org.by1337.bauction.menu.impl.BuyCountMenu;
-import org.by1337.bauction.menu.impl.CallBack;
-import org.by1337.bauction.menu.impl.ConfirmMenu;
+
 import org.by1337.bauction.network.impl.PacketSendMessage;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.PlayerUtil;
@@ -21,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public class BuyItemCountProcess implements CallBack<Optional<ConfirmMenu.Result>> {
+public class BuyItemCountProcess /*implements CallBack<Optional<ConfirmMenu.Result>>*/ {
 
     private final SellItem buyingItem;
     private final User buyer;
@@ -37,11 +35,11 @@ public class BuyItemCountProcess implements CallBack<Optional<ConfirmMenu.Result
         this.fast = fast;
     }
 
-    private CallBack<Optional<Integer>> callBack;
-    private BuyCountMenu buyCountMenu;
+  /*  private CallBack<Optional<Integer>> callBack;
+    private BuyCountMenu buyCountMenu;*/
     private int count = 0;
 
-    public void process() {
+  /*  public void process() {
         try {
             callBack = result -> {
                 if (result.isPresent()) {
@@ -63,7 +61,7 @@ public class BuyItemCountProcess implements CallBack<Optional<ConfirmMenu.Result
             Main.getMessage().sendMsg(player, Lang.getMessage("something_went_wrong"));
             Main.getMessage().error(e);
         }
-    }
+    }*/
 
     public String replace(String s) {
         StringBuilder sb = new StringBuilder(s);
@@ -85,7 +83,7 @@ public class BuyItemCountProcess implements CallBack<Optional<ConfirmMenu.Result
         return buyingItem.replace(sb.toString());
     }
 
-    @Override
+  /*  @Override
     public void result(Optional<ConfirmMenu.Result> result) {
         if (result.isPresent()) {
             if (result.get() == ConfirmMenu.Result.ACCEPT) {
@@ -128,5 +126,5 @@ public class BuyItemCountProcess implements CallBack<Optional<ConfirmMenu.Result
             }
             buyCountMenu.reopen();
         }
-    }
+    }*/
 }

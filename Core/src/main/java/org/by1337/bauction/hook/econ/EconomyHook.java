@@ -1,4 +1,4 @@
-package org.by1337.bauction.hook;
+package org.by1337.bauction.hook.econ;
 
 import org.bukkit.OfflinePlayer;
 

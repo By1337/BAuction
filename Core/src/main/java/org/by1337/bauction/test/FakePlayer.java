@@ -64,12 +64,25 @@ public class FakePlayer {
     private void sellItem() {
         CUser user = (CUser) storage.getUserOrCreate(nickName, uuid);
         user.setExternalSlots(9999);
-        ItemStack itemStack = new ItemStack(Material.values()[random.nextInt(50) + 1]);
-        itemStack.setAmount(random.nextInt(itemStack.getType().getMaxStackSize() - 1) + 1);
-        CSellItem sellItem = new CSellItem(nickName, uuid, itemStack, random.nextInt(200) + 200, Main.getCfg().getDefaultSellTime() + user.getExternalSellTime(), true);
+        ItemStack itemStack = new ItemStack(randomMaterial());
+        int max = itemStack.getType().getMaxStackSize();
+        itemStack.setAmount(Math.max(random.nextInt(max), 1));
+        CSellItem sellItem = new CSellItem(nickName, uuid, itemStack, random.nextInt(200) + 200, Main.getCfg().getDefaultSellTime() + user.getExternalSellTime(), random.nextBoolean());
         SellItemEvent event = new SellItemEvent(user, sellItem);
         storage.validateAndAddItem(event);
     }
 
+    private Material randomMaterial() {
+        Material[] arr = Material.values();
+        int x = 0;
+        do {
+            var mat = arr[random.nextInt(arr.length)];
+            if (mat.isItem() && !mat.name().startsWith("LEGACY_")) {
+                return mat;
+            }
+            x++;
+        } while (x < 50);
+        return Material.DIRT;
+    }
 
 }

@@ -2,6 +2,7 @@ package org.by1337.bauction.util;
 
 import junit.framework.TestCase;
 
+import org.by1337.bauction.util.placeholder.Placeholder;
 import org.junit.Assert;
 
 public class PlaceholderTest extends TestCase {

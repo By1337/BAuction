@@ -7,8 +7,8 @@ import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.db.event.TakeItemEvent;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.Menu;
-import org.by1337.bauction.menu.impl.CallBack;
-import org.by1337.bauction.menu.impl.ConfirmMenu;
+/*import org.by1337.bauction.menu.impl.CallBack;
+import org.by1337.bauction.menu.impl.ConfirmMenu;*/
 import org.by1337.bauction.util.PlayerUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +30,7 @@ public class TakeItemProcess {
     }
 
     public void process() {
-        CallBack<Optional<ConfirmMenu.Result>> callBack = result -> {
+       /* CallBack<Optional<ConfirmMenu.Result>> callBack = result -> {
             if (result.isPresent()) {
                 if (result.get() == ConfirmMenu.Result.ACCEPT) {
                     TakeItemEvent event = new TakeItemEvent(taker, takingItem);
@@ -54,6 +54,6 @@ public class TakeItemProcess {
             confirmMenu.registerPlaceholderable(taker);
             confirmMenu.registerPlaceholderable(takingItem);
             confirmMenu.open();
-        }
+        }*/
     }
 }

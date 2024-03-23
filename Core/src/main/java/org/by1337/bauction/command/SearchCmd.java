@@ -5,7 +5,6 @@ import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.menu.impl.MainMenu;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.TimeCounter;
 import org.by1337.blib.command.Command;
@@ -42,8 +41,8 @@ public class SearchCmd extends Command<CommandSender> {
 
         User user = Main.getStorage().getUserOrCreate(player);
 
-        MainMenu menu = new MainMenu(user, player);
-        menu.setCustomCategory(custom);
-        menu.open();
+//        MainMenu menu = new MainMenu(user, player);
+//        menu.setCustomCategory(custom);
+//        menu.open();
     }
 }

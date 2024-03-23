@@ -7,26 +7,27 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.by1337.bauction.menu.requirement.Requirement;
+import org.by1337.blib.configuration.YamlContext;
+import org.by1337.blib.configuration.adapter.ClassAdapter;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.menu.CustomItemStack;
+import org.by1337.bauction.menu.MenuItemBuilder;
 import org.by1337.bauction.menu.click.Click;
 import org.by1337.bauction.menu.click.ClickType;
 import org.by1337.bauction.menu.click.IClick;
 import org.by1337.bauction.menu.requirement.Requirements;
 import org.by1337.bauction.menu.util.EnchantmentBuilder;
-import org.by1337.blib.configuration.YamlContext;
-import org.by1337.blib.configuration.adapter.ClassAdapter;
 
 import java.util.*;
 
-public class AdapterCustomItemStack implements ClassAdapter<CustomItemStack> {
+public class AdapterCustomItemStack implements ClassAdapter<MenuItemBuilder> {
     @Override
-    public ConfigurationSection serialize(CustomItemStack obj, YamlContext context) {
+    public ConfigurationSection serialize(MenuItemBuilder obj, YamlContext context) {
         throw new IllegalArgumentException();
     }
 
     @Override
-    public CustomItemStack deserialize(YamlContext context) {
+    public MenuItemBuilder deserialize(YamlContext context) {
         int amount = context.getAsInteger("amount", 1);
         String material = context.getAsString("material", "STONE");
         String displayName = context.getAsString("display_name", null);
@@ -41,7 +42,7 @@ public class AdapterCustomItemStack implements ClassAdapter<CustomItemStack> {
                 Main.getMessage().error("ожидался <PotionEffectType>;<duration>;<amplifier>, а не " + str);
                 return null;
             }
-            PotionEffectType type = Objects.requireNonNull(PotionEffectType.getByName(args[0]), "PotionEffectType is null");
+            PotionEffectType type = Objects.requireNonNull(PotionEffectType.getByName(args[0].toLowerCase(Locale.ENGLISH)), "PotionEffectType is null");
             int duration = Integer.parseInt(args[1]);
             int amplifier = Integer.parseInt(args[2]);
             return new PotionEffect(type, duration, amplifier);
@@ -55,7 +56,7 @@ public class AdapterCustomItemStack implements ClassAdapter<CustomItemStack> {
                         Main.getMessage().error("ожидался enchantmentid;level, а не " + str);
                         return null;
                     }
-                    Enchantment type = Objects.requireNonNull(Enchantment.getByKey(NamespacedKey.minecraft(args[0])), "Enchantment is null");
+                    Enchantment type = Objects.requireNonNull(Enchantment.getByKey(NamespacedKey.minecraft(args[0].toLowerCase(Locale.ENGLISH))), "Enchantment is null");
                     int level = Integer.parseInt(args[1]);
                     return new EnchantmentBuilder(level, type);
                 }
@@ -73,6 +74,12 @@ public class AdapterCustomItemStack implements ClassAdapter<CustomItemStack> {
         int priority = context.getAsInteger("priority", 0);
 
         Requirements viewRequirement = context.getAs("view_requirement", Requirements.class, null);
+        Requirements anyClickRequirement;
+        if (context.getHandle().contains("any_click_requirement")) {
+            anyClickRequirement = anyClickRequirementDeserialize(context.getAs("any_click_requirement", YamlContext.class));
+        } else {
+            anyClickRequirement = null;
+        }
 
         Map<ClickType, IClick> clicks = new HashMap<>();
 
@@ -80,29 +87,35 @@ public class AdapterCustomItemStack implements ClassAdapter<CustomItemStack> {
             if (context.getHandle().contains(clickType.getConfigKeyClick())) {
                 List<String> commands = context.getList(clickType.getConfigKeyClick(), String.class, new ArrayList<>());
                 Requirements requirements = context.getAs(clickType.getConfigKeyRequirement(), Requirements.class, null);
-                Click click = new Click(commands.toArray(new String[0]), requirements, clickType);
+                Click click = new Click(commands, requirements, clickType);
                 clicks.put(click.getClickType(), click);
             }
         }
 
         int[] slots = getSlots(context);
 
-        CustomItemStack customItemStack = new CustomItemStack(slots, Collections.unmodifiableList(lore), displayName, clicks, amount, material);
-        customItemStack.setItemFlags(flags);
-        customItemStack.setPotionEffects(effects);
-        customItemStack.setColor(color);
+        MenuItemBuilder menuItemBuilder = new MenuItemBuilder(slots, Collections.unmodifiableList(lore), displayName, clicks, amount, material, anyClickRequirement);
+        menuItemBuilder.setItemFlags(flags);
+        menuItemBuilder.setPotionEffects(effects);
+        menuItemBuilder.setColor(color);
 
-        customItemStack.setHideEnchantments(hideEnchantments);
-        customItemStack.setHideAttributes(hideAttributes);
-        customItemStack.setHideEffects(hideEffects);
-        customItemStack.setHideUnbreakable(hideUnbreakable);
-        customItemStack.setUnbreakable(unbreakable);
-        customItemStack.setModelData(model_data);
-        customItemStack.setPriority(priority);
-        customItemStack.setViewRequirement(viewRequirement);
-        customItemStack.setEnchantments(enchantments);
+        menuItemBuilder.setHideEnchantments(hideEnchantments);
+        menuItemBuilder.setHideAttributes(hideAttributes);
+        menuItemBuilder.setHideEffects(hideEffects);
+        menuItemBuilder.setHideUnbreakable(hideUnbreakable);
+        menuItemBuilder.setUnbreakable(unbreakable);
+        menuItemBuilder.setModelData(model_data);
+        menuItemBuilder.setPriority(priority);
+        menuItemBuilder.setViewRequirement(viewRequirement);
+        menuItemBuilder.setEnchantments(enchantments);
 
-        return customItemStack;
+        return menuItemBuilder;
+    }
+
+    public Requirements anyClickRequirementDeserialize(YamlContext context) {
+        List<Requirement> requirementList = context.getMap("requirements", Requirement.class, new HashMap<>()).values().stream().toList();
+        List<String> denyCommands = Collections.unmodifiableList(context.getList("commands", String.class, new ArrayList<>()));
+        return new Requirements(requirementList, denyCommands);
     }
 
     public static int[] getSlots(YamlContext context) {

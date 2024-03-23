@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.menu.impl.PlayerItemsView;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.CommandSyntaxError;
@@ -47,9 +46,9 @@ public class ViewCommand extends Command<CommandSender> {
             return;
         }
 
-        User user = Main.getStorage().getUserOrCreate(senderP);
-        PlayerItemsView menu = new PlayerItemsView(user, senderP, uuid, Bukkit.getOfflinePlayer(uuid).getName());
-        menu.open();
+//        User user = Main.getStorage().getUserOrCreate(senderP);
+//        PlayerItemsView menu = new PlayerItemsView(user, senderP, uuid, Bukkit.getOfflinePlayer(uuid).getName());
+//        menu.open();
     }
 
     private static class ArgumentOfflinePlayerUUID extends Argument<CommandSender> {

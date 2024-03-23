@@ -1,10 +1,10 @@
-package org.by1337.bauction.hook.impl;
+package org.by1337.bauction.hook.econ.impl;
 
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.RegisteredServiceProvider;
-import org.by1337.bauction.hook.EconomyHook;
+import org.by1337.bauction.hook.econ.EconomyHook;
 
 import java.util.Objects;
 import java.util.UUID;

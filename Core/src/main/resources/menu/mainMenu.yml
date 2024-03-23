@@ -1,0 +1,235 @@
+menu_title: "&7Аукцион ({current_page}/{max_page})"
+size: 54
+type: CHEST
+id: main
+provider: main_menu
+
+items-slots:
+  - 0-44
+
+item-selector:
+  selector:
+    check:
+      type: string equals
+      input: '{user_uuid}'
+      output: '{seller_uuid}'
+      return-item: 'take-item'
+    check-1:
+      type: math
+      expression: '{amount} == 1'
+      return-item: 'selling-item-one'
+    check-2:
+      type: math
+      expression: '!{sale_by_the_piece}'
+      return-item: 'selling-item-only-full'
+    default:
+      return-item: 'selling-item'
+  items:
+    # Когда продаваемый предмет один
+    selling-item-one:
+      lore:
+        - '&r '
+        - '&#5AD9FB&n▌&r &fПродавец: &#5AD9FB{seller_name}'
+        - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price_format}'
+        - '&#5AD9FB▌&r &fИстекает: &#5AD9FB{expires}'
+        - '&r '
+      left_click_commands:
+        - '[OPEN_MENU] buy_confirm -item {id}'
+      shift_left_click_commands:
+        - '[BUY_ITEM_FULL] {id}'
+        - '[REFRESH]'
+      right_click_commands:
+        - '[OPEN_MENU] buy_confirm -item {id}'
+      any_click_requirement:
+        requirements:
+          check-1:
+            type: string equals
+            input: '{is-valid}'
+            output: 'false'
+        commands:
+          - '[MESSAGE] &cКажется этого предмета больше не существует'
+          - '[REFRESH]'
+
+    # Когда игрок owner предмета
+    take-item:
+      lore:
+        - '&r '
+        - '&#5AD9FB&n▌&r &fПродавец: &#5AD9FB{seller_name}'
+        - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price_format}'
+        - '&#5AD9FB&n▌&r &fИстекает: &#5AD9FB{expires}'
+        - '&#5AD9FB▌&r &fПродажа по штучно: &#5AD9FB{sale_by_the_piece_format}'
+        - '&r '
+        - '&#5AD9FB▌&r &fЧтобы снять с продажи нажмите &#5AD9FBлкм'
+      left_click_commands:
+        - '[TAKE_ITEM] {id}'
+      shift_left_click_commands:
+        - '[TAKE_ITEM] {id}'
+      any_click_requirement:
+        requirements:
+          check-1:
+            type: string equals
+            input: '{is-valid}'
+            output: 'false'
+        commands:
+          - '[MESSAGE] &cКажется этого предмета больше не существует'
+          - '[REFRESH]'
+
+    # Когда продаваемый предмет не один и его можно купить поштучно
+    selling-item:
+      lore:
+        - '&r '
+        - '&#5AD9FB&n▌&r &fПродавец: &#5AD9FB{seller_name}'
+        - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price_format}'
+        - '&#5AD9FB&n▌&r &fЦена за штуку &#5AD9FB{price_for_one_format}'
+        - '&#5AD9FB▌&r &fИстекает: &#5AD9FB{expires}'
+        - '&r '
+        - '&#5AD9FB&n▌&r &fЧтобы купить всё нажмите &#5AD9FBлкм'
+        - '&#5AD9FB▌&r &fДля покупки поштучно нажмите &#5AD9FBпкм'
+      left_click_commands:
+        - '[OPEN_MENU] buy_confirm -item {id}'
+      shift_left_click_commands:
+        - '[BUY_ITEM_FULL] {id}'
+        - '[REFRESH]'
+      right_click_commands:
+        - '[BUY_ITEM_AMOUNT] {id}' # todo
+      any_click_requirement:
+        requirements:
+          check-1:
+            type: string equals
+            input: '{is-valid}'
+            output: 'false'
+        commands:
+          - '[MESSAGE] &cКажется этого предмета больше не существует'
+          - '[REFRESH]'
+
+    # Когда продаваемый предмет не один и его нельзя купить поштучно
+    selling-item-only-full:
+      lore:
+        - '&r '
+        - '&#5AD9FB&n▌&r &fПродавец: &#5AD9FB{seller_name}'
+        - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price_format}'
+        - '&#5AD9FB▌&r &fИстекает: &#5AD9FB{expires}'
+        - '&r '
+        - '&#5AD9FB&n▌&r &fПродавец &#ABF0FAограничил &fуказание'
+        - '&#5AD9FB&n▌&r &fколичества товара при покупке.'
+        - '&#5AD9FB▌&r &#ABF0FAКупить можно только полностью'
+      left_click_commands:
+        - '[OPEN_MENU] buy_confirm -item {id}'
+      right_click_commands:
+        - '[OPEN_MENU] buy_confirm -item {id}'
+      shift_left_click_commands:
+        - '[BUY_ITEM_FULL] {id}'
+        - '[REFRESH]'
+      shift_right_click_commands:
+        - '[BUY_ITEM_FULL] {id}'
+        - '[REFRESH]'
+      any_click_requirement:
+        requirements:
+          check-1:
+            type: string equals
+            input: '{is-valid}'
+            output: 'false'
+        commands:
+          - '[MESSAGE] &cКажется этого предмета больше не существует'
+          - '[REFRESH]'
+
+items:
+  selling-item:
+    material: ENDER_CHEST
+    slot: 45
+    amount: 1
+    display_name: "&bАктивные товары на продаже"
+    lore:
+      - '&r'
+      - '&r  &7Кликните, чтобы посмотреть'
+      - '&r  &7список ваших предметов,'
+      - '&r  &7находящихся на продаже'
+      - '&r'
+      - '&7* &6Товаров на продаже &b{selling_item_count}'
+    click_commands:
+      - '[OPEN_MENU] selling-items'
+
+  not-sold-item:
+    material: CHEST
+    slot: 46
+    amount: 1
+    display_name: "&bНе проданные предметы"
+    lore:
+      - '&r'
+      - '&r  &7Кликните, чтобы посмотреть'
+      - '&r  &7список ваших предметов,'
+      - '&r  &7которые не были проданы'
+      - '&r'
+      - '&7* &6Не проданных предметов &b{not_sold_item_count}'
+    click_commands:
+      - '[OPEN_MENU] unsold-items'
+  update-menu:
+    material: EMERALD
+    slot: 47
+    amount: 1
+    display_name: "&bОбновить аукцион"
+    lore: [ ]
+    click_commands:
+      - '[UPDATE]'
+
+  previous-page:
+    material: ARROW
+    slot: 48
+    amount: 1
+    display_name: "&b<- Предыдущая страница"
+    lore: [ ]
+    click_commands:
+      - '[PREVIOUS_PAGE]'
+
+  next-page:
+    material: ARROW
+    slot: 50
+    amount: 1
+    display_name: "&bСледующая страница ->"
+    lore: [ ]
+    click_commands:
+      - '[NEXT_PAGE]'
+
+  info:
+    material: PAPER
+    slot: 51
+    amount: 1
+    display_name: "&bКак продать товар"
+    lore:
+      - '&r'
+      - '&r &7Чтобы выставлять предметы на продажу,'
+      - '&r &7нужно просто написать команду:'
+      - '&r &6/ah sell <цена>'
+      - '&r'
+      - '&r &7Если Вы хотите выставить предметы'
+      - '&r &7без поштучной возможности покупки:'
+      - '&r &6/ah sell <цена> full'
+      - '&r'
+      - '&r &7Чтобы найти нужный товар,'
+      - '&r &7пропишите команду:'
+      - '&r &6/ah search <название предмета>'
+      - '&r'
+
+  sorting:
+    material: HOPPER
+    slot: 52
+    amount: 1
+    display_name: "&bСортировка"
+    lore:
+      - '{sorting}'
+    left_click_commands:
+      - '[SORTING_NEXT]'
+    right_click_commands:
+      - '[SORTING_PREVIOUS]'
+
+  categories:
+    material: CHEST_MINECART
+    slot: 53
+    amount: 1
+    display_name: "&bКатегории предметов"
+    lore:
+      - '{categories}'
+    left_click_commands:
+      - '[CATEGORIES_NEXT]'
+    right_click_commands:
+      - '[CATEGORIES_PREVIOUS]'

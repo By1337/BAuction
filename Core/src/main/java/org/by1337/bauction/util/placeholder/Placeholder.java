@@ -1,4 +1,4 @@
-package org.by1337.bauction.util;
+package org.by1337.bauction.util.placeholder;
 
 import org.by1337.blib.chat.Placeholderable;
 
@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 public abstract class Placeholder implements Placeholderable {

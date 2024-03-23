@@ -1,9 +1,9 @@
-package org.by1337.bauction.hook.impl;
+package org.by1337.bauction.hook.econ.impl;
 
 import org.black_ixx.playerpoints.PlayerPoints;
 import org.black_ixx.playerpoints.PlayerPointsAPI;
 import org.bukkit.Bukkit;
-import org.by1337.bauction.hook.EconomyHook;
+import org.by1337.bauction.hook.econ.EconomyHook;
 
 import java.util.UUID;
 

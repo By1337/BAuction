@@ -1,0 +1,64 @@
+menu_title: "&7Подтверждение покупки"
+size: 27
+type: CHEST
+id: buy_confirm
+provider: buy_confirm
+
+item-slot: 13
+
+item-selector:
+  selector:
+    check-1:
+      type: math
+      expression: '{amount} == 1'
+      return-item: 'selling-item-one'
+    default:
+      return-item: 'selling-item'
+  items:
+    # Когда продаваемый предмет один
+    selling-item-one:
+      lore:
+        - '&r '
+        - '&#5AD9FB&n▌&r &fПродавец: &#5AD9FB{seller_name}'
+        - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price_format}'
+        - '&#5AD9FB▌&r &fИстекает: &#5AD9FB{expires}'
+        - '&r '
+    selling-item:
+      lore:
+        - '&r '
+        - '&#5AD9FB&n▌&r &fПродавец: &#5AD9FB{seller_name}'
+        - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price_format}'
+        - '&#5AD9FB&n▌&r &fЦена за штуку &#5AD9FB{price_for_one_format}'
+        - '&#5AD9FB▌&r &fИстекает: &#5AD9FB{expires}'
+        - '&r '
+items:
+  accept:
+    material: LIME_STAINED_GLASS_PANE
+    slots:
+      - 0-3
+      - 9-12
+      - 18-21
+    display_name: "&aПодтвердить"
+    lore: []
+    click_commands:
+      - '[BUY_ITEM_FULL] {item}'
+      - '[BACK_OR_CLOSE]'
+
+  deny:
+    material: RED_STAINED_GLASS_PANE
+    slots:
+      - 5-8
+      - 14-17
+      - 23-26
+    display_name: "&cОтклонить"
+    lore: []
+    click_commands:
+      - '[BACK_OR_CLOSE]'
+
+  decor:
+    material: BLACK_STAINED_GLASS_PANE
+    slots:
+      - 4
+      - 22
+    display_name: " "
+    lore: []

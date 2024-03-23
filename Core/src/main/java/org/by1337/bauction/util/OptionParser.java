@@ -20,6 +20,7 @@ public class OptionParser {
     }
 
     public void parse(@NotNull String input) {
+        if (input.isEmpty()) return;
         String[] arr = input.split(" ");
         String flag = null;
         for (String s : arr) {
@@ -35,9 +36,19 @@ public class OptionParser {
     public Map<String, String> getOptions() {
         return options;
     }
+    public boolean has(String flag){
+        return options.containsKey(flag);
+    }
 
     @Nullable
     public String get(String flag) {
         return options.get(flag);
+    }
+
+    @Override
+    public String toString() {
+        return "OptionParser{" +
+                "options=" + options +
+                '}';
     }
 }
