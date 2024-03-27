@@ -3,10 +3,12 @@ package org.by1337.bauction.menu.menu;
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.SellItem;
+import org.by1337.bauction.api.auc.UnsoldItem;
 import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.api.util.UniqueName;
 import org.by1337.bauction.menu.*;
 import org.by1337.bauction.util.CUniqueName;
+import org.by1337.bauction.util.ImmutableArrayList;
 import org.by1337.bauction.util.OptionParser;
 import org.by1337.bauction.util.placeholder.BiPlaceholder;
 import org.by1337.blib.chat.Placeholderable;
@@ -16,11 +18,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class BuyConfirmMenu extends Menu {
-    private SellItem item;
+public class UnsoldItemInfoMenu extends Menu {
+    private UnsoldItem item;
     protected User user;
 
-    public BuyConfirmMenu(MenuSetting setting, Player player, @Nullable Menu previousMenu, OptionParser optionParser) {
+    public UnsoldItemInfoMenu(MenuSetting setting, Player player, @Nullable Menu previousMenu, OptionParser optionParser) {
         super(setting, player, previousMenu, optionParser);
         optionParser.getOptions().forEach((k, v) -> registerPlaceholder("{" + k + "}", () -> v));
         user = Main.getStorage().getUserOrCreate(player);
@@ -36,14 +38,15 @@ public class BuyConfirmMenu extends Menu {
     protected void generate() {
         String itemS = optionParser.get("item");
         if (itemS == null) {
-            runCommands(List.of("[CLOSE_OR_BACK]"));
+            runCommands(Cache.getCatchAnError(setting.getContext()));
             throw new IllegalStateException("Это меню требует параметр item для открытия!");
         }
 
         UniqueName uniqueName = new CUniqueName(itemS);
-        SellItem item = Main.getStorage().getSellItem(uniqueName);
+        item = Main.getStorage().getUnsoldItem(uniqueName);
         if (item == null) {
-            throw new IllegalStateException("Предмет не найден!" + optionParser);
+            runCommands(Cache.getCatchAnError(setting.getContext()));
+            return;
         }
         customItems.clear();
         Placeholderable placeholderable = new BiPlaceholder(this, item);
@@ -54,7 +57,7 @@ public class BuyConfirmMenu extends Menu {
         }
         MenuItem menuItem = menuItemBuilder.build(this, item.getItemStack(), item);
         menuItem.setSlots(new int[]{Cache.getItemSlot(setting.getContext())});
-        menuItem.getItemStack().setAmount(item.getAmount());
+        menuItem.getItemStack().setAmount(item.getItemStack().getAmount());
         customItems.add(menuItem);
     }
 
@@ -79,6 +82,7 @@ public class BuyConfirmMenu extends Menu {
     private static class Cache {
         private static Integer itemSlot;
         private static ItemSelector selector;
+        private static ImmutableArrayList<String> catchAnError;
 
         public static int getItemSlot(YamlContext context) {
             if (itemSlot != null) return itemSlot;
@@ -90,6 +94,12 @@ public class BuyConfirmMenu extends Menu {
             if (selector != null) return selector;
             selector = context.getAs("item-selector", ItemSelector.class);
             return selector;
+        }
+
+        public static List<String> getCatchAnError(YamlContext context) {
+            if (catchAnError != null) return catchAnError;
+            catchAnError = new ImmutableArrayList<>(context.getList("catch-an-error", String.class));
+            return catchAnError;
         }
     }
 }

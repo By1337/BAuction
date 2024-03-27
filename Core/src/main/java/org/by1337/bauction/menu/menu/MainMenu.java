@@ -246,7 +246,7 @@ public class MainMenu extends Menu {
         );
     }
 
-    static class Cache {
+   private static class Cache {
         private static int[] slots;
 
         private static ItemSelector itemSelector;

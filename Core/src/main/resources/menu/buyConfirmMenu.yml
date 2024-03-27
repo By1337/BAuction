@@ -2,7 +2,14 @@ menu_title: "&7Подтверждение покупки"
 size: 27
 type: CHEST
 id: buy_confirm
-provider: buy_confirm
+provider: sell_item_info_menu # специальное меню которое принимает в параметрах id продаваемого предмета
+
+
+# если во время работы меню предмет кто-то купит или он пропадёт по каким-то другим причинам
+catch-an-error:
+  - '[MESSAGE] &cКажется этого предмета больше не существует!'
+  - '[CLOSE_OR_BACK]'
+
 
 item-slot: 13
 
@@ -38,7 +45,7 @@ items:
       - 0-3
       - 9-12
       - 18-21
-    display_name: "&aПодтвердить"
+    display_name: "&aКупить за &#5AD9FB{price_format}"
     lore: []
     click_commands:
       - '[BUY_ITEM_FULL] {item}'
@@ -50,7 +57,7 @@ items:
       - 5-8
       - 14-17
       - 23-26
-    display_name: "&cОтклонить"
+    display_name: "&cОтказаться от покупки"
     lore: []
     click_commands:
       - '[BACK_OR_CLOSE]'

@@ -19,6 +19,7 @@ import org.by1337.blib.inventory.ItemStackSerialize;
 import org.by1337.blib.nbt.ParseCompoundTag;
 import org.by1337.blib.nbt.impl.CompoundTag;
 import org.by1337.blib.network.clientbound.entity.*;
+import org.by1337.blib.text.ComponentToANSI;
 import org.by1337.blib.text.LegacyConvertor;
 import org.by1337.blib.util.AsyncCatcher;
 import org.by1337.blib.world.BLocation;
@@ -200,5 +201,20 @@ public class BLibApi implements Api {
     @Override
     public @NotNull LegacyConvertor getLegacyConvertor() {
         return legacy -> Component.text(legacy);
+    }
+
+    @Override
+    public @NotNull ComponentToANSI getComponentToANSI() {
+        return new ComponentToANSI() {
+            @Override
+            public String convert(Component component) {
+                return null;
+            }
+
+            @Override
+            public String buildAndConvert(String legacy) {
+                return null;
+            }
+        };
     }
 }

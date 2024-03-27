@@ -1,0 +1,64 @@
+menu_title: "&7Выбор количества"
+type: HOPPER
+size: 5
+id: select_count
+provider: select_count_menu # специальное меню которое принимает в параметрах id продаваемого предмета
+
+
+# если во время работы меню предмет кто-то купит или он пропадёт по каким-то другим причинам
+catch-an-error:
+  - '[MESSAGE] &cКажется этого предмета больше не существует!'
+  - '[CLOSE_OR_BACK]'
+
+item-slot: 2
+
+item-selector:
+  selector:
+    default:
+      return-item: 'selling-item'
+  items:
+    selling-item:
+      lore:
+        - '&r '
+        - '&#5AD9FB&n▌&r &fПродавец: &#5AD9FB{seller_name}'
+        - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price_format}'
+        - '&#5AD9FB&n▌&r &fЦена за штуку &#5AD9FB{price_for_one_format}'
+        - '&#5AD9FB▌&r &fИстекает: &#5AD9FB{expires}'
+        - '&r '
+        - '&#5AD9FB&n▌&r &fКоличество: &#5AD9FB{count}'
+        - '&#5AD9FB&n▌&r &fИтоговая цена: &#5AD9FB{price_count}'
+        - '&r '
+        - '&#5AD9FB&n▌&r &fЧтобы купить нажмите &#5AD9FBлкм'
+
+
+items:
+  add1:
+    material: LIME_CONCRETE_POWDER
+    slot: 3
+    display_name: "&#29F822(+) Увеличить на 1 единицу"
+    lore: []
+    click_commands:
+      - '[ADD] 1'
+  add10:
+    material: LIME_CONCRETE
+    slot: 4
+    display_name: "&#29F822(+) Увеличить на 10 единиц"
+    lore: []
+    click_commands:
+      - '[ADD] 10'
+
+  remove1:
+    material: RED_CONCRETE_POWDER
+    slot: 1
+    display_name: "&#F81313(-) Уменьшить на 1 единицу"
+    lore: []
+    click_commands:
+      - '[REMOVE] 1'
+
+  remove10:
+    material: RED_CONCRETE
+    slot: 0
+    display_name: "&#F81313(-) Уменьшить на 10 единиц"
+    lore: []
+    click_commands:
+      - '[REMOVE] 10'

@@ -1,6 +1,7 @@
 package org.by1337.bauction.menu;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -13,12 +14,16 @@ import org.bukkit.persistence.PersistentDataType;
 import org.by1337.bauction.action.BuyItemProcess;
 import org.by1337.bauction.api.auc.SellItem;
 import org.by1337.bauction.api.util.UniqueName;
+import org.by1337.bauction.db.kernel.MysqlDb;
 import org.by1337.bauction.lang.Lang;
+import org.by1337.bauction.network.impl.PacketSendMessage;
 import org.by1337.bauction.util.CUniqueName;
 import org.by1337.bauction.util.OptionParser;
+import org.by1337.bauction.util.PlayerUtil;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.argument.ArgumentEnumValue;
+import org.by1337.blib.command.argument.ArgumentInteger;
 import org.by1337.blib.command.argument.ArgumentString;
 import org.by1337.blib.command.argument.ArgumentStrings;
 import org.by1337.bauction.Main;
@@ -84,11 +89,12 @@ public abstract class Menu extends AsyncClickListener {
     protected void generate0() {
         inventory.clear();
         currentItems.clear();
-        currentItems = new ArrayList<>(items.stream().map(m -> m.build(this)).filter(Objects::nonNull).toList());
         generate();
+        currentItems = new ArrayList<>(items.stream().map(m -> m.build(this)).filter(Objects::nonNull).toList());
         setItems(currentItems);
         setItems(customItems);
         sendFakeTitle(replace(title));
+
     }
 
     protected void setItems(List<MenuItem> list) {
@@ -271,6 +277,49 @@ public abstract class Menu extends AsyncClickListener {
                                 return;
                             }
                             new BuyItemProcess(item, Main.getStorage().getUserOrCreate(v.viewer), v.viewer).process();
+                        }
+                )
+        );
+        commands.addSubCommand(new Command<Menu>("[BUY_ITEM_AMOUNT]")
+                .argument(new ArgumentString<>("uuid"))
+                .argument(new ArgumentInteger<>("count"))
+                .executor((v, args) -> {
+                            String uuidS = (String) args.getOrThrow("uuid");
+                            int count = (int) args.getOrThrow("count");
+                            UniqueName uuid = new CUniqueName(uuidS);
+                            SellItem buyingItem = Main.getStorage().getSellItem(uuid);
+                            if (buyingItem == null) {
+                                Main.getMessage().sendMsg(v.viewer, Lang.getMessage("item_already_sold_or_removed"));
+                                v.generate0();
+                                return;
+                            }
+                            Player player = v.viewer;
+                            double price = buyingItem.getPriceForOne() * count;
+
+
+                            OfflinePlayer seller = Bukkit.getOfflinePlayer(buyingItem.getSellerUuid());
+                            if (Main.getEcon().getBalance(player) < price) {
+                                Main.getMessage().sendMsg(player, Lang.getMessage("insufficient_balance"));
+                                return;
+                            }
+                            Main.getEcon().withdrawPlayer(player, price);
+                            if (!buyingItem.getServer().equals(Main.getServerId()) && Main.getStorage() instanceof MysqlDb mysqlDb) {
+                                mysqlDb.getMoneyGiver().give(price, buyingItem.getSellerUuid(), buyingItem.getServer());
+                            } else {
+                                Main.getEcon().depositPlayer(seller, price);
+                            }
+                            if (seller.isOnline()) {
+                                Main.getMessage().sendMsg(seller.getPlayer(),
+                                        v.replace(Lang.getMessage("item_sold_to_buyer")));
+                            } else if (Main.getStorage() instanceof MysqlDb mysqlDb) {
+                                mysqlDb.getPacketConnection().saveSend(new PacketSendMessage(
+                                        v.replace(Lang.getMessage("item_sold_to_buyer")), buyingItem.getSellerUuid()
+                                ));
+                            }
+                            Main.getMessage().sendMsg(player, v.replace(Lang.getMessage("successful_purchase")));
+                            ItemStack itemStack = buyingItem.getItemStack();
+                            itemStack.setAmount(count);
+                            PlayerUtil.giveItems(player, itemStack);
                         }
                 )
         );

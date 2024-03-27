@@ -13,7 +13,9 @@ public class MenuProviderRegistry {
     private final Map<String, MenuCreator> LOOKUP = new HashMap<>();
     public static final MenuCreator DEFAULT = register("default", SimpleMenu::new);
     public static final MenuCreator MAIN_MENU = register("main_menu", MainMenu::new);
-    public static final MenuCreator BUY_CONFIRM = register("buy_confirm", BuyConfirmMenu::new);
+    public static final MenuCreator SELL_ITEM_INFO_MENU = register("sell_item_info_menu", SellItemInfoMenu::new);
+    public static final MenuCreator UNSOLD_ITEM_INFO_MENU = register("unsold_item_info_menu", UnsoldItemInfoMenu::new);
+    public static final MenuCreator SELECT_COUNT_MENU = register("select_count_menu", SelectCountMenu::new);
 
     private MenuProviderRegistry() {
     }
