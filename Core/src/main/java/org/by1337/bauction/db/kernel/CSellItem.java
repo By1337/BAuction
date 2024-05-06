@@ -1,10 +1,11 @@
 package org.by1337.bauction.db.kernel;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.db.kernel.util.InsertBuilder;
-import org.by1337.bauction.util.Placeholder;
+
 import org.by1337.blib.BLib;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.SellItem;
@@ -14,6 +15,7 @@ import org.by1337.bauction.util.CUniqueName;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.TagUtil;
 import org.by1337.bauction.api.util.UniqueName;
+import org.by1337.blib.chat.placeholder.Placeholder;
 import org.by1337.blib.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -212,7 +214,7 @@ public class CSellItem extends Placeholder implements SellItem {
         init();
     }
 
-    public static Pair<String, Boolean> serializeItemStack(ItemStack itemStack){
+    public static Pair<String, Boolean> serializeItemStack(ItemStack itemStack) {
         var temp = BLib.getApi().getItemStackSerialize().serialize(itemStack);
         if (temp.getBytes().length > Main.getCfg().getCompressIfMoreThan()) {
             return Pair.of(BLib.getApi().getItemStackSerialize().serializeAndCompress(itemStack), true);
@@ -220,6 +222,7 @@ public class CSellItem extends Placeholder implements SellItem {
             return Pair.of(temp, false);
         }
     }
+
     public CSellItem(String sellerName, UUID sellerUuid, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
         var pair = serializeItemStack(itemStack);
         item = pair.getLeft();
@@ -258,6 +261,11 @@ public class CSellItem extends Placeholder implements SellItem {
         registerPlaceholder("{item_name}", () -> getItemStack().getItemMeta() != null && getItemStack().getItemMeta().hasDisplayName() ?
                 getItemStack().getItemMeta().getDisplayName() :
                 Lang.getMessage(getMaterial().name().toLowerCase()));
+        registerPlaceholder("{seller_is_online}", () -> Bukkit.getPlayer(sellerUuid) != null);
+        registerPlaceholder("{seller_is_online_format}", () ->
+                (Bukkit.getPlayer(sellerUuid) != null) ?
+                        Lang.getMessage("online-seller") : Lang.getMessage("offline-seller")
+        );
     }
 
     static CSellItem parse(SellItem item) {

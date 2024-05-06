@@ -3,7 +3,6 @@ package org.by1337.bauction.db.kernel;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.db.kernel.util.InsertBuilder;
 import org.by1337.bauction.network.ByteBuffer;
-import org.by1337.bauction.util.Placeholder;
 import org.by1337.blib.BLib;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.UnsoldItem;
@@ -11,6 +10,7 @@ import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.serialize.SerializeUtils;
 import org.by1337.bauction.util.CUniqueName;
 import org.by1337.bauction.api.util.UniqueName;
+import org.by1337.blib.chat.placeholder.Placeholder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

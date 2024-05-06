@@ -14,13 +14,17 @@ import org.by1337.blib.factory.PacketFactory;
 import org.by1337.blib.inventory.FakeTitle;
 import org.by1337.blib.inventory.FakeTitleFactory;
 import org.by1337.blib.inventory.ItemStackSerialize;
+import org.by1337.blib.nbt.ParseCompoundTag;
 import org.by1337.blib.network.clientbound.entity.*;
+import org.by1337.blib.text.ComponentToANSI;
+import org.by1337.blib.text.LegacyConvertor;
 import org.by1337.blib.util.AsyncCatcher;
 import org.by1337.blib.world.BLocation;
 import org.by1337.blib.world.entity.BEquipmentSlot;
 import org.by1337.blib.world.entity.PacketEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.Map;
@@ -153,8 +157,7 @@ public class BLibApi implements Api {
 
     @Override
     public @NotNull FakeTitleFactory getFakeTitleFactory() {
-        return () -> (FakeTitle) (inventory, s) -> {
-        };
+        return Mockito.mock(FakeTitleFactory.class);
     }
 
     @Override
@@ -168,5 +171,20 @@ public class BLibApi implements Api {
             public void unregister(BukkitCommand bukkitCommand) {
             }
         };
+    }
+
+    @Override
+    public @NotNull ParseCompoundTag getParseCompoundTag() {
+        return Mockito.mock(ParseCompoundTag.class);
+    }
+
+    @Override
+    public @NotNull LegacyConvertor getLegacyConvertor() {
+        return Mockito.mock(LegacyConvertor.class);
+    }
+
+    @Override
+    public @NotNull ComponentToANSI getComponentToANSI() {
+        return Mockito.mock(ComponentToANSI.class);
     }
 }

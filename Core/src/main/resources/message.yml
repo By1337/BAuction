@@ -39,6 +39,8 @@ messages:
   Текущая ''"},{"text":"%s","color":"red"},{"text":"'', новая ''"},{"text":"%s","color":"green"},{"text":"''","color":"#6AAB73"},{"text":"\n"},{"text":"[Bauction]","color":"green"},{"text":"
   Ссылка на скачивание "},{"text":"%s","italic":true,"color":"aqua","clickEvent":{"action":"open_url","value":"%s"},"hoverEvent":{"action":"show_text","contents":"%s"}}]'
   item-size-limit: '&#fb093c» &fВы не можете выставить этот предмет на продажу!'
+  online-seller: '&aонлайн'
+  offline-seller: '&cоффлайн'
 time-format:
   ago: 'назад'
   in: 'через'

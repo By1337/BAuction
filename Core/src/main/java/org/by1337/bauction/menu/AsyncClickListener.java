@@ -62,9 +62,9 @@ public abstract class AsyncClickListener implements Listener {
 
     protected void createInventory(int size, String title, InventoryType type) {
         if (type == InventoryType.CHEST) {
-            inventory = Bukkit.createInventory(null, size, title);
+            inventory = Bukkit.createInventory(null, size, Main.getMessage().componentBuilder(title));
         } else {
-            inventory = Bukkit.createInventory(null, type, title);
+            inventory = Bukkit.createInventory(null, type, Main.getMessage().componentBuilder(title));
         }
     }
 
@@ -174,7 +174,7 @@ public abstract class AsyncClickListener implements Listener {
      * @param title The title to be sent.
      */
     protected void sendFakeTitle(String title) {
-        BLib.getApi().getFakeTitleFactory().get().send(inventory, title);
+        BLib.getApi().getFakeTitleFactory().get().send(inventory, Main.getMessage().componentBuilder(title));
     }
 
     /**

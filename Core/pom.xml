@@ -86,8 +86,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
+            <groupId>com.destroystokyo.paper</groupId>
+            <artifactId>paper-api</artifactId>
             <version>1.16.5-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
@@ -108,7 +108,7 @@
         <dependency>
             <groupId>org.by1337.blib</groupId>
             <artifactId>Blib-api</artifactId>
-            <version>1.0.5.4</version>
+            <version>1.0.8</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -128,6 +128,12 @@
             <artifactId>annotations</artifactId>
             <version>RELEASE</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.errorprone</groupId>
+            <artifactId>error_prone_annotations</artifactId>
+            <scope>provided</scope>
+            <version>2.23.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.MilkBowl</groupId>

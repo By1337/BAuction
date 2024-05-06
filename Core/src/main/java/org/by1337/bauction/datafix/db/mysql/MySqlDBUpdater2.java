@@ -23,7 +23,10 @@ public class MySqlDBUpdater2 {
              Statement statement = connection.createStatement()
         ) {
 
-            statement.executeUpdate("ALTER TABLE sell_items ADD COLUMN compressed BOOLEAN DEFAULT false");
+            try {
+                statement.executeUpdate("ALTER TABLE sell_items ADD COLUMN compressed BOOLEAN DEFAULT false");
+            }catch (Throwable ignore){
+            }
             statement.executeUpdate("ALTER TABLE unsold_items ADD COLUMN compressed BOOLEAN DEFAULT false");
 
         } catch (Exception e) {

@@ -1,6 +1,8 @@
 package org.by1337.bauction.menu;
 
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -85,7 +87,7 @@ public class CustomItemStack implements Comparable<CustomItemStack>, Placeholder
                 itemStack = new ItemStack(Material.valueOf(holder1.replace(tmpMaterial)));
             }
         } else {
-                itemStack = this.itemStack.clone();
+            itemStack = this.itemStack.clone();
         }
 
         ItemMeta im = itemStack.getItemMeta();
@@ -98,25 +100,21 @@ public class CustomItemStack implements Comparable<CustomItemStack>, Placeholder
 
         im.getPersistentDataContainer().set(MENU_ITEM_KEY, PersistentDataType.INTEGER, id);
 
-        if (this.itemStack != null && im.getLore() != null) {
-            List<String> tLore = new ArrayList<>(im.getLore());
-            tLore.addAll(lore);
-            tLore.replaceAll(holder1::replace);
-
-            im.setLore(tLore.stream()
-                    .flatMap(line -> Arrays.stream(line.split("\n")))
-                    .collect(Collectors.toList()));
-        } else {
-            List<String> tLore = new ArrayList<>(lore);
-            tLore.replaceAll(holder1::replace);
-
-            im.setLore(tLore.stream()
-                    .flatMap(line -> Arrays.stream(line.split("\n")))
-                    .collect(Collectors.toList()));
+        List<Component> lore = new ArrayList<>();
+        if (im.lore() != null) {
+            lore.addAll(im.lore());
         }
+        lore.addAll(
+                this.lore.stream()
+                        .map(holder1::replace)
+                        .flatMap(s -> Arrays.stream(s.split("\n")))
+                        .map(s -> Main.getMessage().componentBuilder(s).decoration(TextDecoration.ITALIC, false))
+                        .toList()
+        );
+        im.lore(lore);
 
         if (name != null)
-            im.setDisplayName(holder1.replace(name));
+            im.displayName(Main.getMessage().componentBuilder(holder1.replace(name)).decoration(TextDecoration.ITALIC, false));
 
         for (ItemFlag itemFlag : itemFlags)
             im.addItemFlags(itemFlag);
