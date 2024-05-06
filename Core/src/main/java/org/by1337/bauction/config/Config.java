@@ -53,12 +53,13 @@ public class Config {
     private int itemMaxSize;
     private int compressIfMoreThan;
     private int maximumUncompressedItemSize;
+    private boolean logging;
 
     public Config(Plugin plugin) {
-       reload(plugin);
+        reload(plugin);
     }
 
-    public void reload(Plugin plugin){
+    public void reload(Plugin plugin) {
         loadConfigs(plugin);
         sortingMap = new LinkedHashMap<>();
         categoryMap = new LinkedHashMap<>();
@@ -66,7 +67,7 @@ public class Config {
         sorting.getMap("categories", Category.class).values().stream().sorted(Category::compareTo).forEach(category -> categoryMap.put(category.nameKey(), category));
 
 
-        maxSlots = config.getAsInteger("max-slots");
+        maxSlots = config.getAsInteger("default-slots");
         defaultSellTime = NumberUtil.getTime(config.getAsString("default-offer-time"));
 
         boostManager = new BoostManager(config);
@@ -77,9 +78,10 @@ public class Config {
         itemMaxSize = config.getAsInteger("item-max-size", 70_000);
         compressIfMoreThan = config.getAsInteger("compress-if-more-than", 30_000);
         maximumUncompressedItemSize = config.getAsInteger("maximum-uncompressed-item-size", 350000);
+        logging = config.getAsBoolean("logging", false);
     }
 
-    public void loadConfigs(Plugin plugin){
+    public void loadConfigs(Plugin plugin) {
         String basedir = plugin.getDataFolder().getPath();
 
         messageFile = new File(basedir + "/message.yml");
@@ -220,5 +222,9 @@ public class Config {
 
     public int getMaximumUncompressedItemSize() {
         return maximumUncompressedItemSize;
+    }
+
+    public boolean isLogging() {
+        return logging;
     }
 }

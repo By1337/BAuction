@@ -20,6 +20,7 @@ import org.by1337.bauction.network.impl.PacketSendMessage;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.PlayerUtil;
 import org.by1337.blib.chat.Placeholderable;
+import org.by1337.blib.chat.placeholder.BiPlaceholder;
 import org.by1337.blib.chat.placeholder.MultiPlaceholder;
 import org.jetbrains.annotations.NotNull;
 
@@ -114,6 +115,8 @@ public class BuyItemCountProcess implements CallBack<Optional<ConfirmMenu.Result
                     if (seller.isOnline()) {
                         Main.getMessage().sendMsg(seller.getPlayer(),
                                 replace(Lang.getMessage("item_sold_to_buyer")));
+                        Event event1 = new Event(seller.getPlayer(), EventType.BUY_ITEM_COUNT_SELLER, new MultiPlaceholder(buyer, buyingItem, this));
+                        Main.getEventManager().onEvent(event1);
                     } else if (Main.getStorage() instanceof MysqlDb mysqlDb) {
                         mysqlDb.getPacketConnection().saveSend(new PacketSendMessage(
                                 replace(Lang.getMessage("item_sold_to_buyer")), buyingItem.getSellerUuid()
@@ -124,7 +127,7 @@ public class BuyItemCountProcess implements CallBack<Optional<ConfirmMenu.Result
                     ItemStack itemStack = buyingItem.getItemStack();
                     itemStack.setAmount(count);
                     PlayerUtil.giveItems(player, itemStack);
-                    Event event1 = new Event(player, EventType.BUY_ITEM_COUNT, new MultiPlaceholder(buyingItem, buyingItem, this));
+                    Event event1 = new Event(player, EventType.BUY_ITEM_COUNT, new MultiPlaceholder(buyer, buyingItem, this));
                     Main.getEventManager().onEvent(event1);
                 } else {
                     Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));

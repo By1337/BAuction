@@ -96,6 +96,9 @@ public class UpdateManager {
         } else if (version == 7) {
             new MySqlDBUpdater2().update();
             new MessagesUpdater().update();
+            config.set("logging", false);
+            config.set("default-slots", config.getAsInteger("max-slots", 10));
+            config.set("max-slots", null);
             version++;
             run(version, config);
         }

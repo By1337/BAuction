@@ -24,6 +24,7 @@ import org.by1337.bauction.hook.EconomyHook;
 import org.by1337.bauction.hook.impl.PlayerPointsHook;
 import org.by1337.bauction.hook.impl.VaultHook;
 import org.by1337.bauction.lang.Lang;
+import org.by1337.bauction.log.FileLogger;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.impl.MainMenu;
 import org.by1337.bauction.menu.requirement.IRequirement;
@@ -62,6 +63,7 @@ public final class Main extends JavaPlugin {
     private boolean loaded;
     private static Set<String> blackList = new HashSet<>();
     private static EventManager eventManager;
+    private FileLogger fileLogger;
 
     @Override
     public void onLoad() {
@@ -81,6 +83,9 @@ public final class Main extends JavaPlugin {
         loadSeed();
         Lang.load(this);
         cfg = new Config(this);
+        if (cfg.isLogging()) {
+            fileLogger = new FileLogger(new File(getDataFolder(), "logs"), this);
+        }
         eventManager = new EventManager(new YamlContext(YamlConfiguration.loadConfiguration(saveIfNotExist("listener.yml"))));
         timeUtil = new TimeUtil();
         trieManager = new TrieManager(this);
@@ -161,6 +166,7 @@ public final class Main extends JavaPlugin {
         } catch (IOException e) {
             message.error("failed to save db", e);
         }
+        fileLogger.close();
         AdapterRegistry.unregisterPrimitiveAdapter(Sorting.SortingType.class);
         AdapterRegistry.unregisterPrimitiveAdapter(InventoryType.class);
         AdapterRegistry.unregisterAdapter(Sorting.class);
@@ -250,6 +256,12 @@ public final class Main extends JavaPlugin {
         reloadDbCfg();
         Lang.load(this);
         cfg.reload(instance);
+        if (cfg.isLogging() && fileLogger == null) {
+            fileLogger = new FileLogger(new File(getDataFolder(), "logs"), this);
+        } else if (!cfg.isLogging() && fileLogger != null) {
+            fileLogger.close();
+            fileLogger = null;
+        }
         eventManager = new EventManager(new YamlContext(YamlConfiguration.loadConfiguration(saveIfNotExist("listener.yml"))));
         timeUtil.reload();
         trieManager.reload(instance);
@@ -335,6 +347,7 @@ public final class Main extends JavaPlugin {
         }
         return f;
     }
+
     public static String getServerId() {
         return dbCfg.getServerId();
     }

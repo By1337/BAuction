@@ -5,5 +5,7 @@ public enum EventType {
     BUY_ITEM,
     BUY_ITEM_COUNT,
     TAKE_ITEM,
-    EXPIRED_ITEM
+    EXPIRED_ITEM,
+    BUY_ITEM_TO_SELLER,
+    BUY_ITEM_COUNT_SELLER,
 }
