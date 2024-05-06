@@ -8,8 +8,11 @@ import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.command.argument.ArgumentFullOrCount;
 import org.by1337.bauction.db.event.SellItemEvent;
 import org.by1337.bauction.db.kernel.CSellItem;
+import org.by1337.bauction.event.Event;
+import org.by1337.bauction.event.EventType;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.util.TimeCounter;
+import org.by1337.blib.chat.placeholder.BiPlaceholder;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.CommandSyntaxError;
@@ -79,6 +82,8 @@ public class SellCmd  extends Command<CommandSender> {
         if (event.isValid()) {
             player.getInventory().getItemInMainHand().setAmount(cashback);
             Main.getMessage().sendMsg(player, sellItem.replace(Lang.getMessage("successful_single_listing")));
+            Event event1 = new Event(player, EventType.SELL_ITEM, new BiPlaceholder(sellItem, user));
+            Main.getEventManager().onEvent(event1);
         } else {
             Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
         }

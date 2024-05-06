@@ -1,6 +1,7 @@
 package org.by1337.bauction.db.kernel;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -9,7 +10,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.by1337.bauction.api.event.*;
+import org.by1337.bauction.event.Event;
+import org.by1337.bauction.event.EventType;
 import org.by1337.blib.BLib;
+import org.by1337.blib.chat.placeholder.BiPlaceholder;
+import org.by1337.blib.chat.placeholder.MultiPlaceholder;
 import org.by1337.blib.util.NameKey;
 import org.by1337.bauc.util.SyncDetectorManager;
 import org.by1337.bauction.Main;
@@ -122,6 +127,12 @@ public class FileDataBase extends DataBaseCore implements Listener {
         removeSellItem(item.getUniqueName());
         CUnsoldItem unsoldItem = new CUnsoldItem(item.getItem(), item.getSellerUuid(), item.getRemovalDate(), item.getRemovalDate() + removeTime, item.isCompressed());
         addUnsoldItem(unsoldItem);
+        Player player = Bukkit.getPlayer(item.getSellerUuid());
+        if (player != null){
+            User user = getUserOrCreate(player);
+            Event event1 = new Event(player, EventType.EXPIRED_ITEM, new MultiPlaceholder(user, item, unsoldItem));
+            Main.getEventManager().onEvent(event1);
+        }
     }
 
     public void validateAndAddItem(SellItemEvent event) {

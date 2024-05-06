@@ -5,11 +5,15 @@ import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.SellItem;
 import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.db.event.TakeItemEvent;
+import org.by1337.bauction.event.Event;
+import org.by1337.bauction.event.EventType;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.impl.CallBack;
 import org.by1337.bauction.menu.impl.ConfirmMenu;
 import org.by1337.bauction.util.PlayerUtil;
+import org.by1337.blib.chat.placeholder.BiPlaceholder;
+import org.by1337.blib.chat.placeholder.MultiPlaceholder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -39,6 +43,8 @@ public class TakeItemProcess {
                     if (event.isValid()) {
                         Main.getMessage().sendMsg(player, takingItem.replace(Lang.getMessage("successful_item_retrieval")));
                         PlayerUtil.giveItems(player, takingItem.getItemStack());
+                        Event event1 = new Event(player, EventType.TAKE_ITEM, new BiPlaceholder(taker, takingItem));
+                        Main.getEventManager().onEvent(event1);
                     } else {
                         Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
                     }
@@ -47,9 +53,9 @@ public class TakeItemProcess {
             menu.reopen();
         };
 
-        if (fast){
+        if (fast) {
             callBack.result(Optional.of(ConfirmMenu.Result.ACCEPT));
-        }else {
+        } else {
             ConfirmMenu confirmMenu = new ConfirmMenu(callBack, takingItem.getItemStack(), player);
             confirmMenu.registerPlaceholderable(taker);
             confirmMenu.registerPlaceholderable(takingItem);

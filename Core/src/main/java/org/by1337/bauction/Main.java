@@ -1,9 +1,11 @@
 package org.by1337.bauction;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.plugin.Plugin;
@@ -17,6 +19,7 @@ import org.by1337.bauction.config.adapter.*;
 import org.by1337.bauction.datafix.UpdateManager;
 import org.by1337.bauction.db.kernel.FileDataBase;
 import org.by1337.bauction.db.kernel.MysqlDb;
+import org.by1337.bauction.event.EventManager;
 import org.by1337.bauction.hook.EconomyHook;
 import org.by1337.bauction.hook.impl.PlayerPointsHook;
 import org.by1337.bauction.hook.impl.VaultHook;
@@ -33,6 +36,7 @@ import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.requires.RequiresPermission;
 import org.by1337.blib.configuration.YamlConfig;
+import org.by1337.blib.configuration.YamlContext;
 import org.by1337.blib.configuration.adapter.AdapterRegistry;
 import org.by1337.blib.configuration.adapter.impl.primitive.AdapterEnum;
 import org.jetbrains.annotations.NotNull;
@@ -57,6 +61,7 @@ public final class Main extends JavaPlugin {
     private static DbCfg dbCfg;
     private boolean loaded;
     private static Set<String> blackList = new HashSet<>();
+    private static EventManager eventManager;
 
     @Override
     public void onLoad() {
@@ -76,6 +81,7 @@ public final class Main extends JavaPlugin {
         loadSeed();
         Lang.load(this);
         cfg = new Config(this);
+        eventManager = new EventManager(new YamlContext(YamlConfiguration.loadConfiguration(saveIfNotExist("listener.yml"))));
         timeUtil = new TimeUtil();
         trieManager = new TrieManager(this);
         TagUtil.loadAliases(this);
@@ -123,7 +129,7 @@ public final class Main extends JavaPlugin {
                     message.error("failed to load db!", e);
                     instance.getServer().getPluginManager().disablePlugin(instance);
                 }
-                message.logger(Lang.getMessage("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
+                message.log(Lang.getMessage("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
 
                 getCommand("bauc").setTabCompleter(this::onTabComplete0);
                 getCommand("bauc").setExecutor(this::onCommand0);
@@ -139,7 +145,7 @@ public final class Main extends JavaPlugin {
                     message.error("failed to load db!", e);
                     instance.getServer().getPluginManager().disablePlugin(instance);
                 }
-                message.logger(Lang.getMessage("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
+                message.log(Lang.getMessage("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
                 getCommand("bauc").setTabCompleter(this::onTabComplete0);
                 getCommand("bauc").setExecutor(this::onCommand0);
             }).start();
@@ -244,6 +250,7 @@ public final class Main extends JavaPlugin {
         reloadDbCfg();
         Lang.load(this);
         cfg.reload(instance);
+        eventManager = new EventManager(new YamlContext(YamlConfiguration.loadConfiguration(saveIfNotExist("listener.yml"))));
         timeUtil.reload();
         trieManager.reload(instance);
         TagUtil.loadAliases(instance);
@@ -316,6 +323,18 @@ public final class Main extends JavaPlugin {
         return command.getTabCompleter(sender, args);
     }
 
+    @CanIgnoreReturnValue
+    public File saveIfNotExist(String path) {
+        path = path.replace('\\', '/');
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        var f = new File(getDataFolder(), path);
+        if (!f.exists()) {
+            saveResource(path, false);
+        }
+        return f;
+    }
     public static String getServerId() {
         return dbCfg.getServerId();
     }
@@ -338,5 +357,9 @@ public final class Main extends JavaPlugin {
 
     public boolean isLoaded() {
         return loaded;
+    }
+
+    public static EventManager getEventManager() {
+        return eventManager;
     }
 }

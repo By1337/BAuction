@@ -3,6 +3,8 @@ package org.by1337.bauction.action;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.by1337.bauction.event.Event;
+import org.by1337.bauction.event.EventType;
 import org.by1337.blib.chat.Placeholderable;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.SellItem;
@@ -16,6 +18,7 @@ import org.by1337.bauction.menu.impl.CallBack;
 import org.by1337.bauction.menu.impl.ConfirmMenu;
 import org.by1337.bauction.network.impl.PacketSendMessage;
 import org.by1337.bauction.util.PlayerUtil;
+import org.by1337.blib.chat.placeholder.BiPlaceholder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -75,6 +78,8 @@ public class BuyItemProcess implements Placeholderable {
                            }
                            Main.getMessage().sendMsg(player, replace(Lang.getMessage("successful_purchase")));
                            PlayerUtil.giveItems(player, buyingItem.getItemStack());
+                           Event event1 = new Event(player, EventType.BUY_ITEM, new BiPlaceholder(buyingItem, buyer));
+                           Main.getEventManager().onEvent(event1);
                        } else {
                            Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
                        }

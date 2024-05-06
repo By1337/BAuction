@@ -9,6 +9,8 @@ import org.by1337.bauction.api.auc.SellItem;
 import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.db.event.BuyItemCountEvent;
 import org.by1337.bauction.db.kernel.MysqlDb;
+import org.by1337.bauction.event.Event;
+import org.by1337.bauction.event.EventType;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.Menu;
 import org.by1337.bauction.menu.impl.BuyCountMenu;
@@ -17,11 +19,13 @@ import org.by1337.bauction.menu.impl.ConfirmMenu;
 import org.by1337.bauction.network.impl.PacketSendMessage;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.PlayerUtil;
+import org.by1337.blib.chat.Placeholderable;
+import org.by1337.blib.chat.placeholder.MultiPlaceholder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public class BuyItemCountProcess implements CallBack<Optional<ConfirmMenu.Result>> {
+public class BuyItemCountProcess implements CallBack<Optional<ConfirmMenu.Result>>, Placeholderable {
 
     private final SellItem buyingItem;
     private final User buyer;
@@ -120,6 +124,8 @@ public class BuyItemCountProcess implements CallBack<Optional<ConfirmMenu.Result
                     ItemStack itemStack = buyingItem.getItemStack();
                     itemStack.setAmount(count);
                     PlayerUtil.giveItems(player, itemStack);
+                    Event event1 = new Event(player, EventType.BUY_ITEM_COUNT, new MultiPlaceholder(buyingItem, buyingItem, this));
+                    Main.getEventManager().onEvent(event1);
                 } else {
                     Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
                 }
