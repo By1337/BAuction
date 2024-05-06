@@ -78,7 +78,7 @@
         <dependency>
             <groupId>org.by1337.blib</groupId>
             <artifactId>Blib-api</artifactId>
-            <version>1.0.5</version>
+            <version>1.0.8</version>
             <scope>provided</scope>
         </dependency>
 
@@ -115,6 +115,11 @@
         <dependency>
             <groupId>org.by1337.bauction.nms</groupId>
             <artifactId>V1_20_4</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.by1337.bauction.nms</groupId>
+            <artifactId>V1_20_6</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>

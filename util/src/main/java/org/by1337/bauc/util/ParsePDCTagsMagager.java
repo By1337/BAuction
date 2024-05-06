@@ -1,6 +1,7 @@
 package org.by1337.bauc.util;
 
 import org.bukkit.persistence.PersistentDataContainer;
+import org.by1337.bauction.nms.v1_20_6.ParsePDCTagsV206;
 import org.by1337.blib.util.Version;
 import org.by1337.bauction.api.ParsePDCTags;
 import org.by1337.bauction.nms.v1_16_5.ParsePDCTagsV165;
@@ -28,8 +29,8 @@ public class ParsePDCTagsMagager {
             case V1_19_4 -> new ParsePDCTagsV194();
             case V1_20_1 -> new ParsePDCTagsV201();
             case V1_20_2 -> new ParsePDCTagsV202();
-            case V1_20_3 -> new ParsePDCTagsV204(); // test
-            case V1_20_4 -> new ParsePDCTagsV204();
+            case V1_20_3, V1_20_4 -> new ParsePDCTagsV204();
+            case V1_20_5, V1_20_6 -> new ParsePDCTagsV206();
             default -> throw new RuntimeException("unsupported version");
         };
     }

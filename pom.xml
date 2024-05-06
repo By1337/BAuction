@@ -17,6 +17,7 @@
         <module>nms/V1_20_1</module>
         <module>nms/V1_20_2</module>
         <module>nms/V1_20_4</module>
+        <module>nms/V1_20_6</module>
     </modules>
     <build>
         <defaultGoal>clean install</defaultGoal>

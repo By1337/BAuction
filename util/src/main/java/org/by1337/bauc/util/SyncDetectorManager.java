@@ -1,5 +1,6 @@
 package org.by1337.bauc.util;
 
+import org.by1337.bauction.nms.v1_20_6.SyncDetectorV206;
 import org.by1337.blib.util.Version;
 import org.by1337.bauction.api.SyncDetector;
 import org.by1337.bauction.nms.v1_16_5.SyncDetectorV165;
@@ -21,8 +22,8 @@ public class SyncDetectorManager {
             case V1_19_4 -> new SyncDetectorV194();
             case V1_20_1 -> new SyncDetectorV201();
             case V1_20_2 -> new SyncDetectorV202();
-            case V1_20_3 -> new SyncDetectorV204(); // test
-            case V1_20_4 -> new SyncDetectorV204();
+            case V1_20_3, V1_20_4 -> new SyncDetectorV204();
+            case V1_20_5, V1_20_6 -> new SyncDetectorV206();
             default -> throw new RuntimeException("unsupported version");
         };
     }
