@@ -166,7 +166,7 @@ public class ItemsForSaleMenu extends Menu {
     }
     @Override
     public String replace(String s) {
-        StringBuilder sb = new StringBuilder(Main.getMessage().messageBuilder(s, viewer));
+        StringBuilder sb = new StringBuilder(Main.getMessage().messageBuilder(user == null ? s : user.replace(s), viewer));
         while (true) {
             if (sb.indexOf("{max_page}") != -1) {
                 sb.replace(sb.indexOf("{max_page}"), sb.indexOf("{max_page}") + "{max_page}".length(), String.valueOf(maxPage == 0 ? 1 : maxPage));

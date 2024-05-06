@@ -132,7 +132,7 @@ public class BuyCountMenu extends Menu {
 
     @Override
     public String replace(String s) {
-        StringBuilder sb = new StringBuilder(Main.getMessage().messageBuilder(s, viewer));
+        StringBuilder sb = new StringBuilder(Main.getMessage().messageBuilder(user == null ? s : user.replace(s), viewer));
         while (true) {
             if (sb.indexOf("{count}") != -1) {
                 sb.replace(sb.indexOf("{count}"), sb.indexOf("{count}") + "{count}".length(), String.valueOf(count));
