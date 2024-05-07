@@ -64,7 +64,8 @@ CREATE TABLE IF NOT EXISTS unsold_items (
   seller_uuid VARCHAR(36) NOT NULL,
   item TEXT NOT NULL,
   delete_via BIGINT NOT NULL,
-  expired BIGINT NOT NULL
+  expired BIGINT NOT NULL,
+  compressed BOOLEAN NOT NULL
 )
 """,
                 """

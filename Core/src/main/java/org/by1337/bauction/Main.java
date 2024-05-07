@@ -166,7 +166,8 @@ public final class Main extends JavaPlugin {
         } catch (IOException e) {
             message.error("failed to save db", e);
         }
-        fileLogger.close();
+        if (fileLogger != null)
+            fileLogger.close();
         AdapterRegistry.unregisterPrimitiveAdapter(Sorting.SortingType.class);
         AdapterRegistry.unregisterPrimitiveAdapter(InventoryType.class);
         AdapterRegistry.unregisterAdapter(Sorting.class);
