@@ -29,6 +29,8 @@ import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.impl.MainMenu;
 import org.by1337.bauction.menu.requirement.IRequirement;
 import org.by1337.bauction.menu.requirement.Requirements;
+import org.by1337.bauction.menu2.HomeMenu;
+import org.by1337.bauction.menu2.ItemViewerMenu;
 import org.by1337.bauction.placeholder.PlaceholderHook;
 import org.by1337.bauction.search.TrieManager;
 import org.by1337.bauction.util.*;
@@ -40,6 +42,9 @@ import org.by1337.blib.configuration.YamlConfig;
 import org.by1337.blib.configuration.YamlContext;
 import org.by1337.blib.configuration.adapter.AdapterRegistry;
 import org.by1337.blib.configuration.adapter.impl.primitive.AdapterEnum;
+import org.by1337.bmenu.BMenuApi;
+import org.by1337.bmenu.menu.MenuLoader;
+import org.by1337.bmenu.menu.MenuProviderRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,21 +69,32 @@ public final class Main extends JavaPlugin {
     private static Set<String> blackList = new HashSet<>();
     private static EventManager eventManager;
     private FileLogger fileLogger;
+    private MenuLoader menuLoader;
 
     @Override
     public void onLoad() {
         instance = this;
+        File menus = new File(getDataFolder(), "menu");
+        if (!menus.exists()){
+            menus.mkdirs();
+            saveResource("menu/home.yml", true);
+            saveResource("menu/confirmBuyItem.yml", true);
+        }
+        message = new Message(getLogger());
+        BMenuApi.setup(message, this);
+        MenuProviderRegistry.register("home", HomeMenu::new);
+        MenuProviderRegistry.register("itemViewer", ItemViewerMenu::new);
+        menuLoader = new MenuLoader(this, menus);
+        menuLoader.load();
     }
 
     @Override
     public void onEnable() {
-        message = new Message(getLogger());
         if (!loadDbCfg()) {
             message.error("failed to load dbCfg.yml!");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
-        getCommand("bauc").setPermission("bauc.use");
         registerAdapters();
         loadSeed();
         Lang.load(this);
@@ -176,6 +192,7 @@ public final class Main extends JavaPlugin {
         AdapterRegistry.unregisterAdapter(CustomItemStack.class);
         AdapterRegistry.unregisterAdapter(Boost.class);
         AdapterRegistry.unregisterAdapter(IRequirement.class);
+        BMenuApi.disable();
         placeholderHook.unregister();
     }
 
@@ -305,6 +322,16 @@ public final class Main extends JavaPlugin {
                 .addSubCommand(new SellCmd("sell"))
                 .addSubCommand(new SearchCmd("search"))
                 .addSubCommand(new ViewCommand("view"))
+                .addSubCommand(
+                        new Command<CommandSender>("test")
+                                .executor(((sender, args) -> {
+                                    Player player = (Player) sender;
+                                    var menu = menuLoader.getMenu("home");
+                                    menu.create(player, null).open();
+                                }))
+
+                )
+
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))
                         throw new CommandException(Lang.getMessage("must_be_player"));

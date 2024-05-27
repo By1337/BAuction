@@ -467,6 +467,7 @@ public class CSellItem extends Placeholder implements SellItem {
         return Objects.hash(item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, server, compressed);
     }
 
+
     public static class CSellItemBuilder {
         private String item;
         private String sellerName;

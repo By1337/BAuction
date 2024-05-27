@@ -10,14 +10,7 @@ import java.util.UUID;
 /**
  * Interface representing an unsold item that has expired on the auction.
  */
-public interface UnsoldItem extends Placeholderable, SerializableToByteArray {
-
-    /**
-     * Get the item that remains unsold as an ItemStack.
-     *
-     * @return ItemStack representing the unsold item.
-     */
-    ItemStack getItemStack();
+public interface UnsoldItem extends Placeholderable, SerializableToByteArray, ItemHolder {
 
     /**
      * Get the unsold item as Base64-encoded NBT tags.

@@ -12,15 +12,7 @@ import java.util.UUID;
 /**
  * Interface defining properties and methods for items listed on an auction.
  */
-public interface SellItem extends Placeholderable, SerializableToByteArray {
-
-    /**
-     * Get the item available for sale as an ItemStack.
-     *
-     * @return ItemStack representing the item for sale.
-     */
-    ItemStack getItemStack();
-
+public interface SellItem extends Placeholderable, SerializableToByteArray, ItemHolder {
     /**
      * Get the item available for sale as Base64-encoded NBT tags.
      *

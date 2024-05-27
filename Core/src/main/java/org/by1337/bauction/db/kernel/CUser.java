@@ -50,10 +50,8 @@ public class CUser extends Placeholder implements User {
         registerPlaceholder("{deal_count}", () -> String.valueOf(dealCount));
         registerPlaceholder("{selling_item_count}", () -> String.valueOf(Main.getStorage().sellItemsCountByUser(uuid)));
         registerPlaceholder("{not_sold_item_count}", () -> String.valueOf(Main.getStorage().unsoldItemsCountByUser(uuid)));
-        registerPlaceholder("{deal_count}", () -> String.valueOf(dealCount));
         registerPlaceholder("{external_slots}", () -> String.valueOf(externalSlots));
         registerPlaceholder("{slots_count}", () -> String.valueOf(Main.getCfg().getMaxSlots() + externalSlots));
-        registerPlaceholder("{external_slots}", () -> String.valueOf(externalSlots));
         registerPlaceholder("{external_sell_time}", () -> String.valueOf(Main.getTimeUtil().getFormat(externalSellTime, false)));
     }
 

@@ -4,6 +4,9 @@ type: CHEST
 items-slots:
   - 0-44
 
+
+
+
 items:
   selling-item:
     material: ENDER_CHEST

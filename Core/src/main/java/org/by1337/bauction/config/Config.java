@@ -2,12 +2,17 @@ package org.by1337.bauction.config;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
+import org.by1337.bauction.Main;
 import org.by1337.bauction.boost.BoostManager;
+import org.by1337.bauction.menu2.HomeMenu;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.Sorting;
 import org.by1337.blib.configuration.YamlContext;
 import org.by1337.blib.util.NameKey;
+import org.by1337.bmenu.BMenuApi;
+import org.by1337.bmenu.menu.MenuLoader;
+import org.by1337.bmenu.menu.MenuProviderRegistry;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -79,6 +84,7 @@ public class Config {
         compressIfMoreThan = config.getAsInteger("compress-if-more-than", 30_000);
         maximumUncompressedItemSize = config.getAsInteger("maximum-uncompressed-item-size", 350000);
         logging = config.getAsBoolean("logging", false);
+
     }
 
     public void loadConfigs(Plugin plugin) {
@@ -143,6 +149,7 @@ public class Config {
             plugin.saveResource("README.yml", true);
         }
     }
+
 
     public YamlContext getMenuUnsoldItems() {
         return menuUnsoldItems;
