@@ -29,9 +29,7 @@ import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.impl.MainMenu;
 import org.by1337.bauction.menu.requirement.IRequirement;
 import org.by1337.bauction.menu.requirement.Requirements;
-import org.by1337.bauction.menu2.HomeMenu;
-import org.by1337.bauction.menu2.ItemViewerMenu;
-import org.by1337.bauction.menu2.SelectCountMenu;
+import org.by1337.bauction.menu2.*;
 import org.by1337.bauction.placeholder.PlaceholderHook;
 import org.by1337.bauction.search.TrieManager;
 import org.by1337.bauction.util.*;
@@ -82,12 +80,16 @@ public final class Main extends JavaPlugin {
             saveResource("menu/confirmBuyItem.yml", true);
             saveResource("menu/confirmBuyCountItem.yml", true);
             saveResource("menu/selectCount.yml", true);
+            saveResource("menu/itemForSale.yml", true);
+            saveResource("menu/unsoldItems.yml", true);
         }
         message = new Message(getLogger());
         BMenuApi.setup(message, this);
         MenuProviderRegistry.register("home", HomeMenu::new);
         MenuProviderRegistry.register("itemViewer", ItemViewerMenu::new);
         MenuProviderRegistry.register("selectCount", SelectCountMenu::new);
+        MenuProviderRegistry.register("itemsForSale", ItemsForSaleMenu::new);
+        MenuProviderRegistry.register("unsoldItems", UnsoldItemsMenu::new);
     }
 
     @Override

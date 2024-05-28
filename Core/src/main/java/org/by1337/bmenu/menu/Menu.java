@@ -14,6 +14,7 @@ import org.by1337.bauction.Main;
 import org.by1337.bauction.action.BuyItemCountProcessV2;
 import org.by1337.bauction.action.BuyItemProcessV2;
 import org.by1337.bauction.action.TakeItemProcessV2;
+import org.by1337.bauction.action.TakeUnsoldItemProcessV2;
 import org.by1337.bauction.api.auc.SellItem;
 import org.by1337.bauction.menu2.SelectCountMenu;
 import org.by1337.bauction.util.CUniqueName;
@@ -317,6 +318,24 @@ public abstract class Menu extends AsyncClickListener {
                                 takeItemProcessV2 = new TakeItemProcessV2(v);
                             }
                             takeItemProcessV2.run();
+                        }
+                )
+        );
+        commands.addSubCommand(new Command<Menu>("[TAKE_UNSOLD_ITEM]")
+                .argument(new ArgumentString<>("id"))
+                .executor((v, args) -> {
+                    TakeUnsoldItemProcessV2 takeUnsoldItemProcessV2;
+                            if (args.containsKey("id")) {
+                                CUniqueName uniqueName = new CUniqueName((String) args.get("id"));
+                                takeUnsoldItemProcessV2 = new TakeUnsoldItemProcessV2(
+                                        v,
+                                        Main.getStorage().getUserOrCreate(v.viewer),
+                                        Main.getStorage().getUnsoldItem(uniqueName)
+                                );
+                            } else {
+                                takeUnsoldItemProcessV2 = new TakeUnsoldItemProcessV2(v);
+                            }
+                            takeUnsoldItemProcessV2.run();
                         }
                 )
         );

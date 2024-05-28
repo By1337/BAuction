@@ -1,0 +1,43 @@
+menu_title: "&7Просроченные предметы ({current_page}/{max_page}):"
+size: 54
+type: CHEST
+
+provider: unsoldItems
+id: unsoldItems
+
+items-slots:
+  - 0-44
+
+
+item:
+  lore:
+    - '&r '
+    - '&#5AD9FB&n▌&r &fУдаление: &#5AD9FB{delete_via}'
+    - '&#5AD9FB▌&r &fПросрочен: &#5AD9FB{expired}'
+    - '&r '
+    - '&#5AD9FB▌&r &fЧтобы забрать предмет нажмите &#5AD9FBлкм'
+  left_click_commands:
+    - '[TAKE_UNSOLD_ITEM]'
+
+items:
+  back:
+    material: NETHER_STAR
+    slot: 45
+    display_name: "<gradient:#00E8FC:#9AF6FC>◀ Вернуться в главное меню"
+    lore: []
+    click_commands:
+      - '[BACK_OR_CLOSE]'
+  previous_page:
+    material: ARROW
+    slot: 48
+    display_name: "<gradient:#00E8FC:#9AF6FC>◀ Предыдущая страница"
+    lore: []
+    click_commands:
+      - '[PREVIOUS_PAGE]'
+  next_page:
+    material: ARROW
+    slot: 50
+    display_name: "<gradient:#00E8FC:#9AF6FC>Следующая страница ▶"
+    lore: []
+    click_commands:
+      - '[NEXT_PAGE]'

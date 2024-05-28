@@ -68,7 +68,6 @@ public class HomeMenu extends Menu {
 
     @Override
     protected void generate() {
-        //   if (lastPage != currentPage || sellItems == null || lastCategory == null || lastSorting == null || !lastCategory.equals(categories.getCurrent()) || !lastSorting.equals(sortings.getCurrent())) {
         setSellItems();
         Iterator<Integer> slotsIterator = cash.getSlots().listIterator();
         customItems.clear();
@@ -109,9 +108,10 @@ public class HomeMenu extends Menu {
                 menuItem.setData(item);
                 menuItem.setSlots(new int[]{slot});
                 customItems.add(menuItem);
+            } else {
+                break;
             }
         }
-        //  }
     }
 
     protected void setSellItems() {

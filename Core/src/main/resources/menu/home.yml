@@ -103,7 +103,7 @@ items:
       - '&r'
       - '&7* &6Товаров на продаже &b{selling_item_count}'
     click_commands:
-      - '[OPEN_MENU] selling-items'
+      - '[OPEN_MENU] itemsForSale'
 
   not-sold-item:
     material: CHEST
@@ -118,7 +118,7 @@ items:
       - '&r'
       - '&7* &6Не проданных предметов &b{not_sold_item_count}'
     click_commands:
-      - '[OPEN_MENU] unsold-items'
+      - '[OPEN_MENU] unsoldItems'
   update-menu:
     material: EMERALD
     slot: 47
