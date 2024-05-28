@@ -11,7 +11,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.action.BuyItemCountProcessV2;
 import org.by1337.bauction.action.BuyItemProcessV2;
+import org.by1337.bauction.action.TakeItemProcessV2;
+import org.by1337.bauction.api.auc.SellItem;
+import org.by1337.bauction.menu2.SelectCountMenu;
 import org.by1337.bauction.util.CUniqueName;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
@@ -235,6 +239,24 @@ public abstract class Menu extends AsyncClickListener {
                     }
                 }))
         );
+        commands.addSubCommand(new Command<Menu>("[BACK_TO_OR_CLOSE]")
+                        .argument(new ArgumentString<>("id"))
+                .executor((v, args) -> {
+                    String id = (String) args.getOrThrow("id", "Use: [BACK_TO_OR_CLOSE] <id>");
+                    AsyncClickListener.syncUtil(() -> {
+                        Menu m = v.previousMenu;
+                        while (m != null){
+                            if (m.setting.getId().getName().equals(id)) break;
+                            m = m.previousMenu;
+                        }
+                        if (m != null) {
+                            m.reopen();
+                        } else {
+                            Objects.requireNonNull(v.viewer, "player is null!").closeInventory();
+                        }
+                    });
+                })
+        );
         commands.addSubCommand(new Command<Menu>("[BACK]")
                 .executor((v, args) -> AsyncClickListener.syncUtil(() -> Objects.requireNonNull(v.previousMenu, "does not have a previous menu!").reopen()))
         );
@@ -277,6 +299,41 @@ public abstract class Menu extends AsyncClickListener {
                                 buyItemProcessV2 = new BuyItemProcessV2(v);
                             }
                             buyItemProcessV2.run();
+                        }
+                )
+        );
+        commands.addSubCommand(new Command<Menu>("[TAKE_ITEM]")
+                .argument(new ArgumentString<>("id"))
+                .executor((v, args) -> {
+                            TakeItemProcessV2 takeItemProcessV2;
+                            if (args.containsKey("id")) {
+                                CUniqueName uniqueName = new CUniqueName((String) args.get("id"));
+                                takeItemProcessV2 = new TakeItemProcessV2(
+                                        v,
+                                        Main.getStorage().getUserOrCreate(v.viewer),
+                                        Main.getStorage().getSellItem(uniqueName)
+                                );
+                            } else {
+                                takeItemProcessV2 = new TakeItemProcessV2(v);
+                            }
+                            takeItemProcessV2.run();
+                        }
+                )
+        );
+        commands.addSubCommand(new Command<Menu>("[BUY_COUNT]")
+                .executor((v, args) -> {
+                            Menu menu = v;
+                            while (!(menu instanceof SelectCountMenu) && menu != null) {
+                                menu = menu.previousMenu;
+                            }
+                            if (menu instanceof SelectCountMenu selectCountMenu) {
+                                int count = selectCountMenu.getCount();
+                                SellItem sellItem = selectCountMenu.getSellItem();
+                                BuyItemCountProcessV2 buyItemCount = new BuyItemCountProcessV2(selectCountMenu, sellItem, count);
+                                buyItemCount.run();
+                            } else {
+                                Main.getMessage().error("Команда [BUY_COUNT] доступна для вызова только из selectCount selectCount! Допускается открытие других меню по верх selectCount");
+                            }
                         }
                 )
         );

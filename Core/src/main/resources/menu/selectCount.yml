@@ -1,0 +1,49 @@
+menu_title: "&7Выбор количества"
+type: HOPPER
+
+provider: selectCount
+id: buyCount
+
+size: 5
+
+item:
+  slot: 2
+  lore:
+    - '&r '
+    - '&#5AD9FB&n▌&r &fКоличество: &#5AD9FB{count}'
+    - '&#5AD9FB&n▌&r &fЦена: &#5AD9FB{price_count}'
+    - '&r '
+    - '&#5AD9FB&n▌&r &fЧтобы купить нажмите &#5AD9FBлкм'
+  click_commands:
+    - '[OPEN_MENU] confirmBuyCountItem'
+items:
+  add1:
+    material: LIME_CONCRETE_POWDER
+    slot: 3
+    display_name: "&#29F822(+) Увеличить на 1 единицу"
+    lore: []
+    click_commands:
+      - '[ADD] 1'
+  add10:
+    material: LIME_CONCRETE
+    slot: 4
+    display_name: "&#29F822(+) Увеличить на 10 единиц"
+    lore: []
+    click_commands:
+      - '[ADD] 10'
+
+  remove1:
+    material: RED_CONCRETE_POWDER
+    slot: 1
+    display_name: "&#F81313(-) Уменьшить на 1 единицу"
+    lore: []
+    click_commands:
+      - '[REMOVE] 1'
+
+  remove10:
+    material: RED_CONCRETE
+    slot: 0
+    display_name: "&#F81313(-) Уменьшить на 10 единиц"
+    lore: []
+    click_commands:
+      - '[REMOVE] 10'

@@ -105,7 +105,7 @@ public class HomeMenu extends Menu {
                         m.lore(lore);
                     });
                 }
-
+                menuItem.getItemStack().setAmount(item.getAmount());
                 menuItem.setData(item);
                 menuItem.setSlots(new int[]{slot});
                 customItems.add(menuItem);
@@ -231,12 +231,6 @@ public class HomeMenu extends Menu {
                             menu.refresh();
                         })
         );
-/*        HOME_MENU_COMMAND.addSubCommand(
-                new Command<HomeMenu>("")
-                        .executor((menu, args) -> {
-
-                        })
-        );*/
     }
 
     public Category getCustom() {

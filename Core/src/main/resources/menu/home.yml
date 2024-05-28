@@ -48,10 +48,8 @@ take-item:
     - '&#5AD9FB▌&r &fПродажа по штучно: &#5AD9FB{sale_by_the_piece_format}'
     - '&r '
     - '&#5AD9FB▌&r &fЧтобы снять с продажи нажмите &#5AD9FBлкм'
-  left_click_commands:
-    - '[TAKE_ITEM] {id}'
-  shift_left_click_commands:
-    - '[TAKE_ITEM] {id} fast'
+  click_commands:
+    - '[TAKE_ITEM]'
 
 # Когда продаваемый предмет не один и его можно купить поштучно
 selling-item:
@@ -65,11 +63,11 @@ selling-item:
     - '&#5AD9FB&n▌&r &fЧтобы купить всё нажмите &#5AD9FBлкм'
     - '&#5AD9FB▌&r &fДля покупки поштучно нажмите &#5AD9FBпкм'
   left_click_commands:
-    - '[BUY_ITEM_FULL] {id}'
+    - '[OPEN_MENU] confirmBuyItem'
   shift_left_click_commands:
-    - '[BUY_ITEM_FULL] {id} fast'
+    - '[BUY_ITEM_FULL]'
   right_click_commands:
-    - '[BUY_ITEM_AMOUNT] {id}'
+    - '[OPEN_MENU] buyCount'
 
 # Когда продаваемый предмет не один и его нельзя купить поштучно
 selling-item-only-full:
@@ -83,13 +81,13 @@ selling-item-only-full:
     - '&#5AD9FB&n▌&r &fколичества товара при покупке.'
     - '&#5AD9FB▌&r &#ABF0FAКупить можно только полностью'
   left_click_commands:
-    - '[BUY_ITEM_FULL] {id}'
+    - '[OPEN_MENU] confirmBuyItem'
   right_click_commands:
-    - '[BUY_ITEM_FULL] {id}'
+    - '[OPEN_MENU] confirmBuyItem'
   shift_left_click_commands:
-    - '[BUY_ITEM_FULL] {id} fast'
+    - '[BUY_ITEM_FULL]'
   shift_right_click_commands:
-    - '[BUY_ITEM_FULL] {id} fast'
+    - '[BUY_ITEM_FULL]'
 
 items:
   selling-item:
@@ -126,7 +124,7 @@ items:
     slot: 47
     amount: 1
     display_name: "&bОбновить аукцион"
-    lore: []
+    lore: [ ]
     click_commands:
       - '[REFRESH]'
 
@@ -135,7 +133,7 @@ items:
     slot: 48
     amount: 1
     display_name: "&b<- Предыдущая страница"
-    lore: []
+    lore: [ ]
     click_commands:
       - '[PREVIOUS_PAGE]'
 
@@ -144,7 +142,7 @@ items:
     slot: 50
     amount: 1
     display_name: "&bСледующая страница ->"
-    lore: []
+    lore: [ ]
     click_commands:
       - '[NEXT_PAGE]'
 

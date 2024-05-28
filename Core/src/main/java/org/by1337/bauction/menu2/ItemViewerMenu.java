@@ -35,13 +35,22 @@ public class ItemViewerMenu extends Menu {
         }
         if (previousMenu != null) {
             var item = previousMenu.getLastClickedItem();
-            if (item != null) {
+            if (item != null && item.getData() instanceof ItemHolder itemHolder) {
                 data = item.getData();
-                if (data instanceof ItemHolder itemHolder) {
-                    itemStack = itemHolder.getItemStack();
-                }
+                itemStack = itemHolder.getItemStack();
                 if (data instanceof Placeholder placeholder) {
                     registerPlaceholders(placeholder);
+                }
+            } else {
+                Menu m = this;
+                while (!(m instanceof ItemHolder) && m != null) {
+                    m = m.getPreviousMenu();
+                }
+                if (m instanceof ItemHolder itemHolder) {
+                    itemStack = itemHolder.getItemStack();
+                }
+                if (m != null && m != this) {
+                    registerPlaceholders(m);
                 }
             }
         }
@@ -49,7 +58,7 @@ public class ItemViewerMenu extends Menu {
 
     @Override
     protected void generate() {
-        if (itemStack != null){
+        if (itemStack != null) {
             customItems.clear();
             var item = cash.getItem().build(this, itemStack);
             item.setData(data);

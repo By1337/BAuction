@@ -31,6 +31,7 @@ import org.by1337.bauction.menu.requirement.IRequirement;
 import org.by1337.bauction.menu.requirement.Requirements;
 import org.by1337.bauction.menu2.HomeMenu;
 import org.by1337.bauction.menu2.ItemViewerMenu;
+import org.by1337.bauction.menu2.SelectCountMenu;
 import org.by1337.bauction.placeholder.PlaceholderHook;
 import org.by1337.bauction.search.TrieManager;
 import org.by1337.bauction.util.*;
@@ -79,11 +80,14 @@ public final class Main extends JavaPlugin {
             menus.mkdirs();
             saveResource("menu/home.yml", true);
             saveResource("menu/confirmBuyItem.yml", true);
+            saveResource("menu/confirmBuyCountItem.yml", true);
+            saveResource("menu/selectCount.yml", true);
         }
         message = new Message(getLogger());
         BMenuApi.setup(message, this);
         MenuProviderRegistry.register("home", HomeMenu::new);
         MenuProviderRegistry.register("itemViewer", ItemViewerMenu::new);
+        MenuProviderRegistry.register("selectCount", SelectCountMenu::new);
         menuLoader = new MenuLoader(this, menus);
         menuLoader.load();
     }
