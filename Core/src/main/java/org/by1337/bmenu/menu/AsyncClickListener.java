@@ -123,8 +123,10 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
 
     public void close() {
         HandlerList.unregisterAll(this);
-        if (executor != null)
+        if (executor != null) {
             executor.shutdown();
+            executor = null;
+        }
     }
 
     /**
@@ -203,8 +205,24 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
         return viewer;
     }
 
+    public Inventory getInventory() {
+        return inventory;
+    }
+
     @FunctionalInterface
     private interface RunManager {
         void run(Runnable runnable);
+    }
+
+    @Override
+    public String toString() {
+        return "AsyncClickListener{" +
+                "inventory=" + inventory +
+                ", viewer=" + viewer +
+                ", lastClick=" + lastClick +
+                ", executor=" + executor +
+                ", runManager=" + runManager +
+                ", async=" + async +
+                '}';
     }
 }

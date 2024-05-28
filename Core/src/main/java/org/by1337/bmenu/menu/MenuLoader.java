@@ -1,24 +1,42 @@
 package org.by1337.bmenu.menu;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredListener;
+import org.bukkit.scheduler.BukkitTask;
 import org.by1337.blib.configuration.YamlContext;
 import org.by1337.blib.util.NameKey;
 import org.by1337.bmenu.BMenuApi;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
-public class MenuLoader {
+public class MenuLoader implements Closeable {
     private final Map<NameKey, MenuSetting> menus;
     private final Plugin plugin;
     private final File menuFolder;
+    private final ResourceLeakDetectorMode resourceLeakDetectorMode;
+    private final BukkitTask task;
 
-    public MenuLoader(Plugin plugin, File menuFolder) {
+    public MenuLoader(Plugin plugin, File menuFolder, ResourceLeakDetectorMode resourceLeakDetectorMode) {
         this.menuFolder = menuFolder;
         menus = new HashMap<>();
         this.plugin = plugin;
+        this.resourceLeakDetectorMode = resourceLeakDetectorMode;
+        if (resourceLeakDetectorMode.scanTime != -1) {
+            task = Bukkit.getScheduler().runTaskTimer(plugin, this::resourceLeakDetectorTick, resourceLeakDetectorMode.scanTime, resourceLeakDetectorMode.scanTime);
+        } else {
+            task = null;
+        }
+    }
+
+    public MenuLoader(Plugin plugin, File menuFolder) {
+        this(plugin, menuFolder, ResourceLeakDetectorMode.DEFAULT);
     }
 
     public void reload() {
@@ -53,6 +71,20 @@ public class MenuLoader {
         return files;
     }
 
+    private void resourceLeakDetectorTick() {
+        for (RegisteredListener listener : InventoryCloseEvent.getHandlerList().getRegisteredListeners()) {
+            if (listener.getListener() instanceof AsyncClickListener asyncClickListener){
+                if (
+                        (asyncClickListener.getViewer().getOpenInventory().getTopInventory() != asyncClickListener.getInventory()) ||
+                                !asyncClickListener.getViewer().isOnline()
+                ){
+                    BMenuApi.getMessage().error("[ResourceLeakDetector] Detected unused menu " + asyncClickListener);
+                    asyncClickListener.close();
+                }
+            }
+        }
+    }
+
     @Nullable
     public MenuSetting getMenu(String id) {
         return getMenu(new NameKey(id));
@@ -73,5 +105,24 @@ public class MenuLoader {
 
     public File getMenuFolder() {
         return menuFolder;
+    }
+
+    @Override
+    public void close() {
+        if (task != null){
+            task.cancel();
+        }
+    }
+
+    public enum ResourceLeakDetectorMode {
+        NONE(-1),
+        DEFAULT(2_000),
+        PANIC(200);
+
+        private final long scanTime;
+
+        ResourceLeakDetectorMode(long scanTime) {
+            this.scanTime = scanTime;
+        }
     }
 }

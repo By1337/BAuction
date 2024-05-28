@@ -88,12 +88,12 @@ public final class Main extends JavaPlugin {
         MenuProviderRegistry.register("home", HomeMenu::new);
         MenuProviderRegistry.register("itemViewer", ItemViewerMenu::new);
         MenuProviderRegistry.register("selectCount", SelectCountMenu::new);
-        menuLoader = new MenuLoader(this, menus);
-        menuLoader.load();
     }
 
     @Override
     public void onEnable() {
+        menuLoader = new MenuLoader(this, new File(getDataFolder(), "menu"), MenuLoader.ResourceLeakDetectorMode.PANIC);
+        menuLoader.load();
         if (!loadDbCfg()) {
             message.error("failed to load dbCfg.yml!");
             Bukkit.getPluginManager().disablePlugin(this);
