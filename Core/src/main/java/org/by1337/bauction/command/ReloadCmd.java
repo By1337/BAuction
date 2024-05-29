@@ -19,14 +19,7 @@ public class ReloadCmd extends Command<CommandSender> {
     private void execute(CommandSender sender, ArgumentMap<String, Object> args){
         TimeCounter timeCounter = new TimeCounter();
         Main plugin = (Main) Main.getInstance();
-        plugin.getCommand("bauc").setTabCompleter(null);
-        plugin.getCommand("bauc").setExecutor(null);
-        Main.getMessage().sendMsg(sender, "&fUnloading db...");
-        plugin.unloadDb();
-        Main.getMessage().sendMsg(sender, "&fReloading other files...");
-        plugin.reloadConfigs();
-        Main.getMessage().sendMsg(sender, "&fLoading db...");
-        plugin.loadDb();
+        plugin.fullReload();
         Main.getMessage().sendMsg(sender, Lang.getMessage("plugin_reload"), timeCounter.getTime());
     }
 }

@@ -5,6 +5,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.by1337.bauction.network.Packet;
+import org.by1337.bauction.util.DbCfg;
 import org.by1337.blib.util.NameKey;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.SellItem;
@@ -43,14 +44,14 @@ public class MysqlDb extends FileDataBase implements PacketListener {
     private long lastLogCheck;
     private final MoneyGiver moneyGiver;
 
-    public MysqlDb(Map<NameKey, Category> categoryMap, Map<NameKey, Sorting> sortingMap, String host, String name, String user, String password, int port) throws SQLException {
+    public MysqlDb(Map<NameKey, Category> categoryMap, Map<NameKey, Sorting> sortingMap, DbCfg dbCfg) throws SQLException {
         super(categoryMap, sortingMap);
-        isHead = Main.getDbCfg().getContext().getAsBoolean("mysql-settings.is-head");
+        isHead = dbCfg.isHead();
         packetConnection = new PacketConnection(this);
         moneyGiver = new MoneyGiver(this);
         connection = DriverManager.getConnection(
-                "jdbc:mysql://" + host + ":" + port + "/" + name + "?useUnicode=true&characterEncoding=utf8&autoReconnect=true",
-                user, password
+                "jdbc:mysql://" + dbCfg.getHost() + ":" + dbCfg.getPort() + "/" + dbCfg.getDbName() + "?useUnicode=true&characterEncoding=utf8&autoReconnect=true",
+                dbCfg.getUser(), dbCfg.getPassword()
         );
 
         String[] createTableStatements = {

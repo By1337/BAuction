@@ -1,9 +1,10 @@
 package org.by1337.bauction.datafix;
 
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.by1337.bauction.datafix.db.DBUpdate110;
 import org.by1337.bauction.datafix.db.mysql.MySqlDBUpdater2;
+import org.by1337.bauction.util.ConfigUtil;
+import org.by1337.blib.configuration.YamlConfig;
 import org.by1337.blib.configuration.YamlContext;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.datafix.config.*;
@@ -21,19 +22,14 @@ public class UpdateManager {
 
     public static void checkUpdate() {
         Plugin plugin = Main.getInstance();
-        YamlContext config;
-        File configFile;
-        configFile = new File(plugin.getDataFolder() + "/config.yml");
-        if (!configFile.exists()) {
-            plugin.saveResource("config.yml", true);
-        }
-        config = new YamlContext(YamlConfiguration.loadConfiguration(configFile));
+
+        YamlConfig config = ConfigUtil.load("config.yml");
 
         int version = config.getAsInteger("version", 0);
 
         if (CURRENT_VERSION != version) {
             Main.getMessage().warning("detected deprecated config!");
-            Main.getMessage().logger("start update...");
+            Main.getMessage().log("start update...");
         }
 
         try {
@@ -43,11 +39,10 @@ public class UpdateManager {
         }
         config.set("version", CURRENT_VERSION);
         try {
-            ((YamlConfiguration) config.getHandle()).save(configFile);
+            config.save();
         } catch (IOException e) {
             Main.getMessage().error(e);
         }
-        ((Main) Main.getInstance()).reloadConfigs();
     }
 
     private static void run(int version, YamlContext config) throws Exception {

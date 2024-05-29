@@ -18,6 +18,8 @@ public class BMenuApi {
     public static void setup(Message message, Plugin owner){
         BMenuApi.message = message;
         BMenuApi.owner = owner;
+    }
+    public static void enable(){
         AdapterRegistry.registerPrimitiveAdapter(InventoryType.class, new AdapterEnum<>(InventoryType.class));
         AdapterRegistry.registerAdapter(Requirements.class, new AdapterRequirements());
         AdapterRegistry.registerAdapter(MenuItemBuilder.class, new AdapterMenuItemBuilder());

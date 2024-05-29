@@ -1,15 +1,11 @@
 package org.by1337.bauction;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import net.milkbowl.vault.economy.Economy;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.boost.Boost;
@@ -33,11 +29,11 @@ import org.by1337.bauction.menu2.*;
 import org.by1337.bauction.placeholder.PlaceholderHook;
 import org.by1337.bauction.search.TrieManager;
 import org.by1337.bauction.util.*;
+import org.by1337.bauction.util.plugin.PluginEnablePipeline;
 import org.by1337.blib.chat.util.Message;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.requires.RequiresPermission;
-import org.by1337.blib.configuration.YamlConfig;
 import org.by1337.blib.configuration.YamlContext;
 import org.by1337.blib.configuration.adapter.AdapterRegistry;
 import org.by1337.blib.configuration.adapter.impl.primitive.AdapterEnum;
@@ -69,12 +65,14 @@ public final class Main extends JavaPlugin {
     private static EventManager eventManager;
     private FileLogger fileLogger;
     private MenuLoader menuLoader;
+    private PluginEnablePipeline enablePipeline;
+    private Metrics metrics;
 
     @Override
     public void onLoad() {
         instance = this;
         File menus = new File(getDataFolder(), "menu");
-        if (!menus.exists()){
+        if (!menus.exists()) {
             menus.mkdirs();
             saveResource("menu/home.yml", true);
             saveResource("menu/confirmBuyItem.yml", true);
@@ -90,47 +88,118 @@ public final class Main extends JavaPlugin {
         MenuProviderRegistry.register("selectCount", SelectCountMenu::new);
         MenuProviderRegistry.register("itemsForSale", ItemsForSaleMenu::new);
         MenuProviderRegistry.register("unsoldItems", UnsoldItemsMenu::new);
+        initEnablePipeline();
+    }
+
+    private void initEnablePipeline() {
+        enablePipeline = new PluginEnablePipeline(this);
+        enablePipeline.enable("checkUpdate", UpdateManager::checkUpdate);
+
+        enablePipeline.enable("enable BMenuApi", BMenuApi::enable);
+        enablePipeline.enable("load MenuLoader", () -> {
+            menuLoader = new MenuLoader(this, new File(getDataFolder(), "menu"), MenuLoader.ResourceLeakDetectorMode.PANIC);
+            menuLoader.load();
+        });
+        enablePipeline.enable("load db cfg", () -> {
+            dbCfg = new DbCfg(ConfigUtil.load("dbCfg.yml"));
+            dbCfg.validate();
+        });
+        enablePipeline.enable("registerAdapters", this::registerAdapters);
+
+        enablePipeline.enable("load UniqueNameGenerator", () -> {
+            var cfg = ConfigUtil.load("dbCfg.yml");
+            int seed = cfg.getAsInteger("name-generator.last-seed");
+            uniqueNameGenerator = new UniqueNameGenerator(++seed);
+            cfg.set("name-generator.last-seed", seed);
+            cfg.save();
+        });
+
+        enablePipeline.enable("load lang", () -> {
+            Lang.load(this);
+        });
+        enablePipeline.enable("load cfg", () -> {
+            cfg = new Config(this);
+        });
+        enablePipeline.enable("load logger", () -> {
+            if (cfg.isLogging()) {
+                fileLogger = new FileLogger(new File(getDataFolder(), "logs"), this);
+            }
+        });
+        enablePipeline.enable("load event manager", () -> {
+            eventManager = new EventManager(new YamlContext(YamlConfiguration.loadConfiguration(saveIfNotExist("listener.yml"))));
+        });
+        enablePipeline.enable("load time util", () -> {
+            timeUtil = new TimeUtil();
+        });
+        enablePipeline.enable("load TrieManager", () -> {
+            trieManager = new TrieManager(this);
+            TagUtil.loadAliases(this);
+        });
+        enablePipeline.enable("load econ", () -> {
+            String econType = Objects.requireNonNull(cfg.getConfig().getAsString("economy"), "тип экономики не указан!");
+            if (econType.equalsIgnoreCase("vault")) {
+                econ = new VaultHook();
+            } else if (econType.equalsIgnoreCase("playerpoints")) {
+                econ = new PlayerPointsHook();
+            } else {
+                throw new IllegalStateException("Параметр economy имеет не правильное значение! '" + econType + "'. Ожидалось 'Vault' | 'PlayerPoints'");
+            }
+        });
+        enablePipeline.enable("init commands", this::initCommand);
+        enablePipeline.enable("load metrics", () -> {
+            metrics = new Metrics(this, 20300);
+        });
+        enablePipeline.enable("load PAPI hook", () -> {
+            placeholderHook = new PlaceholderHook();
+            placeholderHook.register();
+        });
+        enablePipeline.enable("load black list", () -> {
+            blackList = new HashSet<>(cfg.getConfig().getList("black-list", String.class, Collections.emptyList()));
+        });
+        enablePipeline.enable("load db", this::loadDb);
+        enablePipeline.enable("check version", VersionChecker::new);
+
+        enablePipeline.disable("disable PAPI hook", p -> p.isEnabled("load PAPI hook"), () -> {
+            placeholderHook.unregister();
+        });
+        enablePipeline.disable("disable metrics", p -> p.isEnabled("load metrics"), () -> {
+            metrics.shutdown();
+        });
+        enablePipeline.disable("disable logger", p -> p.isEnabled("load logger"), () -> {
+            if (fileLogger != null)
+                fileLogger.close();
+        });
+        enablePipeline.disable("disable BMenuApi", p -> p.isEnabled("enable BMenuApi"), BMenuApi::disable);
+        enablePipeline.disable("disable db", p -> p.isEnabled("load db"), () -> {
+            try {
+                storage.save();
+                storage.close();
+            } catch (IOException e) {
+                message.error("failed to save db", e);
+            } finally {
+                storage = null;
+            }
+        });
+        enablePipeline.disable("unregisterAdapters", p -> p.isEnabled("registerAdapters"), () -> {
+            AdapterRegistry.unregisterPrimitiveAdapter(Sorting.SortingType.class);
+            AdapterRegistry.unregisterPrimitiveAdapter(InventoryType.class);
+            AdapterRegistry.unregisterAdapter(Sorting.class);
+            AdapterRegistry.unregisterAdapter(Category.class);
+            AdapterRegistry.unregisterAdapter(Requirements.class);
+            AdapterRegistry.unregisterAdapter(CustomItemStack.class);
+            AdapterRegistry.unregisterAdapter(Boost.class);
+            AdapterRegistry.unregisterAdapter(IRequirement.class);
+        });
     }
 
     @Override
     public void onEnable() {
-        menuLoader = new MenuLoader(this, new File(getDataFolder(), "menu"), MenuLoader.ResourceLeakDetectorMode.PANIC);
-        menuLoader.load();
-        if (!loadDbCfg()) {
-            message.error("failed to load dbCfg.yml!");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
-        registerAdapters();
-        loadSeed();
-        Lang.load(this);
-        cfg = new Config(this);
-        if (cfg.isLogging()) {
-            fileLogger = new FileLogger(new File(getDataFolder(), "logs"), this);
-        }
-        eventManager = new EventManager(new YamlContext(YamlConfiguration.loadConfiguration(saveIfNotExist("listener.yml"))));
-        timeUtil = new TimeUtil();
-        trieManager = new TrieManager(this);
-        TagUtil.loadAliases(this);
-        UpdateManager.checkUpdate();
-        dbCfg.validate();
+        enablePipeline.onEnable();
+    }
 
-        String econType = Objects.requireNonNull(cfg.getConfig().getAsString("economy"), "тип экономики не указан!");
-        if (econType.equalsIgnoreCase("vault")) {
-            econ = new VaultHook();
-        } else if (econType.equalsIgnoreCase("playerpoints")) {
-            econ = new PlayerPointsHook();
-        } else {
-            throw new IllegalStateException("Параметр economy имеет не правильное значение! '" + econType + "'. Ожидалось 'Vault' | 'PlayerPoints'");
-        }
-
-        initCommand();
-        new Metrics(this, 20300);
-        placeholderHook = new PlaceholderHook();
-        placeholderHook.register();
-        blackList = new HashSet<>(cfg.getConfig().getList("black-list", String.class, Collections.emptyList()));
-        loadDb();
-        new VersionChecker();
+    @Override
+    public void onDisable() {
+        enablePipeline.onDisable();
     }
 
     public void loadDb() {
@@ -139,17 +208,11 @@ public final class Main extends JavaPlugin {
         }
 
         if (dbCfg.getDbType() == DbCfg.DbType.MYSQL) {
-            new Thread(() -> {
+            ThreadCreator.createThreadWithName("bauc Mysql Db loader", () -> {
                 TimeCounter timeCounter = new TimeCounter();
 
                 try {
-                    storage = new MysqlDb(cfg.getCategoryMap(), cfg.getSortingMap(),
-                            dbCfg.getHost(),
-                            dbCfg.getDbName(),
-                            dbCfg.getUser(),
-                            dbCfg.getPassword(),
-                            dbCfg.getPort()
-                    );
+                    storage = new MysqlDb(cfg.getCategoryMap(), cfg.getSortingMap(), dbCfg);
                     storage.load();
                     loaded = true;
                 } catch (IOException | SQLException e) {
@@ -162,7 +225,7 @@ public final class Main extends JavaPlugin {
                 getCommand("bauc").setExecutor(this::onCommand0);
             }).start();
         } else {
-            new Thread(() -> {
+            ThreadCreator.createThreadWithName("bauc File Db loader", () -> {
                 TimeCounter timeCounter = new TimeCounter();
                 storage = new FileDataBase(cfg.getCategoryMap(), cfg.getSortingMap());
                 try {
@@ -179,28 +242,6 @@ public final class Main extends JavaPlugin {
         }
     }
 
-    @Override
-    public void onDisable() {
-        if (!loaded) return;
-        try {
-            storage.save();
-            storage.close();
-        } catch (IOException e) {
-            message.error("failed to save db", e);
-        }
-        if (fileLogger != null)
-            fileLogger.close();
-        AdapterRegistry.unregisterPrimitiveAdapter(Sorting.SortingType.class);
-        AdapterRegistry.unregisterPrimitiveAdapter(InventoryType.class);
-        AdapterRegistry.unregisterAdapter(Sorting.class);
-        AdapterRegistry.unregisterAdapter(Category.class);
-        AdapterRegistry.unregisterAdapter(Requirements.class);
-        AdapterRegistry.unregisterAdapter(CustomItemStack.class);
-        AdapterRegistry.unregisterAdapter(Boost.class);
-        AdapterRegistry.unregisterAdapter(IRequirement.class);
-        BMenuApi.disable();
-        placeholderHook.unregister();
-    }
 
     private void registerAdapters() {
         AdapterRegistry.registerPrimitiveAdapter(Sorting.SortingType.class, new AdapterEnum<>(Sorting.SortingType.class));
@@ -213,35 +254,11 @@ public final class Main extends JavaPlugin {
         AdapterRegistry.registerAdapter(IRequirement.class, new AdapterIRequirement());
     }
 
-    private boolean loadDbCfg() {
-        try {
-            File file = new File(getDataFolder() + "/dbCfg.yml");
-            if (!file.exists()) {
-                saveResource("dbCfg.yml", false);
-            }
-            dbCfg = new DbCfg(new YamlConfig(file));
-            return true;
-        } catch (IOException | InvalidConfigurationException e) {
-            message.error(e);
-        }
-        return false;
+    public void fullReload() {
+        enablePipeline.reload();
     }
 
-    public void reloadDbCfg() {
-        loadDbCfg();
-        loadSeed();
-    }
-
-    private void loadSeed() {
-        int seed = dbCfg.getLastSeed();
-        uniqueNameGenerator = new UniqueNameGenerator(seed);
-        dbCfg.getContext().set("name-generator.last-seed", seed + 1);
-        if (dbCfg.getContext() instanceof YamlConfig yamlConfig) {
-            yamlConfig.trySave();
-        }
-    }
-
-    public static DbCfg getDbCfg() {
+    public DbCfg getDbCfg() {
         return dbCfg;
     }
 
@@ -271,36 +288,6 @@ public final class Main extends JavaPlugin {
 
     public static TimeUtil getTimeUtil() {
         return timeUtil;
-    }
-
-    public void reloadConfigs() {
-        if (storage != null) {
-            throw new IllegalStateException("pls unload data base!");
-        }
-        reloadDbCfg();
-        Lang.load(this);
-        cfg.reload(instance);
-        if (cfg.isLogging() && fileLogger == null) {
-            fileLogger = new FileLogger(new File(getDataFolder(), "logs"), this);
-        } else if (!cfg.isLogging() && fileLogger != null) {
-            fileLogger.close();
-            fileLogger = null;
-        }
-        eventManager = new EventManager(new YamlContext(YamlConfiguration.loadConfiguration(saveIfNotExist("listener.yml"))));
-        timeUtil.reload();
-        trieManager.reload(instance);
-        TagUtil.loadAliases(instance);
-        blackList = new HashSet<>(Main.getCfg().getConfig().getList("black-list", String.class, Collections.emptyList()));
-    }
-
-    public void unloadDb() {
-        try {
-            storage.save();
-            storage.close();
-            storage = null;
-        } catch (IOException e) {
-            message.error("failed to save db", e);
-        }
     }
 
     private void initCommand() {
