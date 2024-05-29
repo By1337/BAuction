@@ -1,5 +1,6 @@
 package org.by1337.bauction;
 
+import com.google.common.base.Joiner;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -21,6 +22,7 @@ import org.by1337.bauction.hook.impl.PlayerPointsHook;
 import org.by1337.bauction.hook.impl.VaultHook;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.log.FileLogger;
+import org.by1337.bauction.log.PluginLogger;
 import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.menu.impl.MainMenu;
 import org.by1337.bauction.menu.requirement.IRequirement;
@@ -47,10 +49,11 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.logging.Level;
 
 public final class Main extends JavaPlugin {
     private static Message message;
-    private static Plugin instance;
+    private static Main instance;
     private static Config cfg;
     private static FileDataBase storage;
     private Command<CommandSender> command;
@@ -67,6 +70,8 @@ public final class Main extends JavaPlugin {
     private MenuLoader menuLoader;
     private PluginEnablePipeline enablePipeline;
     private Metrics metrics;
+    private PluginLogger pluginLogger;
+    private static boolean DEBUG_MODE = true;
 
     @Override
     public void onLoad() {
@@ -82,6 +87,7 @@ public final class Main extends JavaPlugin {
             saveResource("menu/unsoldItems.yml", true);
         }
         message = new Message(getLogger());
+        pluginLogger = new PluginLogger(new File(getDataFolder(), "pluginLogs"), getLogger());
         BMenuApi.setup(message, this);
         MenuProviderRegistry.register("home", HomeMenu::new);
         MenuProviderRegistry.register("itemViewer", ItemViewerMenu::new);
@@ -200,6 +206,17 @@ public final class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         enablePipeline.onDisable();
+        if (pluginLogger != null){
+            pluginLogger.close();
+        }
+    }
+
+    public static void debug(String s, Object... objects){
+        if (DEBUG_MODE){
+            message.log("[DEBUG] " + s, objects);
+        }else {
+            instance.pluginLogger.log(String.format("[DEBUG] " + s, objects));
+        }
     }
 
     public void loadDb() {
@@ -337,6 +354,7 @@ public final class Main extends JavaPlugin {
 
 
     private boolean onCommand0(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String label, @NotNull String[] args) {
+        debug("%s use command %s", sender, Joiner.on(" ").join(args));
         try {
             command.process(sender, args);
             return true;

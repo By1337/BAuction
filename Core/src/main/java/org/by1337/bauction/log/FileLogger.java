@@ -33,8 +33,9 @@ public class FileLogger implements Listener {
         }
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
+
     @EventHandler
-    public void on(EventBuyItem event){
+    public void on(EventBuyItem event) {
         log(String.format(
                 "Player %s[%s] bought %s[%s] from player %s[%s] for %s coins.",
                 event.getBuyer().getNickName(),
@@ -46,8 +47,9 @@ public class FileLogger implements Listener {
                 event.getSellItem().getPrice()
         ));
     }
+
     @EventHandler
-    public void on(EventBuyItemCount event){
+    public void on(EventBuyItemCount event) {
         log(String.format(
                 "Player %s[%s] bought %s[%s] from player %s[%s] for %s coins in the amount of %s",
                 event.getBuyer().getNickName(),
@@ -60,88 +62,23 @@ public class FileLogger implements Listener {
                 event.getCount()
         ));
     }
-    public void log(String log){
+
+    public void log(String log) {
         logHandler.publish(new LogRecord(Level.INFO, log));
     }
+
     private void iniHandlers() throws IOException {
-        File logFile = renameIfExist(new File(logFolder, "latest.log"));
+        File logFile = LogUtil.renameIfExist(new File(logFolder, "latest.log"), logFolder);
         logHandler = new FileHandler(logFile.getPath());
 
-        logHandler.setFormatter(getFormatter());
+        logHandler.setFormatter(LogUtil.getFormatter());
         logHandler.setLevel(Level.ALL);
         logHandler.setEncoding(StandardCharsets.UTF_8.name());
     }
 
     public void close() {
         logHandler.close();
-        renameIfExist(new File(logFolder, "latest.log"));
+        LogUtil.renameIfExist(new File(logFolder, "latest.log"), logFolder);
     }
 
-    private File renameIfExist(File file) {
-        if (file.exists()) {
-            String fileName = getDateFormat(Calendar.getInstance());
-            File renamedLogFile = new File(logFolder, fileName + ".log");
-            int x = 1;
-            while (renamedLogFile.exists()) {
-                renamedLogFile = new File(logFolder, fileName + "-" + x + ".log");
-                x++;
-            }
-            file.renameTo(renamedLogFile);
-        }
-        return file;
-    }
-
-    private String getDateFormat(Calendar calendar) {
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH) + 1;
-        int day_of_month = calendar.get(Calendar.DAY_OF_MONTH);
-
-        return year + "-" +
-                (month < 10 ? "0" + month : "" + month) + "-" +
-                (day_of_month < 10 ? "0" + day_of_month : "" + day_of_month);
-
-    }
-
-    private String getTimeFormat(Calendar calendar) {
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        int minute = calendar.get(Calendar.MINUTE);
-        int second = calendar.get(Calendar.SECOND);
-
-        return (hour < 10 ? "0" + hour : "" + hour) + ":" +
-                (minute < 10 ? "0" + minute : "" + minute) + ":" +
-                (second < 10 ? "0" + second : "" + second);
-
-    }
-
-    private Formatter getFormatter() {
-        return new Formatter() {
-            @Override
-            public String format(LogRecord record) {
-                StringBuilder sb = new StringBuilder("[");
-
-                sb.append(getTimeFormat(Calendar.getInstance())).append(" ");
-
-                sb.append(record.getLevel().getName()).append("] ");
-                sb.append(formatMessage(record)).append("\n");
-                if (record.getThrown() != null) {
-                    writeStackTrace(record.getThrown(), sb);
-                }
-                return sb.toString();
-            }
-        };
-    }
-
-    public static void writeStackTrace(Throwable throwable, StringBuilder sb) {
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
-        throwable.printStackTrace(printWriter);
-        sb.append(stringWriter);
-
-        try {
-            stringWriter.close();
-            printWriter.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

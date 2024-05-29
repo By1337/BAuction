@@ -31,7 +31,7 @@ public class PluginEnablePipeline {
         for (Pair<Predicate<PluginEnablePipeline>, Pair<String, ThrowableRunnable>> pair : disableHandlers) {
             try {
                 if (pair.getLeft() == null || pair.getLeft().test(this)) {
-                    Main.getMessage().log("disable %s", pair.getRight().getLeft());
+                    Main.debug("disable %s", pair.getRight().getLeft());
                     pair.getRight().getRight().run();
                 }
             } catch (Throwable e) {
@@ -44,7 +44,7 @@ public class PluginEnablePipeline {
     public void onEnable() {
         for (Pair<String, ThrowableRunnable> pair : enableHandlers) {
             try {
-                Main.getMessage().log("enable %s", pair.getLeft());
+                Main.debug("enable %s", pair.getLeft());
                 pair.getRight().run();
                 enabled.add(pair.getLeft());
             } catch (Throwable e) {
