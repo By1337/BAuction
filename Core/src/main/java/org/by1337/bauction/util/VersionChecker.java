@@ -29,6 +29,7 @@ public class VersionChecker implements Listener {
     public VersionChecker() {
         listener = this;
         currentVersion = Main.getInstance().getDescription().getVersion();
+        if (!Main.IS_RELEASE) return;
         new Thread(() -> {
             String result = parsePage();
             if (result != null) {

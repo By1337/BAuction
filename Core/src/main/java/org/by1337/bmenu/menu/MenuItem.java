@@ -17,7 +17,7 @@ import java.util.Map;
 public class MenuItem {
     private int[] slots;
     private ItemStack itemStack;
-    private final Map<ClickType, IClick> clicks;
+    private Map<ClickType, IClick> clicks;
     private final Placeholderable placeholderable;
     @Nullable
     private final Requirements anyClickRequirement;
@@ -74,6 +74,14 @@ public class MenuItem {
 
     public void setItemStack(ItemStack itemStack) {
         this.itemStack = itemStack;
+    }
+
+    public Map<ClickType, IClick> getClicks() {
+        return clicks;
+    }
+
+    public void setClicks(Map<ClickType, IClick> clicks) {
+        this.clicks = clicks;
     }
 
     @Override

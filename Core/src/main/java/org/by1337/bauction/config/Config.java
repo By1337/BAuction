@@ -27,38 +27,18 @@ public class Config {
 
     private YamlContext config;
     private File configFile;
-
-    private YamlContext menu;
-    private File fileMenu;
-
-    private YamlContext menuConfirm;
-    private File fileMenuConfirm;
-
-    private YamlContext menuBuyCount;
-    private File fileMenuBuyCount;
-
-    private YamlContext menuItemsForSale;
-    private File fileMenuItemsForSale;
-
-    private YamlContext menuUnsoldItems;
-    private File fileMenuUnsoldItems;
-
-    private YamlContext menuPlayerItemsView;
-    private File fileMenuPlayerItemsView;
-
     private Map<NameKey, Sorting> sortingMap;
     private Map<NameKey, Category> categoryMap;
-
     private int maxSlots;
     private long defaultSellTime;
-
     private BoostManager boostManager;
-    private MenuManger menuManger;
     private boolean allowBuyCount;
     private int itemMaxSize;
     private int compressIfMoreThan;
     private int maximumUncompressedItemSize;
     private boolean logging;
+    private String homeMenu;
+    private String playerItemsViewMenu;
 
     public Config(Plugin plugin) {
         reload(plugin);
@@ -77,13 +57,14 @@ public class Config {
 
         boostManager = new BoostManager(config);
 
-        menuManger = new MenuManger(this);
         allowBuyCount = config.getAsBoolean("allow-buy-count");
         allowBuyCount = config.getAsBoolean("allow-buy-count");
         itemMaxSize = config.getAsInteger("item-max-size", 70_000);
         compressIfMoreThan = config.getAsInteger("compress-if-more-than", 30_000);
         maximumUncompressedItemSize = config.getAsInteger("maximum-uncompressed-item-size", 350000);
         logging = config.getAsBoolean("logging", false);
+        homeMenu = config.getAsString("home-menu");
+        playerItemsViewMenu = config.getAsString("player-items-view-menu");
 
     }
 
@@ -108,60 +89,12 @@ public class Config {
         }
         config = new YamlContext(YamlConfiguration.loadConfiguration(configFile));
 
-        fileMenu = new File(basedir + "/main.yml");
-        if (!fileMenu.exists()) {
-            plugin.saveResource("main.yml", true);
-        }
-        menu = new YamlContext(YamlConfiguration.loadConfiguration(fileMenu));
-
-        fileMenuConfirm = new File(basedir + "/confirm.yml");
-        if (!fileMenuConfirm.exists()) {
-            plugin.saveResource("confirm.yml", true);
-        }
-        menuConfirm = new YamlContext(YamlConfiguration.loadConfiguration(fileMenuConfirm));
-
-        fileMenuBuyCount = new File(basedir + "/buyCount.yml");
-        if (!fileMenuBuyCount.exists()) {
-            plugin.saveResource("buyCount.yml", true);
-        }
-        menuBuyCount = new YamlContext(YamlConfiguration.loadConfiguration(fileMenuBuyCount));
-
-        fileMenuItemsForSale = new File(basedir + "/itemsForSale.yml");
-        if (!fileMenuItemsForSale.exists()) {
-            plugin.saveResource("itemsForSale.yml", true);
-        }
-        menuItemsForSale = new YamlContext(YamlConfiguration.loadConfiguration(fileMenuItemsForSale));
-
-        fileMenuUnsoldItems = new File(basedir + "/unsoldItemList.yml");
-        if (!fileMenuUnsoldItems.exists()) {
-            plugin.saveResource("unsoldItemList.yml", true);
-        }
-        menuUnsoldItems = new YamlContext(YamlConfiguration.loadConfiguration(fileMenuUnsoldItems));
-
-        fileMenuPlayerItemsView = new File(basedir + "/playerItemsView.yml");
-        if (!fileMenuPlayerItemsView.exists()) {
-            plugin.saveResource("playerItemsView.yml", true);
-        }
-        menuPlayerItemsView = new YamlContext(YamlConfiguration.loadConfiguration(fileMenuPlayerItemsView));
-
         File readMe = new File(basedir + "/README.yml");
         if (!readMe.exists()) {
             plugin.saveResource("README.yml", true);
         }
     }
 
-
-    public YamlContext getMenuUnsoldItems() {
-        return menuUnsoldItems;
-    }
-
-    public MenuManger getMenuManger() {
-        return menuManger;
-    }
-
-    public YamlContext getMenuItemsForSale() {
-        return menuItemsForSale;
-    }
 
     public YamlContext getMessage() {
         return message;
@@ -173,18 +106,6 @@ public class Config {
 
     public YamlContext getConfig() {
         return config;
-    }
-
-    public YamlContext getMenu() {
-        return menu;
-    }
-
-    public YamlContext getMenuConfirm() {
-        return menuConfirm;
-    }
-
-    public YamlContext getMenuBuyCount() {
-        return menuBuyCount;
     }
 
     public Map<NameKey, Sorting> getSortingMap() {
@@ -206,15 +127,6 @@ public class Config {
     public BoostManager getBoostManager() {
         return boostManager;
     }
-
-    public YamlContext getMenuPlayerItemsView() {
-        return menuPlayerItemsView;
-    }
-
-    public File getFileMenuPlayerItemsView() {
-        return fileMenuPlayerItemsView;
-    }
-
     public boolean isAllowBuyCount() {
         return allowBuyCount;
     }
@@ -233,5 +145,13 @@ public class Config {
 
     public boolean isLogging() {
         return logging;
+    }
+
+    public String getHomeMenu() {
+        return homeMenu;
+    }
+
+    public String getPlayerItemsViewMenu() {
+        return playerItemsViewMenu;
     }
 }

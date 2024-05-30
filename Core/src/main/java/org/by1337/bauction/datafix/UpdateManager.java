@@ -15,10 +15,14 @@ import org.by1337.bauction.datafix.db.mysql.MySqlDBUpdater1;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 public class UpdateManager {
-    private final static int CURRENT_VERSION = 8;
+    private final static int CURRENT_VERSION = 9;
 
     public static void checkUpdate() {
         Plugin plugin = Main.getInstance();
@@ -96,6 +100,24 @@ public class UpdateManager {
             config.set("max-slots", null);
             version++;
             run(version, config);
+        } else if (version == 8) {
+            new MySqlDBUpdater2().update();
+            config.set("home-menu", "home");
+            config.set("player-items-view-menu", "playerItemsView");
+            try {
+                File home = Main.getInstance().getDataFolder();
+                File folder = new File(home, "_old");
+                folder.mkdirs();
+                for (String file : List.of("buyCount.yml", "confirm.yml", "itemsForSale.yml", "main.yml", "playerItemsView.yml", "unsoldItemList.yml")) {
+                    File cfg = new File(home, file);
+                    if (cfg.exists()) {
+                        Files.move(cfg.toPath(), new File(folder, file).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+            } catch (Throwable throwable) {
+                Main.getMessage().error(throwable);
+            }
         }
     }
 }
+

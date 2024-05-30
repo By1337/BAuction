@@ -55,6 +55,9 @@ public class PluginLogger {
             String threadName = Thread.currentThread().getName();
             String level = record.getLevel().getLocalizedName();
             String message = formatMessage(record);
+            if (record.getThrown() != null) {
+                message = LogUtil.writeStackTrace(record.getThrown(), new StringBuilder(message).append("\n")).toString();
+            }
             return String.format(FORMAT, date, threadName, level, message);
         }
     }

@@ -33,7 +33,11 @@ public class MySqlDBUpdater2 {
                 statement.executeUpdate("ALTER TABLE sell_items ADD COLUMN compressed BOOLEAN DEFAULT false");
             } catch (Throwable ignore) {
             }
-            statement.executeUpdate("ALTER TABLE unsold_items ADD COLUMN compressed BOOLEAN DEFAULT false");
+            try {
+                statement.executeUpdate("ALTER TABLE unsold_items ADD COLUMN compressed BOOLEAN DEFAULT false");
+            } catch (Throwable ignore) {
+            }
+
 
         } catch (Exception e) {
             Main.getMessage().error("failed to update mysql db", e);

@@ -1,5 +1,7 @@
 package org.by1337.bauction.log;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -62,7 +64,8 @@ public class LogUtil {
         };
     }
 
-    public static void writeStackTrace(Throwable throwable, StringBuilder sb) {
+    @CanIgnoreReturnValue
+    public static StringBuilder writeStackTrace(Throwable throwable, StringBuilder sb) {
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
         throwable.printStackTrace(printWriter);
@@ -74,5 +77,6 @@ public class LogUtil {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        return sb;
     }
 }

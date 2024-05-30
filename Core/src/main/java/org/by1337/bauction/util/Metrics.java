@@ -220,7 +220,7 @@ public class Metrics {
             this.logResponseStatusText = logResponseStatusText;
             checkRelocation();
             if (enabled) {
-                Main.getMessage().logger("Starting Metrics. Opt-out using the global bStats config.");
+                Main.getMessage().log("Starting Metrics. Opt-out using the global bStats config.");
                 // WARNING: Removing the option to opt-out will get your plugin banned from bStats
                 startSubmitting();
             }

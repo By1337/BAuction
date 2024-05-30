@@ -241,12 +241,12 @@ public abstract class Menu extends AsyncClickListener {
                 }))
         );
         commands.addSubCommand(new Command<Menu>("[BACK_TO_OR_CLOSE]")
-                        .argument(new ArgumentString<>("id"))
+                .argument(new ArgumentString<>("id"))
                 .executor((v, args) -> {
                     String id = (String) args.getOrThrow("id", "Use: [BACK_TO_OR_CLOSE] <id>");
                     AsyncClickListener.syncUtil(() -> {
                         Menu m = v.previousMenu;
-                        while (m != null){
+                        while (m != null) {
                             if (m.setting.getId().getName().equals(id)) break;
                             m = m.previousMenu;
                         }
@@ -324,7 +324,7 @@ public abstract class Menu extends AsyncClickListener {
         commands.addSubCommand(new Command<Menu>("[TAKE_UNSOLD_ITEM]")
                 .argument(new ArgumentString<>("id"))
                 .executor((v, args) -> {
-                    TakeUnsoldItemProcessV2 takeUnsoldItemProcessV2;
+                            TakeUnsoldItemProcessV2 takeUnsoldItemProcessV2;
                             if (args.containsKey("id")) {
                                 CUniqueName uniqueName = new CUniqueName((String) args.get("id"));
                                 takeUnsoldItemProcessV2 = new TakeUnsoldItemProcessV2(
@@ -336,6 +336,29 @@ public abstract class Menu extends AsyncClickListener {
                                 takeUnsoldItemProcessV2 = new TakeUnsoldItemProcessV2(v);
                             }
                             takeUnsoldItemProcessV2.run();
+                        }
+                )
+        );
+
+        commands.addSubCommand(new Command<Menu>("[REMOVE_SELL_ITEM]")
+                .argument(new ArgumentString<>("id"))
+                .executor((v, args) -> {
+                            SellItem sellItem;
+                            if (args.containsKey("id")) {
+                                CUniqueName uniqueName = new CUniqueName((String) args.get("id"));
+                                sellItem = Main.getStorage().getSellItem(uniqueName);
+                                if (sellItem == null) {
+                                    Main.getMessage().error("Unknown sell item %s!", args.get("id"));
+                                    return;
+                                }
+                            } else if (v.lastClickedItem != null && v.lastClickedItem.getData() instanceof SellItem s) {
+                                sellItem = s;
+                            } else {
+                                Main.getMessage().error("[REMOVE_SELL_ITEM] The command does not specify an id which means that I will expect the item clicked by the player to be a SellItem! Last click %s", v.lastClickedItem);
+                                return;
+                            }
+                            Main.getStorage().removeSellItem(sellItem.getUniqueName());
+                            v.refresh();
                         }
                 )
         );

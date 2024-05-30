@@ -1,8 +1,8 @@
-menu_title: "&7Аукцион ({current_page}/{max_page})"
+menu_title: "&7Предметы игрока: {user_name}"
 size: 54
 type: CHEST
-provider: home
-id: home
+provider: playerItemsView
+id: playerItemsView
 
 items-slots:
   - 0-44
@@ -22,7 +22,7 @@ if-admin:
     - '&#5AD9FB▌&r &fчтобы &cудалить&f этот предмет'
     - '&r '
   middle_click_commands:
-    - '[REMOVE_SELL_ITEM]'
+    - '[REMOVE_SELL_ITEM] {id}'
 # Когда продаваемый предмет один
 
 selling-item-one:
@@ -48,9 +48,7 @@ take-item:
     - '&#5AD9FB▌&r &fПродажа по штучно: &#5AD9FB{sale_by_the_piece_format}'
     - '&r '
     - '&#5AD9FB▌&r &fЧтобы снять с продажи нажмите &#5AD9FBлкм'
-  left_click_commands:
-    - '[TAKE_ITEM]'
-  shift_left_click_commands:
+  click_commands:
     - '[TAKE_ITEM]'
 
 # Когда продаваемый предмет не один и его можно купить поштучно
@@ -138,6 +136,16 @@ items:
     lore: [ ]
     click_commands:
       - '[PREVIOUS_PAGE]'
+
+  back:
+    material: BARRIER
+    slot: 49
+    amount: 1
+    display_name: "&cНазад в общий аукцион"
+    lore: []
+    click_commands:
+      - '[OPEN_MENU] home'
+
 
   next-page:
     material: ARROW

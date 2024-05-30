@@ -7,24 +7,26 @@ import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.menu.impl.PlayerItemsView;
+import org.by1337.bauction.menu2.PlayerItemsView;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.CommandSyntaxError;
 import org.by1337.blib.command.argument.Argument;
 import org.by1337.blib.command.argument.ArgumentMap;
 import org.by1337.blib.command.requires.RequiresPermission;
+import org.by1337.bmenu.menu.MenuLoader;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class ViewCommand extends Command<CommandSender> {
+    private final MenuLoader menuLoader;
+    private final String openMenu;
 
-    public ViewCommand(String command) {
+    public ViewCommand(String command, MenuLoader menuLoader, String openMenu) {
         super(command);
+        this.menuLoader = menuLoader;
+        this.openMenu = openMenu;
         requires(new RequiresPermission<>("bauc.view"));
         requires(sender -> sender instanceof Player);
         argument(new ArgumentOfflinePlayerUUID("player"));
@@ -47,9 +49,21 @@ public class ViewCommand extends Command<CommandSender> {
             return;
         }
 
-        User user = Main.getStorage().getUserOrCreate(senderP);
-        PlayerItemsView menu = new PlayerItemsView(user, senderP, uuid, Bukkit.getOfflinePlayer(uuid).getName());
-        menu.open();
+        User user = Main.getStorage().getUser(uuid);
+
+        var menu = menuLoader.getMenu(openMenu);
+        Objects.requireNonNull(menu, "Menu " + openMenu + " not found!");
+
+        var m = menu.create(senderP, null);
+        if (m instanceof PlayerItemsView playerItemsView) {
+            playerItemsView.setUuid(uuid);
+            if (user != null) {
+                playerItemsView.setName(user.getNickName());
+            } else {
+                playerItemsView.setName(Bukkit.getOfflinePlayer(uuid).getName());
+            }
+        }
+        m.open();
     }
 
     private static class ArgumentOfflinePlayerUUID extends Argument<CommandSender> {
@@ -81,7 +95,8 @@ public class ViewCommand extends Command<CommandSender> {
                 return list;
             return list.stream().filter(s -> s.startsWith(str)).toList();
         }
-        public static boolean isUUID(String str){
+
+        public static boolean isUUID(String str) {
             return UUID_REGEX.matcher(str).matches();
         }
     }

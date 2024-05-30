@@ -23,10 +23,6 @@ import org.by1337.bauction.hook.impl.VaultHook;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.log.FileLogger;
 import org.by1337.bauction.log.PluginLogger;
-import org.by1337.bauction.menu.CustomItemStack;
-import org.by1337.bauction.menu.impl.MainMenu;
-import org.by1337.bauction.menu.requirement.IRequirement;
-import org.by1337.bauction.menu.requirement.Requirements;
 import org.by1337.bauction.menu2.*;
 import org.by1337.bauction.placeholder.PlaceholderHook;
 import org.by1337.bauction.search.TrieManager;
@@ -52,6 +48,7 @@ import java.util.*;
 import java.util.logging.Level;
 
 public final class Main extends JavaPlugin {
+    public static final boolean IS_RELEASE = false;
     private static Message message;
     private static Main instance;
     private static Config cfg;
@@ -85,15 +82,20 @@ public final class Main extends JavaPlugin {
             saveResource("menu/selectCount.yml", true);
             saveResource("menu/itemForSale.yml", true);
             saveResource("menu/unsoldItems.yml", true);
+            saveResource("menu/playerItemsView.yml", true);
+            saveResource("menu/viewShulkerMenu.yml", true);
         }
         message = new Message(getLogger());
         pluginLogger = new PluginLogger(new File(getDataFolder(), "pluginLogs"), getLogger());
+        metrics = new Metrics(this, 20300);
         BMenuApi.setup(message, this);
         MenuProviderRegistry.register("home", HomeMenu::new);
         MenuProviderRegistry.register("itemViewer", ItemViewerMenu::new);
         MenuProviderRegistry.register("selectCount", SelectCountMenu::new);
         MenuProviderRegistry.register("itemsForSale", ItemsForSaleMenu::new);
         MenuProviderRegistry.register("unsoldItems", UnsoldItemsMenu::new);
+        MenuProviderRegistry.register("playerItemsView", PlayerItemsView::new);
+        MenuProviderRegistry.register("viewShulker", ViewShulkerMenu::new);
         initEnablePipeline();
     }
 
@@ -151,10 +153,9 @@ public final class Main extends JavaPlugin {
                 throw new IllegalStateException("Параметр economy имеет не правильное значение! '" + econType + "'. Ожидалось 'Vault' | 'PlayerPoints'");
             }
         });
-        enablePipeline.enable("init commands", this::initCommand);
-        enablePipeline.enable("load metrics", () -> {
-            metrics = new Metrics(this, 20300);
-        });
+//        enablePipeline.enable("load metrics", () -> {
+//            metrics = new Metrics(this, 20300);
+//        });
         enablePipeline.enable("load PAPI hook", () -> {
             placeholderHook = new PlaceholderHook();
             placeholderHook.register();
@@ -165,12 +166,14 @@ public final class Main extends JavaPlugin {
         enablePipeline.enable("load db", this::loadDb);
         enablePipeline.enable("check version", VersionChecker::new);
 
+        enablePipeline.enable("init commands", this::initCommand);
+
         enablePipeline.disable("disable PAPI hook", p -> p.isEnabled("load PAPI hook"), () -> {
             placeholderHook.unregister();
         });
-        enablePipeline.disable("disable metrics", p -> p.isEnabled("load metrics"), () -> {
-            metrics.shutdown();
-        });
+//        enablePipeline.disable("disable metrics", p -> p.isEnabled("load metrics"), () -> {
+//            metrics.shutdown();
+//        });
         enablePipeline.disable("disable logger", p -> p.isEnabled("load logger"), () -> {
             if (fileLogger != null)
                 fileLogger.close();
@@ -191,10 +194,7 @@ public final class Main extends JavaPlugin {
             AdapterRegistry.unregisterPrimitiveAdapter(InventoryType.class);
             AdapterRegistry.unregisterAdapter(Sorting.class);
             AdapterRegistry.unregisterAdapter(Category.class);
-            AdapterRegistry.unregisterAdapter(Requirements.class);
-            AdapterRegistry.unregisterAdapter(CustomItemStack.class);
             AdapterRegistry.unregisterAdapter(Boost.class);
-            AdapterRegistry.unregisterAdapter(IRequirement.class);
         });
     }
 
@@ -206,15 +206,15 @@ public final class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         enablePipeline.onDisable();
-        if (pluginLogger != null){
+        if (pluginLogger != null) {
             pluginLogger.close();
         }
     }
 
-    public static void debug(String s, Object... objects){
-        if (DEBUG_MODE){
+    public static void debug(String s, Object... objects) {
+        if (DEBUG_MODE) {
             message.log("[DEBUG] " + s, objects);
-        }else {
+        } else {
             instance.pluginLogger.log(String.format("[DEBUG] " + s, objects));
         }
     }
@@ -265,10 +265,7 @@ public final class Main extends JavaPlugin {
         AdapterRegistry.registerPrimitiveAdapter(InventoryType.class, new AdapterEnum<>(InventoryType.class));
         AdapterRegistry.registerAdapter(Sorting.class, new AdapterSortingType());
         AdapterRegistry.registerAdapter(Category.class, new AdapterCategory());
-        AdapterRegistry.registerAdapter(Requirements.class, new AdapterRequirements());
-        AdapterRegistry.registerAdapter(CustomItemStack.class, new AdapterCustomItemStack());
         AdapterRegistry.registerAdapter(Boost.class, new AdapterBoost());
-        AdapterRegistry.registerAdapter(IRequirement.class, new AdapterIRequirement());
     }
 
     public void fullReload() {
@@ -322,7 +319,7 @@ public final class Main extends JavaPlugin {
                                 .addSubCommand(new StressCmd("stress"))
                         )
                         .addSubCommand(new AddTagCmd("addTag"))
-                        .addSubCommand(new OpenCmd("open"))
+                        .addSubCommand(new OpenCmd("open", menuLoader, cfg.getHomeMenu()))
                         .addSubCommand(new Command<CommandSender>("parse")
                                 .requires(new RequiresPermission<>("bauc.parse"))
                                 .addSubCommand(new ParseTagsCmd("tags"))
@@ -330,8 +327,8 @@ public final class Main extends JavaPlugin {
                         )
                 )
                 .addSubCommand(new SellCmd("sell"))
-                .addSubCommand(new SearchCmd("search"))
-                .addSubCommand(new ViewCommand("view"))
+                .addSubCommand(new SearchCmd("search", menuLoader, cfg.getHomeMenu()))
+                .addSubCommand(new ViewCommand("view", menuLoader, cfg.getPlayerItemsViewMenu()))
                 .addSubCommand(
                         new Command<CommandSender>("test")
                                 .executor(((sender, args) -> {
@@ -345,33 +342,40 @@ public final class Main extends JavaPlugin {
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))
                         throw new CommandException(Lang.getMessage("must_be_player"));
-                    User user = storage.getUserOrCreate(player);
-                    MainMenu menu = new MainMenu(user, player);
-                    menu.open();
+                    var menu = menuLoader.getMenu(cfg.getHomeMenu());
+                    Objects.requireNonNull(menu, "Menu " + cfg.getHomeMenu() + " not found!");
+                    menu.create(player, null).open();
                 }))
         ;
     }
 
 
     private boolean onCommand0(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String label, @NotNull String[] args) {
-        debug("%s use command %s", sender, Joiner.on(" ").join(args));
+        debug("%s use command %s %s", sender, label, Joiner.on(" ").join(args));
         try {
             command.process(sender, args);
             return true;
         } catch (CommandException e) {
             message.sendMsg(sender, e.getLocalizedMessage());
+        } catch (Throwable t) {
+            message.error("An error occurred while executing the command", t);
         }
         return true;
     }
 
     @Nullable
     private List<String> onTabComplete0(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command cmd, @NotNull String alias, @NotNull String[] args) {
-        if (args[0].equals("search") && sender.hasPermission("bauc.search")) {
-            String last = args[args.length - 1].toLowerCase();
-            if (last.isEmpty()) return List.of(Lang.getMessage("start_entering_item_name"));
-            return trieManager.getTrie().getAllKeysWithPrefix(last);
+        try {
+            if (args[0].equals("search") && sender.hasPermission("bauc.search")) {
+                String last = args[args.length - 1].toLowerCase();
+                if (last.isEmpty()) return List.of(Lang.getMessage("start_entering_item_name"));
+                return trieManager.getTrie().getAllKeysWithPrefix(last);
+            }
+            return command.getTabCompleter(sender, args);
+        } catch (Throwable t) {
+            message.error("An error occurred while executing getTabCompleter. Input '%s'", t, Joiner.on(" ").join(args));
         }
-        return command.getTabCompleter(sender, args);
+        return Collections.emptyList();
     }
 
     @CanIgnoreReturnValue

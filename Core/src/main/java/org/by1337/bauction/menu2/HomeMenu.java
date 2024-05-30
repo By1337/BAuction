@@ -2,12 +2,9 @@ package org.by1337.bauction.menu2;
 
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.SellItem;
-import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.db.kernel.CUser;
-import org.by1337.bauction.menu.CustomItemStack;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.ItemUtil;
 import org.by1337.bauction.util.Sorting;
@@ -16,6 +13,7 @@ import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.util.CyclicList;
 import org.by1337.bmenu.menu.*;
+import org.by1337.bmenu.menu.click.ClickType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -34,7 +32,7 @@ public class HomeMenu extends Menu {
     protected Sorting lastSorting = null;
     protected int lastPage = -1;
     protected CUser user;
-    private final Cash cash;
+    protected final Cash cash;
     private static boolean seenIllegalCash;
 
     public HomeMenu(MenuSetting setting, Player player, @Nullable Menu previousMenu, MenuLoader menuLoader) {
@@ -94,6 +92,16 @@ public class HomeMenu extends Menu {
                                 Main.getMessage().componentBuilder(item.replace(s)).decoration(TextDecoration.ITALIC, false)).toList());
                         m.lore(lore);
                     });
+                    if (!toAdd.getClicks().isEmpty()) {
+                        menuItem.setClicks(new HashMap<>(menuItem.getClicks()));
+                        for (ClickType clickType : toAdd.getClicks().keySet()) {
+                            if (menuItem.getClicks().containsKey(clickType)){
+                                Main.getMessage().warning("Overlap click %s!", clickType.getConfigKeyClick());
+                            }
+                            menuItem.getClicks().put(clickType, toAdd.getClicks().get(clickType));
+                        }
+                    }
+
                 }
                 if (viewer.hasPermission("bauc.admin") && !item.getSellerUuid().equals(user.getUuid())) {
                     var toAdd = cash.getIfAdmin();
@@ -103,6 +111,15 @@ public class HomeMenu extends Menu {
                                 Main.getMessage().componentBuilder(item.replace(s)).decoration(TextDecoration.ITALIC, false)).toList());
                         m.lore(lore);
                     });
+                    if (!toAdd.getClicks().isEmpty()) {
+                        menuItem.setClicks(new HashMap<>(menuItem.getClicks()));
+                        for (ClickType clickType : toAdd.getClicks().keySet()) {
+                            if (menuItem.getClicks().containsKey(clickType)){
+                                Main.getMessage().warning("Overlap click %s!", clickType.getConfigKeyClick());
+                            }
+                            menuItem.getClicks().put(clickType, toAdd.getClicks().get(clickType));
+                        }
+                    }
                 }
                 menuItem.getItemStack().setAmount(item.getAmount());
                 menuItem.setData(item);
@@ -233,6 +250,14 @@ public class HomeMenu extends Menu {
         );
     }
 
+    public CyclicList<Sorting> getSortings() {
+        return sortings;
+    }
+
+    public CyclicList<Category> getCategories() {
+        return categories;
+    }
+
     public Category getCustom() {
         return custom;
     }
@@ -241,7 +266,7 @@ public class HomeMenu extends Menu {
         this.custom = custom;
     }
 
-    private class Cash {
+    protected class Cash {
         private List<Integer> slots;
         private MenuItemBuilder sellingItemOne;
         private MenuItemBuilder takeItem;

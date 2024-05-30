@@ -301,4 +301,7 @@ public class MenuItemBuilder implements Comparable<MenuItemBuilder> {
         this.unbreakable = unbreakable;
     }
 
+    public Requirements getAnyClickRequirement() {
+        return anyClickRequirement;
+    }
 }

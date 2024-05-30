@@ -13,6 +13,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.by1337.bauction.Main;
 import org.by1337.blib.BLib;
 import org.by1337.blib.chat.placeholder.Placeholder;
 import org.by1337.bmenu.BMenuApi;
@@ -60,7 +61,7 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
         Bukkit.getPluginManager().registerEvents(this, BMenuApi.getInstance());
 
         if (async) {
-            executor = Executors.newSingleThreadExecutor();
+            executor = Executors.newSingleThreadExecutor(BMenuApi.getThreadFactory());
             runManager = executor::execute;
         } else {
             runManager = Runnable::run;
@@ -143,7 +144,13 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
             } else {
                 lastClick = System.currentTimeMillis() + 50;
             }
-            runManager.run(() -> onClick(e));
+            runManager.run(() -> {
+                try {
+                    onClick(e);
+                }catch (Throwable t){
+                    Main.getMessage().error("An error occurred while processing the click!", t);
+                }
+            });
         }
     }
 
@@ -161,7 +168,13 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
             } else {
                 lastClick = System.currentTimeMillis() + 50;
             }
-            runManager.run(() -> onClick(e));
+            runManager.run(() ->{
+                try {
+                    onClick(e);
+                }catch (Throwable t){
+                    Main.getMessage().error("An error occurred while processing the click!", t);
+                }
+            });
         }
     }
 
@@ -171,7 +184,7 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
     protected void reRegister() {
         Bukkit.getPluginManager().registerEvents(this, BMenuApi.getInstance());
         if (async) {
-            executor = Executors.newSingleThreadExecutor();
+            executor = Executors.newSingleThreadExecutor(BMenuApi.getThreadFactory());
             runManager = executor::execute;
         } else {
             runManager = Runnable::run;
