@@ -22,7 +22,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 public class UpdateManager {
-    private final static int CURRENT_VERSION = 10;
+    private final static int CURRENT_VERSION = 11;
 
     public static void checkUpdate() {
         Plugin plugin = Main.getInstance();
@@ -117,8 +117,12 @@ public class UpdateManager {
             } catch (Throwable throwable) {
                 Main.getMessage().error(throwable);
             }
-        }else if (version == 9) {
+        } else if (version == 9) {
             config.set("lang", "ru_ru");
+            version++;
+            run(version, config);
+        } else if (version == 10) {
+            config.set("BVault-setting.current-bank", "vault");
             version++;
             run(version, config);
         }

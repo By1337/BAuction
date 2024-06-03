@@ -374,7 +374,7 @@ public abstract class Menu extends AsyncClickListener {
                                 BuyItemCountProcessV2 buyItemCount = new BuyItemCountProcessV2(selectCountMenu, sellItem, count);
                                 buyItemCount.run();
                             } else {
-                                Main.getMessage().error("Команда [BUY_COUNT] доступна для вызова только из selectCount selectCount! Допускается открытие других меню по верх selectCount");
+                                Main.getMessage().error("The [BUY_COUNT] command can only be called from selectCount selectCount! It is allowed to open other menus on top of selectCount");
                             }
                         }
                 )

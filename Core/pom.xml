@@ -88,6 +88,10 @@
             <id>rosewood-repo</id>
             <url>https://repo.rosewooddev.io/repository/public/</url>
         </repository>
+        <repository>
+            <id>by1337-repo</id>
+            <url>https://repo.by1337.space/repository/maven-releases/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -98,6 +102,12 @@
             <scope>provided</scope>
         </dependency>
         <!--compile-->
+        <dependency>
+            <groupId>org.by1337.bvault.api</groupId>
+            <artifactId>BVaultApi</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.by1337.bauction.api</groupId>
             <artifactId>BaucApi</artifactId>

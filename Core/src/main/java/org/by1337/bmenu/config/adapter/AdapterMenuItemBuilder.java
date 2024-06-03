@@ -39,7 +39,7 @@ public class AdapterMenuItemBuilder implements ClassAdapter<MenuItemBuilder> {
         List<PotionEffect> effects = context.getList("potion_effects", String.class, new ArrayList<>()).stream().map(str -> {
             String[] args = str.split(";");
             if (args.length != 3) {
-                BMenuApi.getMessage().error("ожидался <PotionEffectType>;<duration>;<amplifier>, а не " + str);
+                BMenuApi.getMessage().error("expected <PotionEffectType>;<duration>;<amplifier>, not " + str);
                 return null;
             }
             PotionEffectType type = Objects.requireNonNull(PotionEffectType.getByName(args[0].toLowerCase(Locale.ENGLISH)), "PotionEffectType is null");
@@ -53,7 +53,7 @@ public class AdapterMenuItemBuilder implements ClassAdapter<MenuItemBuilder> {
         List<EnchantmentBuilder> enchantments = context.getList("enchantments", String.class, new ArrayList<>()).stream().map(str -> {
                     String[] args = str.split(";");
                     if (args.length != 2) {
-                        BMenuApi.getMessage().error("ожидался enchantmentid;level, а не " + str);
+                        BMenuApi.getMessage().error("was expected to be enchantmentid;level, not " + str);
                         return null;
                     }
                     Enchantment type = Objects.requireNonNull(Enchantment.getByKey(NamespacedKey.minecraft(args[0].toLowerCase(Locale.ENGLISH))), "Enchantment is null");

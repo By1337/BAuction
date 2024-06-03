@@ -1,4 +1,4 @@
-version: 10 # НЕ МЕНЯТЬ
+version: 11 # НЕ МЕНЯТЬ
 # список бустов
 boosts: # it's list
   - name: donat-1 # имя (может быть любым)
@@ -38,7 +38,9 @@ default-offer-time: '2d'
 offer-min-price: 10
 offer-max-price: 100000000
 
-economy: 'Vault' # Vault | PlayerPoints
+economy: 'Vault' # Vault | PlayerPoints | BVault (https://github.com/By1337/BVault)
+BVault-setting:
+  current-bank: vault
 
 remove-expired-items:
   enable: true # Удалять ли просроченные предметы?

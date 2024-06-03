@@ -33,7 +33,7 @@ public class EventManager {
             try {
                 listener.onEvent(event);
             } catch (Throwable t) {
-                Main.getMessage().error("Произошла ошибка во время обработки ивента слушателем %s", t, s);
+                Main.getMessage().error("An error occurred while event listener %s was processing the event.", t, s);
             }
         }
     }

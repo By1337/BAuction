@@ -8,6 +8,7 @@ authors: [ By1337 ]
 softdepend:
   - PlayerPoints
   - Vault
+  - BVault
 
 commands:
   bauc:

@@ -17,7 +17,7 @@ import java.util.*;
 
 public class DBUpdate107 {
 
-    // обновляет файлы сохранения с версий 1.0.4-b до 1.0.6.2-b (включительно) на новый формат принятый начиная с версии 1.0.7-b
+    // updates save files from versions 1.0.4-b to 1.0.6.2-b (inclusive) to the new format adopted from version 1.0.7-b onwards.
     public void update() throws IOException {
         Main.getMessage().logger("Loading items v1.0.4...");
         List<JsonObject> items = load("sellItems", new TypeToken<List<JsonObject>>() {
@@ -66,7 +66,7 @@ public class DBUpdate107 {
         );
 
     }
-    // извлекает данные из json объекта и перегоняет их в байты для сохранения по формату сохранения версии 1.0.7-b
+    // extracts data from a json object and distills it into bytes for saving according to the save format of version 1.0.7-b
     private byte[] getUserBytes(JsonObject jsonObject) throws IOException {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
              DataOutputStream data = new DataOutputStream(out)) {
@@ -78,7 +78,7 @@ public class DBUpdate107 {
             return out.toByteArray();
         }
     }
-    // извлекает данные из json объекта и перегоняет их в байты для сохранения по формату сохранения версии 1.0.7-b
+    // extracts data from a json object and distills it into bytes for saving according to the save format of version 1.0.7-b
     private byte[] getUnsoldItemBytes(JsonObject jsonObject) throws IOException {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
              DataOutputStream data = new DataOutputStream(out)) {
@@ -93,7 +93,7 @@ public class DBUpdate107 {
             return out.toByteArray();
         }
     }
-    // извлекает данные из json объекта и перегоняет их в байты для сохранения по формату сохранения версии 1.0.7-b
+    // extracts data from a json object and distills it into bytes for saving according to the save format of version 1.0.7-b
     private byte[] getSellItemBytes(JsonObject jsonObject) throws IOException {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
              DataOutputStream data = new DataOutputStream(out)) {
@@ -113,12 +113,12 @@ public class DBUpdate107 {
             data.writeUTF(jsonObject.getAsJsonPrimitive("material").getAsString());
             data.writeInt(jsonObject.getAsJsonPrimitive("amount").getAsInt());
             data.writeDouble(jsonObject.getAsJsonPrimitive("priceForOne").getAsDouble());
-            SerializeUtils.writeCollectionToStream(data, new ArrayList<>()); // в версиях ниже всегда пустой
+            SerializeUtils.writeCollectionToStream(data, new ArrayList<>()); // in versions below always empty
             data.flush();
             return out.toByteArray();
         }
     }
-    // в 1.16.5 отсутствует метод JsonArray#asList
+    // JsonArray#asList method is missing in 1.16.5
     private List<JsonElement> toList(JsonArray array){
         List<JsonElement> list = new ArrayList<>(array.size());
         for (JsonElement jsonElement : array) {
@@ -126,7 +126,7 @@ public class DBUpdate107 {
         }
         return list;
     }
-    // считывает все json файлы находящиеся в папке
+    // reads all json files in the folder
     private <T> List<T> load(String dir, Type type) {
         File home = new File(Main.getInstance().getDataFolder() + "/" + dir);
         List<T> out = new ArrayList<>();

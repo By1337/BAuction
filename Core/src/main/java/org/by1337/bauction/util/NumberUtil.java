@@ -7,11 +7,11 @@ import java.util.regex.Pattern;
 public class NumberUtil {
 
     /**
-     * Обрезает стоку
+     * Crops the stock
      * @param value 1272.3443284
      * @return 1272.34
-     * При выводе числа игроку всегда это число должно проходить через этот метод
-     * так как он не только обрезает строку, но и приводит её в нормальное состояние из 1.27232432234E9 в 1272324322.34
+     * When outputting a number to the player, the number should always be passed through this method
+     * as it not only trims the string, but also normalises it from 1.2723243223434E9 to 1272324322.34.
      */
     public static String format(double value){
         DecimalFormat df = new DecimalFormat("#.##");
@@ -38,7 +38,7 @@ public class NumberUtil {
         return formatted.reverse() + decimalPart;
     }
     /**
-     * Обрезает строку по аналогии с NumberUtil.format только возвращает обрезанный double
+     * Truncates string similar to NumberUtil.format but returns truncated double
      * @param value 1272.3443284
      * @return 1272.34
      */
