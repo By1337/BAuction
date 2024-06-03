@@ -1,5 +1,6 @@
 package org.by1337.bauction.util.plugin;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.by1337.bauction.Main;
 import org.by1337.blib.util.Pair;
@@ -35,7 +36,7 @@ public class PluginEnablePipeline {
                     pair.getRight().getRight().run();
                 }
             } catch (Throwable e) {
-                plugin.getLogger().log(Level.SEVERE, "Произошла ошибка при выключении в обработчике " + pair.getRight().getLeft(), e);
+                plugin.getLogger().log(Level.SEVERE, "An error occurred during shutdown in the handler: " + pair.getRight().getLeft(), e);
             }
         }
         enabled.clear();
@@ -48,7 +49,8 @@ public class PluginEnablePipeline {
                 pair.getRight().run();
                 enabled.add(pair.getLeft());
             } catch (Throwable e) {
-                throw new RuntimeException("Произошла ошибка при включении на обработчике: " + pair.getLeft(), e);
+                plugin.getLogger().log(Level.SEVERE, "An error occurred while enabling on the handler: " + pair.getLeft(), e);
+                Bukkit.getPluginManager().disablePlugin(plugin);
             }
         }
     }

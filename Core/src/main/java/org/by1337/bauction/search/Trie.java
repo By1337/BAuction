@@ -33,9 +33,18 @@ public class Trie {
     }
 
     public List<String> getAllKeysWithPrefix(String prefix) {
-        List<String> keys = new ArrayList<>();
+        return getAllKeysWithPrefix(prefix, -1);
+    }
+
+    public List<String> getAllKeysWithPrefix(String prefix, int limit) {
+        List<String> keys;
+        if (limit > 0) {
+            keys = new ArrayList<>(limit);
+        } else {
+            keys = new ArrayList<>();
+        }
         TrieNode node = getNodeByPrefix(prefix);
-        getAllKeysWithPrefixHelper(node, prefix, keys);
+        getAllKeysWithPrefixHelper(node, prefix, keys, limit);
         return keys;
     }
 
@@ -75,6 +84,10 @@ public class Trie {
     }
 
     private void getAllKeysWithPrefixHelper(TrieNode node, String currentPrefix, List<String> keys) {
+        getAllKeysWithPrefixHelper(node, currentPrefix, keys, -1);
+    }
+
+    private void getAllKeysWithPrefixHelper(TrieNode node, String currentPrefix, List<String> keys, int limit) {
         if (node == null) {
             return;
         }
@@ -82,10 +95,12 @@ public class Trie {
         if (node.isEnd) {
             keys.add(currentPrefix);
         }
-
         for (TrieNode child : node.children) {
+            if (limit != -1 && keys.size() >= limit) {
+                return;
+            }
             if (child != null) {
-                getAllKeysWithPrefixHelper(child, currentPrefix + child.value, keys);
+                getAllKeysWithPrefixHelper(child, currentPrefix + child.value, keys, limit);
             }
         }
     }

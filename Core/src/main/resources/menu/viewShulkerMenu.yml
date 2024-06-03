@@ -4,9 +4,6 @@ type: CHEST
 provider: viewShulker
 id: viewShulker
 
-items-slots:
-  - 0-44
-
 items:
   categories:
     material: BARRIER

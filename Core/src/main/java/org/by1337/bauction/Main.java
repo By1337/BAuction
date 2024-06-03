@@ -9,6 +9,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.by1337.bauction.api.auc.User;
+import org.by1337.bauction.assets.AssetsManager;
 import org.by1337.bauction.boost.Boost;
 import org.by1337.bauction.command.*;
 import org.by1337.bauction.config.Config;
@@ -69,6 +70,7 @@ public final class Main extends JavaPlugin {
     private Metrics metrics;
     private PluginLogger pluginLogger;
     private static boolean DEBUG_MODE = true;
+    private AssetsManager assetsManager;
 
     @Override
     public void onLoad() {
@@ -105,7 +107,9 @@ public final class Main extends JavaPlugin {
 
         enablePipeline.enable("enable BMenuApi", BMenuApi::enable);
         enablePipeline.enable("load MenuLoader", () -> {
-            menuLoader = new MenuLoader(this, new File(getDataFolder(), "menu"), MenuLoader.ResourceLeakDetectorMode.PANIC);
+            menuLoader = new MenuLoader(this, new File(getDataFolder(), "menu"),
+                   DEBUG_MODE ? MenuLoader.ResourceLeakDetectorMode.PANIC : MenuLoader.ResourceLeakDetectorMode.DEFAULT
+            );
             menuLoader.load();
         });
         enablePipeline.enable("load db cfg", () -> {
@@ -122,11 +126,14 @@ public final class Main extends JavaPlugin {
             cfg.save();
         });
 
-        enablePipeline.enable("load lang", () -> {
-            Lang.load(this);
-        });
         enablePipeline.enable("load cfg", () -> {
             cfg = new Config(this);
+        });
+        enablePipeline.enable("load assetsManager", () -> {
+            assetsManager = new AssetsManager(this, cfg.getLang());
+        });
+        enablePipeline.enable("load lang", () -> {
+            Lang.load(this, assetsManager);
         });
         enablePipeline.enable("load logger", () -> {
             if (cfg.isLogging()) {
@@ -140,7 +147,7 @@ public final class Main extends JavaPlugin {
             timeUtil = new TimeUtil();
         });
         enablePipeline.enable("load TrieManager", () -> {
-            trieManager = new TrieManager(this);
+            trieManager = new TrieManager(this, assetsManager);
             TagUtil.loadAliases(this);
         });
         enablePipeline.enable("load econ", () -> {
@@ -329,16 +336,6 @@ public final class Main extends JavaPlugin {
                 .addSubCommand(new SellCmd("sell"))
                 .addSubCommand(new SearchCmd("search", menuLoader, cfg.getHomeMenu()))
                 .addSubCommand(new ViewCommand("view", menuLoader, cfg.getPlayerItemsViewMenu()))
-                .addSubCommand(
-                        new Command<CommandSender>("test")
-                                .executor(((sender, args) -> {
-                                    Player player = (Player) sender;
-                                    var menu = menuLoader.getMenu("home");
-                                    menu.create(player, null).open();
-                                }))
-
-                )
-
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))
                         throw new CommandException(Lang.getMessage("must_be_player"));
