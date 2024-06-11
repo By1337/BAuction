@@ -14,10 +14,7 @@ import org.by1337.blib.command.argument.ArgumentStrings;
 import org.by1337.blib.command.requires.RequiresPermission;
 import org.by1337.bmenu.menu.MenuLoader;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class SearchCmd extends Command<CommandSender> {
 
@@ -43,6 +40,7 @@ public class SearchCmd extends Command<CommandSender> {
         }
         Category custom = Main.getCfg().getSorting().getAs("special.search", Category.class);
         custom.setTags(new HashSet<>(tags));
+        System.out.println(custom);
 
         User user = Main.getStorage().getUserOrCreate(player);
 
@@ -51,6 +49,8 @@ public class SearchCmd extends Command<CommandSender> {
         var m = menu.create(player, null);
         if (m instanceof HomeMenu homeMenu){
             homeMenu.setCustom(custom);
+            homeMenu.getCategories().add(custom);
+            Collections.sort(homeMenu.getCategories());
         }
         m.open();
     }

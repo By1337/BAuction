@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.db.kernel.util.InsertBuilder;
 
+import org.by1337.bauction.util.Category;
 import org.by1337.blib.BLib;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.SellItem;
@@ -359,6 +360,10 @@ public class CSellItem extends Placeholder implements SellItem {
                     item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, null, server, compressed
             );
         }
+    }
+
+    public boolean hasAllTags(Category category){
+        return tags.containsAll(category.tags());
     }
 
     public String getItem() {

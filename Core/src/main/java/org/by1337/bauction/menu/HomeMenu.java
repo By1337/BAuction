@@ -4,6 +4,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.SellItem;
+import org.by1337.bauction.db.kernel.CSellItem;
 import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.ItemUtil;
@@ -94,7 +95,7 @@ public class HomeMenu extends Menu {
                     if (!toAdd.getClicks().isEmpty()) {
                         menuItem.setClicks(new HashMap<>(menuItem.getClicks()));
                         for (ClickType clickType : toAdd.getClicks().keySet()) {
-                            if (menuItem.getClicks().containsKey(clickType)){
+                            if (menuItem.getClicks().containsKey(clickType)) {
                                 Main.getMessage().warning("Overlap click %s!", clickType.getConfigKeyClick());
                             }
                             menuItem.getClicks().put(clickType, toAdd.getClicks().get(clickType));
@@ -113,7 +114,7 @@ public class HomeMenu extends Menu {
                     if (!toAdd.getClicks().isEmpty()) {
                         menuItem.setClicks(new HashMap<>(menuItem.getClicks()));
                         for (ClickType clickType : toAdd.getClicks().keySet()) {
-                            if (menuItem.getClicks().containsKey(clickType)){
+                            if (menuItem.getClicks().containsKey(clickType)) {
                                 Main.getMessage().warning("Overlap click %s!", clickType.getConfigKeyClick());
                             }
                             menuItem.getClicks().put(clickType, toAdd.getClicks().get(clickType));
@@ -139,7 +140,7 @@ public class HomeMenu extends Menu {
         if (lastCategory == custom && (sortChanged || sellItems == null || sellItems.isEmpty())) {
             sellItems = new ArrayList<>();
             Main.getStorage().forEachSellItems(item -> {
-                if (TagUtil.matchesCategory(custom, item)) {
+                if (((CSellItem) item).hasAllTags(custom)) {
                     sellItems.add(item);
                 }
             });
