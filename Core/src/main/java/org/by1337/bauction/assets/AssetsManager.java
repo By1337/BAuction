@@ -9,6 +9,7 @@ import org.by1337.blib.util.Version;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,12 +54,14 @@ public class AssetsManager {
                     new File(dataFolder, locale + ".json")
             ).join();
 
-            CompoundTag compoundTag = NBTParser.parseAsCompoundTag(Files.readString(f.toPath()));
+            CompoundTag compoundTag = NBTParser.parseAsCompoundTag(Files.readString(f.toPath(), StandardCharsets.UTF_8));
             if (clear(compoundTag)) {
+                compoundTag.putString("_fixed_", "true");
                 Files.writeString(f.toPath(),
                         NBTToString.toString(compoundTag, NBTToStringStyle.JSON_STYLE_COMPACT)
                 );
             }
+            compoundTag.remove("_fixed_");
             translation = new HashMap<>(compoundTag.getTags().size());
             translationTabCompleterStyle = new HashMap<>(compoundTag.getTags().size());
             for (String s : compoundTag.getTags().keySet()) {
@@ -68,7 +71,7 @@ public class AssetsManager {
         }
 
         private boolean clear(CompoundTag compoundTag) {
-            if (compoundTag.has("fixed")) {
+            if (compoundTag.has("_fixed_")) {
                 return false;
             }
             boolean hasRemoved = false;

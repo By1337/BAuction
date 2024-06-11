@@ -107,17 +107,6 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
         if (inventory.equals(e.getInventory())) {
             onClose(e);
             close();
-            syncUtil(() -> {
-                viewer.updateInventory();
-                for (ItemStack itemStack : viewer.getInventory()) {
-                    if (itemStack == null) continue;
-                    ItemMeta im = itemStack.getItemMeta();
-                    if (im == null) continue;
-                    if (im.getPersistentDataContainer().has(MenuItemBuilder.MENU_ITEM_KEY, PersistentDataType.INTEGER)) {
-                        viewer.getInventory().remove(itemStack);
-                    }
-                }
-            }, 10);
         }
     }
 

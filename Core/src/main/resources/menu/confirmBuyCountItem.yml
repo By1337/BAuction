@@ -28,6 +28,7 @@ items:
     lore: [ ]
     click_commands:
       - '[BUY_COUNT]'
+      - '[BACK_TO_OR_CLOSE] home'
 
   deny:
     material: RED_STAINED_GLASS_PANE

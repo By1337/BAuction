@@ -2,7 +2,11 @@ package org.by1337.bmenu.menu;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.scheduler.BukkitTask;
@@ -73,14 +77,27 @@ public class MenuLoader implements Closeable {
 
     private void resourceLeakDetectorTick() {
         for (RegisteredListener listener : InventoryCloseEvent.getHandlerList().getRegisteredListeners()) {
-            if (listener.getListener() instanceof AsyncClickListener asyncClickListener){
+            if (listener.getListener() instanceof AsyncClickListener asyncClickListener) {
                 if (
                         (asyncClickListener.getViewer().getOpenInventory().getTopInventory() != asyncClickListener.getInventory()) ||
-                                !asyncClickListener.getViewer().isOnline()
-                ){
+                        !asyncClickListener.getViewer().isOnline()
+                ) {
                     BMenuApi.getMessage().error("[ResourceLeakDetector] Detected unused menu " + asyncClickListener);
                     asyncClickListener.close();
+                    asyncClickListener.getViewer().closeInventory(InventoryCloseEvent.Reason.PLUGIN);
                 }
+            }
+        }
+    }
+
+    @EventHandler
+    public void on(InventoryCloseEvent event) {
+        for (ItemStack itemStack : event.getPlayer().getInventory()) {
+            if (itemStack == null) continue;
+            ItemMeta im = itemStack.getItemMeta();
+            if (im == null) continue;
+            if (im.getPersistentDataContainer().has(MenuItemBuilder.MENU_ITEM_KEY, PersistentDataType.INTEGER)) {
+                event.getPlayer().getInventory().remove(itemStack);
             }
         }
     }
@@ -109,7 +126,7 @@ public class MenuLoader implements Closeable {
 
     @Override
     public void close() {
-        if (task != null){
+        if (task != null) {
             task.cancel();
         }
     }
