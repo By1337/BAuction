@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.assets.AssetsManager;
 import org.by1337.bauction.boost.Boost;
 import org.by1337.bauction.command.*;
@@ -25,7 +24,7 @@ import org.by1337.bauction.hook.impl.VaultHook;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.log.FileLogger;
 import org.by1337.bauction.log.PluginLogger;
-import org.by1337.bauction.menu2.*;
+import org.by1337.bauction.menu.*;
 import org.by1337.bauction.placeholder.PlaceholderHook;
 import org.by1337.bauction.search.TrieManager;
 import org.by1337.bauction.util.*;
@@ -47,7 +46,6 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.logging.Level;
 
 public final class Main extends JavaPlugin {
     public static final boolean IS_RELEASE = false;

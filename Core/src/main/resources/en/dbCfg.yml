@@ -1,0 +1,54 @@
+# This file defines the parameters for the auction plugin operation on your server.
+# Let's examine each section in more detail for better understanding and configuration.
+# ## Choosing the Database Type
+# ```yaml
+# Database Type: file | mysql
+# db-type: file
+# ```
+# Specify the type of database to be used - `file` (local data storage) or `mysql` (MySQL operation).
+# Note that the `mysql` type only works for servers within the BungeeCord network.
+## MySQL Settings
+# If the `mysql` type is chosen, specify the connection parameters to the database:
+# ```yaml
+# mysql-settings:
+#   is-head: true  # Define whether this server is the head
+#   host: 'localhost'
+#   db-name: 'auction'
+#   user: 'root'
+#   password: ''
+#   port: 3306
+# ```
+# - `is-head: true` indicates that this server is the head server.
+#   The head server performs special functions, such as removing expired items from the auction.
+# - Additionally, consider possible conflicts when removing items
+#   if multiple servers declare themselves as heads. It is recommended to configure only one head server.
+## Unique ID Generator Settings
+# ```yaml
+# name-generator:
+#   last-seed: 1337
+# ```
+# These parameters are responsible for generating unique identifiers for items being sold and expired items.
+# - `last-seed` represents the last used seed for generating identifiers.
+#    Each time the plugin is launched, the seed increases by 1, ensuring uniqueness of identifiers.
+## Recommendations for MySQL
+# If you are using MySQL, it is recommended to:
+#   - Configure initial seeds for each server to avoid seed intersection.
+#     For example, the first server - 0, the second server - 10000, and so on, increasing by 10,000.
+#   - This will prevent possible seed collisions when listing items for sale between servers.
+## Notes and Warnings
+# - Note that the seed cannot be negative, and its value is limited from 0 to 2,147,483,648.
+# - Be careful when editing the configuration file to avoid losing changes made by the plugin.
+#   These settings will help you properly configure the auction plugin for optimal operation on your server.
+#   `server-id` - server ID, must be unique for all servers. Length restrictions 10 characters
+db-type: file
+mysql-settings:
+  is-head: true
+  host: 'localhost'
+  db-name: 'auction'
+  user: 'root'
+  password: ''
+  port: 3306
+
+server-id: 'server-1'
+name-generator:
+  last-seed: 1336

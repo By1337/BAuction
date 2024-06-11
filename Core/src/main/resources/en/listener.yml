@@ -1,0 +1,8 @@
+listeners:
+  default-listener:
+    event: sell_item # SELL_ITEM, BUY_ITEM, BUY_ITEM_COUNT, TAKE_ITEM, EXPIRED_ITEM, BUY_ITEM_TO_SELLER, BUY_ITEM_COUNT_SELLER
+    commands:
+      - '[SOUND] UI_BUTTON_CLICK'
+      # - '[MESSAGE] <gradient:#00E8FC:#9AF6FC>Message to player'
+      # - '[CONSOLE] say %player_name% has listed a new item for sale'
+      # - '[PLAYER] msg %player_name% command executed on behalf of player'

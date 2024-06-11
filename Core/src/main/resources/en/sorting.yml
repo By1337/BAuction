@@ -1,0 +1,233 @@
+# Item sorting
+# type - COMPARE_MAX or COMPARE_MIN, max - items will be sorted in descending order of value, min - vice versa
+# value - the value by which items are sorted, must be a number
+# selected-name - when this sorting is selected, unselected-name - when another sorting is selected
+# priority - the order in which the sorting options appear in the list
+sorting:
+  sorting-1:
+    name: sorting-5
+    type: COMPARE_MAX
+    value: '{sale_time}'
+    selected-name: '&r  &6✔ Newest first'
+    unselected-name: '&r&7⏺ Newest first'
+    priority: 0
+
+  sorting-2:
+    name: sorting-6
+    type: COMPARE_MIN
+    value: '{sale_time}'
+    selected-name: '&r  &6✔ Oldest first'
+    unselected-name: '&r&7⏺ Oldest first'
+    priority: 1
+
+  sorting-3:
+    name: sorting-1
+    type: COMPARE_MAX
+    value: '{price}'
+    selected-name: '&r  &6✔ Most expensive first'
+    unselected-name: '&r&7⏺ Most expensive first'
+    priority: 2
+
+  sorting-4:
+    name: sorting-2
+    type: COMPARE_MIN
+    value: '{price}'
+    selected-name: '&r  &6✔ Least expensive first'
+    unselected-name: '&r&7⏺ Least expensive first'
+    priority: 3
+
+  sorting-5:
+    name: sorting-3
+    type: COMPARE_MAX
+    value: '{price_for_one}'
+    selected-name: '&r  &6✔ Most expensive per unit first'
+    unselected-name: '&r&7⏺ Most expensive per unit first'
+    priority: 4
+
+  sorting-6:
+    name: sorting-4
+    type: COMPARE_MIN
+    value: '{price_for_one}'
+    selected-name: '&r  &6✔ Least expensive per unit first'
+    unselected-name: '&r&7⏺ Least expensive per unit first'
+    priority: 5
+
+
+
+
+# Each item receives tags for sorting
+# All tags are written in lowercase
+# Tags include
+#   - Material
+#   - All enchantments
+#   - All potion effects
+#   - And several special ones
+# List of special tags
+#   - isflammable - Check if the material is a block and if it can catch fire.
+#   - isburnable - Check if the material is a block and if it can burn.
+#   - isfuel - Check if this material can be used as fuel in a furnace.
+#   - hasgravity - Check if this material is affected by gravity.
+#   - issolid - Check if the material is a block and solid (can be built on)
+#   - isrecord - Check if this material is a playable music disc.
+#   - isedible - Check if this material is edible.
+#   - isblock - Check if this material is a placeable block.
+#   - any - Any item
+
+special:
+  # This is a category for the /ah search <> command. It will only appear if the player enters this command
+  search:
+    name: search
+    selected-name: '&r  &6✔ Search  &8(&7{custom_category_size} items&8)'
+    unselected-name: '&r&7⏺ Search  &8(&7{custom_category_size} items&8)'
+    priority: 0 # priority affects the order in which categories will appear
+    tags: [ ] # Tags will be added automatically
+  # All categories below can be modified as desired; the plugin is not tied to their keys
+categories:
+  any:
+    name: any
+    selected-name: '&r  &6✔ All items &8(&7%bauction_ah_size_any% items&8)'
+    unselected-name: '&r&7⏺ All items &8(&7%bauction_ah_size_any% items&8)'
+    priority: 1
+    tags:
+      - 'any'
+  tools:
+    name: tools
+    selected-name: '&r  &6✔ Tools &8(&7%bauction_ah_size_tools% items&8)'
+    unselected-name: '&r&7⏺ Tools &8(&7%bauction_ah_size_tools% items&8)'
+    priority: 2
+    tags:
+      - 'is_tool'
+  weapon:
+    name: weapon
+    selected-name: '&r  &6✔ Weapons &8(&7%bauction_ah_size_weapon% items&8)'
+    unselected-name: '&r&7⏺ Weapons &8(&7%bauction_ah_size_weapon% items&8)'
+    priority: 3
+    tags:
+      - 'is_weapon'
+  blocks:
+    name: blocks
+    selected-name: '&r  &6✔ Blocks &8(&7%bauction_ah_size_blocks% items&8)'
+    unselected-name: '&r&7⏺ Blocks &8(&7%bauction_ah_size_blocks% items&8)'
+    priority: 4
+    tags:
+      - 'is_block'
+  mechanisms:
+    name: mechanisms
+    selected-name: '&r  &6✔ Mechanisms &8(&7%bauction_ah_size_mechanisms% items&8)'
+    unselected-name: '&r&7⏺ Mechanisms &8(&7%bauction_ah_size_mechanisms% items&8)'
+    priority: 5
+    tags:
+      - 'tnt'
+      - 'fire_charge'
+      - 'sticky_piston'
+      - 'piston'
+      - 'tripwire_hook'
+      - 'rail'
+      - 'hopper'
+      - 'observer'
+      - 'tnt_minecart'
+      - 'redstone_torch'
+      - 'slime_block'
+      - 'chest_minecart'
+      - 'minecart'
+      - 'hopper_minecart'
+      - 'redstone'
+  alchemy:
+    name: alchemy
+    selected-name: '&r  &6✔ Alchemy &8(&7%bauction_ah_size_alchemy% items&8)'
+    unselected-name: '&r&7⏺ Alchemy &8(&7%bauction_ah_size_alchemy% items&8)'
+    priority: 6
+    tags:
+      - 'glass_bottle'
+      - 'redstone'
+      - 'golden_carrot'
+      - 'glowstone_dust'
+      - 'gunpowder'
+      - 'brown_mushroom'
+      - 'fermented_spider_eye'
+      - 'blaze_powder'
+      - 'scute'
+      - 'magma_cream'
+      - 'nether_wart'
+      - 'turtle_helmet'
+      - 'brewing_stand'
+      - 'phantom_membrane'
+      - 'red_mushroom'
+      - 'dragon_breath'
+      - 'sugar'
+      - 'glistering_melon_slice'
+      - 'ghast_tear'
+      - 'rabbit_foot'
+  food:
+    name: food
+    selected-name: '&r  &6✔ Food &8(&7%bauction_ah_size_food% items&8)'
+    unselected-name: '&r&7⏺ Food &8(&7%bauction_ah_size_food% items&8)'
+    priority: 7
+    tags:
+      - 'is_edible'
+  potions:
+    name: potions
+    selected-name: '&r  &6✔ Potions &8(&7%bauction_ah_size_potions% items&8)'
+    unselected-name: '&r&7⏺ Potions &8(&7%bauction_ah_size_potions% items&8)'
+    priority: 8
+    tags:
+      - 'potion'
+      - 'glass_bottle'
+      - 'splash_potion'
+      - 'lingering_potion'
+  enchanted:
+    name: enchanted
+    selected-name: '&r  &6✔ Enchantments &8(&7%bauction_ah_size_enchanted% items&8)'
+    unselected-name: '&r&7⏺ Enchantments &8(&7%bauction_ah_size_enchanted% items&8)'
+    priority: 9
+    tags:
+      - 'experience_bottle'
+      - 'enchanted_book'
+      - 'anvil'
+      - 'bookshelf'
+      - 'enchanting_table'
+  armor:
+    name: armor
+    selected-name: '&r  &6✔ Armor &8(&7%bauction_ah_size_armor% items&8)'
+    unselected-name: '&r&7⏺ Armor &8(&7%bauction_ah_size_armor% items&8)'
+    priority: 10
+    tags:
+      - 'is_armor'
+  unique_items:
+    name: unique_items
+    selected-name: '&r  &6✔ Unique Items &8(&7%bauction_ah_size_unique_items% items&8)'
+    unselected-name: '&r&7⏺ Unique Items &8(&7%bauction_ah_size_unique_items% items&8)'
+    priority: 11
+    tags:
+      - 'is_spawn_agg'
+      - 'spawner'
+  donat_items:
+    name: donat_items
+    selected-name: '&r  &6✔ Donation Items &8(&7%bauction_ah_size_donat_items% items&8)'
+    unselected-name: '&r&7⏺ Donation Items &8(&7%bauction_ah_size_donat_items% items&8)'
+    priority: 12
+    tags:
+      - 'is_spawn_agg'
+      - 'spawner'
+  jewelry:
+    name: jewelry
+    selected-name: '&r  &6✔ Jewelry &8(&7%bauction_ah_size_jewelry% items&8)'
+    unselected-name: '&r&7⏺ Jewelry &8(&7%bauction_ah_size_jewelry% items&8)'
+    priority: 12
+    tags:
+      - 'totem_of_undying'
+      - 'iron_ingot'
+      - 'ancient_debris'
+      - 'netherite_block'
+      - 'emerald_ore'
+      - 'enchanted_golden_apple'
+      - 'netherite_ingot'
+      - 'diamond'
+      - 'gold_block'
+      - 'gold_ore'
+      - 'netherite_scrap'
+      - 'end_crystal'
+      - 'lapis_lazuli'
+      - 'iron_block'
+      - 'diamond_block'
+      - 'iron_ore'

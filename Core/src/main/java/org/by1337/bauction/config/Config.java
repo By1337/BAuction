@@ -4,6 +4,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.by1337.bauction.boost.BoostManager;
 import org.by1337.bauction.util.Category;
+import org.by1337.bauction.util.ConfigUtil;
 import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.Sorting;
 import org.by1337.blib.configuration.YamlContext;
@@ -15,13 +16,8 @@ import java.util.Map;
 
 public class Config {
     private YamlContext message;
-    private File messageFile;
-
     private YamlContext sorting;
-    private File sortingFile;
-
     private YamlContext config;
-    private File configFile;
     private Map<NameKey, Sorting> sortingMap;
     private Map<NameKey, Category> categoryMap;
     private int maxSlots;
@@ -61,35 +57,15 @@ public class Config {
         logging = config.getAsBoolean("logging", false);
         homeMenu = config.getAsString("home-menu");
         playerItemsViewMenu = config.getAsString("player-items-view-menu");
-        lang = config.getAsString("lang", "en_us");
+        lang = config.getAsString("lang", "en");
 
     }
 
     public void loadConfigs(Plugin plugin) {
-        String basedir = plugin.getDataFolder().getPath();
-
-        messageFile = new File(basedir + "/message.yml");
-        if (!messageFile.exists()) {
-            plugin.saveResource("message.yml", true);
-        }
-        message = new YamlContext(YamlConfiguration.loadConfiguration(messageFile));
-
-        sortingFile = new File(basedir + "/sorting.yml");
-        if (!sortingFile.exists()) {
-            plugin.saveResource("sorting.yml", true);
-        }
-        sorting = new YamlContext(YamlConfiguration.loadConfiguration(sortingFile));
-
-        configFile = new File(basedir + "/config.yml");
-        if (!configFile.exists()) {
-            plugin.saveResource("config.yml", true);
-        }
-        config = new YamlContext(YamlConfiguration.loadConfiguration(configFile));
-
-        File readMe = new File(basedir + "/README.yml");
-        if (!readMe.exists()) {
-            plugin.saveResource("README.yml", true);
-        }
+        message = ConfigUtil.load("message.yml");
+        sorting = ConfigUtil.load("sorting.yml");
+        config = ConfigUtil.load("config.yml");
+        ConfigUtil.trySave("menu/README.yaml");
     }
 
 
@@ -124,6 +100,7 @@ public class Config {
     public BoostManager getBoostManager() {
         return boostManager;
     }
+
     public boolean isAllowBuyCount() {
         return allowBuyCount;
     }

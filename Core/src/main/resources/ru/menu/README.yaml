@@ -1,0 +1,83 @@
+item:
+  amount: 1
+  material: STONE # or basehead-<value>
+  lore:
+    - line
+    - line 2
+  item_flags: # all flags https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/inventory/ItemFlag.html
+    - HIDE_ENCHANTS
+    - HIDE_ATTRIBUTES
+  potion_effects:
+    - "speed;20;0" # <PotionEffectType>;<duration>;<amplifier>
+  hex: '#aabbcc' # если зелье, то можно указать цвет
+  enchantments:
+    - protection;1 # enchantmentid;level
+  hide_enchantments: true
+  hide_attributes: true
+  hide_effects: true
+  hide_unbreakable: true
+  unbreakable: true
+  model_data: 0
+  priority: 0
+  view_requirement:
+    requirements:
+      # если в type перед проверкой поставить ! то проверка будет работать на оборот
+      # например type: '!has permission' такая проверка сработает если игрок не имеет пермишена
+      check:
+        type: math
+        expression: '100 + 100 == 10 * (5 * 4)'
+      check-1:
+        type: string equals
+        input: 'str'
+        output: 'str'
+      check-2:
+        type: string equals ignorecase
+        input: 'str'
+        output: 'STR'
+      check-3:
+        type: string contains
+        input: 'str_str_str'
+        output: 'str'
+      check-4:
+        type: regex matches
+        regex: '^(str)\d+'
+        input: 'str88ing'
+      check-5:
+        type: has permission
+        permission: 'admin.use'
+    deny_commands:
+      - 'cmd'
+  any_click_requirement:
+    requirements:
+      # see view_requirement.requirements
+    commands:
+      - 'cmd'
+    deny_commands:
+      - 'cmd'
+  left_click_requirement:
+    requirements:
+    # see view_requirement.requirements
+  left_click_commands:
+    - 'cmd'
+  right_click_requirement:
+    requirements:
+    # see view_requirement.requirements
+  right_click_commands:
+    - 'cmd'
+  # остальное
+  # shift_left_click_commands shift_left_click_requirement
+  # shift_right_click_commands shift_right_click_requirement
+  # middle_click_commands middle_click_requirement
+  # drop_click_commands drop_click_requirement
+  # click_commands click_requirement
+  # number_key_0_click_commands number_key_0_click_requirement
+  # number_key_1_click_commands number_key_1_click_requirement
+  # number_key_2_click_commands number_key_2_click_requirement
+  # number_key_3_click_commands number_key_3_click_requirement
+  # number_key_4_click_commands number_key_4_click_requirement
+  # number_key_5_click_commands number_key_5_click_requirement
+  # number_key_6_click_commands number_key_6_click_requirement
+  # number_key_7_click_commands number_key_7_click_requirement
+  # number_key_8_click_commands number_key_8_click_requirement
+  # swap_offhand_click_commands swap_offhand_click_requirement
+  # control_drop_click_commands control_drop_click_requirement

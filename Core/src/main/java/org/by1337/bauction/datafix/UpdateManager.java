@@ -16,8 +16,6 @@ import org.by1337.bauction.datafix.db.mysql.MySqlDBUpdater1;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 
@@ -118,7 +116,7 @@ public class UpdateManager {
                 Main.getMessage().error(throwable);
             }
         } else if (version == 9) {
-            config.set("lang", "ru_ru");
+            config.set("lang", "ru");
             version++;
             run(version, config);
         } else if (version == 10) {

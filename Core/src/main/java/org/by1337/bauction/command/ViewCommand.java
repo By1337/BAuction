@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.menu2.PlayerItemsView;
+import org.by1337.bauction.menu.PlayerItemsView;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.CommandSyntaxError;
@@ -15,6 +15,7 @@ import org.by1337.blib.command.argument.Argument;
 import org.by1337.blib.command.argument.ArgumentMap;
 import org.by1337.blib.command.requires.RequiresPermission;
 import org.by1337.bmenu.menu.MenuLoader;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -38,18 +39,33 @@ public class ViewCommand extends Command<CommandSender> {
     private void execute(CommandSender sender, ArgumentMap<String, Object> args) throws CommandException {
         Player senderP = (Player) sender;
 
-        UUID uuid = (UUID) args.get("player");
-        if (uuid == null) {
+        Object uuid0 = args.get("player");
+
+        if (uuid0 == null) {
             Main.getMessage().sendMsg(sender, Lang.getMessage("player-not-selected"));
             return;
         }
 
-        if (!Main.getStorage().hasUser(uuid)) {
-            Main.getMessage().sendMsg(sender, Lang.getMessage("player-not-found"));
-            return;
+        UUID uuid;
+        if (uuid0 instanceof UUID uuid1) {
+            uuid = uuid1;
+        } else if (ArgumentOfflinePlayerUUID.isUUID(String.valueOf(uuid0))) {
+            uuid = UUID.fromString(String.valueOf(uuid0));
+        } else {
+            Player pl = Bukkit.getPlayerExact(String.valueOf(uuid0));
+            if (pl != null) {
+                uuid = pl.getUniqueId();
+            } else {
+                uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + uuid0).getBytes(Charsets.UTF_8));
+            }
         }
 
         User user = Main.getStorage().getUser(uuid);
+
+        if (user == null) {
+            Main.getMessage().sendMsg(sender, Lang.getMessage("player-not-found"));
+            return;
+        }
 
         var menu = menuLoader.getMenu(openMenu);
         Objects.requireNonNull(menu, "Menu " + openMenu + " not found!");
@@ -57,11 +73,7 @@ public class ViewCommand extends Command<CommandSender> {
         var m = menu.create(senderP, null);
         if (m instanceof PlayerItemsView playerItemsView) {
             playerItemsView.setUuid(uuid);
-            if (user != null) {
-                playerItemsView.setName(user.getNickName());
-            } else {
-                playerItemsView.setName(Bukkit.getOfflinePlayer(uuid).getName());
-            }
+            playerItemsView.setName(user.getNickName());
         }
         m.open();
     }
@@ -78,11 +90,11 @@ public class ViewCommand extends Command<CommandSender> {
         public Object process(CommandSender sender, String str) throws CommandSyntaxError {
             if (str == null || str.isEmpty()) return null;
             if (isUUID(str)) return UUID.fromString(str);
-
-            Player player = Bukkit.getPlayerExact(str);
-            if (player != null) return player.getUniqueId();
-
-            return UUID.nameUUIDFromBytes(("OfflinePlayer:" + str).getBytes(Charsets.UTF_8));
+            return str;
+//            Player player = Bukkit.getPlayerExact(str);
+//            if (player != null) return player.getUniqueId();
+//
+//            return UUID.nameUUIDFromBytes(("OfflinePlayer:" + str).getBytes(Charsets.UTF_8));
         }
 
         @Override

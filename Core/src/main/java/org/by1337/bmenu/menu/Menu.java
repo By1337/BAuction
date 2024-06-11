@@ -8,15 +8,13 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.action.BuyItemCountProcessV2;
-import org.by1337.bauction.action.BuyItemProcessV2;
-import org.by1337.bauction.action.TakeItemProcessV2;
-import org.by1337.bauction.action.TakeUnsoldItemProcessV2;
+import org.by1337.bauction.action.BuyItemCountProcess;
+import org.by1337.bauction.action.BuyItemProcess;
+import org.by1337.bauction.action.TakeItemProcess;
+import org.by1337.bauction.action.TakeUnsoldItemProcess;
 import org.by1337.bauction.api.auc.SellItem;
-import org.by1337.bauction.menu2.SelectCountMenu;
+import org.by1337.bauction.menu.SelectCountMenu;
 import org.by1337.bauction.util.CUniqueName;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
@@ -288,54 +286,54 @@ public abstract class Menu extends AsyncClickListener {
         commands.addSubCommand(new Command<Menu>("[BUY_ITEM_FULL]")
                 .argument(new ArgumentString<>("id"))
                 .executor((v, args) -> {
-                            BuyItemProcessV2 buyItemProcessV2;
+                            BuyItemProcess buyItemProcess;
                             if (args.containsKey("id")) {
                                 CUniqueName uniqueName = new CUniqueName((String) args.get("id"));
-                                buyItemProcessV2 = new BuyItemProcessV2(
+                                buyItemProcess = new BuyItemProcess(
                                         v,
                                         Main.getStorage().getUserOrCreate(v.viewer),
                                         Main.getStorage().getSellItem(uniqueName)
                                 );
                             } else {
-                                buyItemProcessV2 = new BuyItemProcessV2(v);
+                                buyItemProcess = new BuyItemProcess(v);
                             }
-                            buyItemProcessV2.run();
+                            buyItemProcess.run();
                         }
                 )
         );
         commands.addSubCommand(new Command<Menu>("[TAKE_ITEM]")
                 .argument(new ArgumentString<>("id"))
                 .executor((v, args) -> {
-                            TakeItemProcessV2 takeItemProcessV2;
+                            TakeItemProcess takeItemProcess;
                             if (args.containsKey("id")) {
                                 CUniqueName uniqueName = new CUniqueName((String) args.get("id"));
-                                takeItemProcessV2 = new TakeItemProcessV2(
+                                takeItemProcess = new TakeItemProcess(
                                         v,
                                         Main.getStorage().getUserOrCreate(v.viewer),
                                         Main.getStorage().getSellItem(uniqueName)
                                 );
                             } else {
-                                takeItemProcessV2 = new TakeItemProcessV2(v);
+                                takeItemProcess = new TakeItemProcess(v);
                             }
-                            takeItemProcessV2.run();
+                            takeItemProcess.run();
                         }
                 )
         );
         commands.addSubCommand(new Command<Menu>("[TAKE_UNSOLD_ITEM]")
                 .argument(new ArgumentString<>("id"))
                 .executor((v, args) -> {
-                            TakeUnsoldItemProcessV2 takeUnsoldItemProcessV2;
+                            TakeUnsoldItemProcess takeUnsoldItemProcess;
                             if (args.containsKey("id")) {
                                 CUniqueName uniqueName = new CUniqueName((String) args.get("id"));
-                                takeUnsoldItemProcessV2 = new TakeUnsoldItemProcessV2(
+                                takeUnsoldItemProcess = new TakeUnsoldItemProcess(
                                         v,
                                         Main.getStorage().getUserOrCreate(v.viewer),
                                         Main.getStorage().getUnsoldItem(uniqueName)
                                 );
                             } else {
-                                takeUnsoldItemProcessV2 = new TakeUnsoldItemProcessV2(v);
+                                takeUnsoldItemProcess = new TakeUnsoldItemProcess(v);
                             }
-                            takeUnsoldItemProcessV2.run();
+                            takeUnsoldItemProcess.run();
                         }
                 )
         );
@@ -371,7 +369,7 @@ public abstract class Menu extends AsyncClickListener {
                             if (menu instanceof SelectCountMenu selectCountMenu) {
                                 int count = selectCountMenu.getCount();
                                 SellItem sellItem = selectCountMenu.getSellItem();
-                                BuyItemCountProcessV2 buyItemCount = new BuyItemCountProcessV2(selectCountMenu, sellItem, count);
+                                BuyItemCountProcess buyItemCount = new BuyItemCountProcess(selectCountMenu, sellItem, count);
                                 buyItemCount.run();
                             } else {
                                 Main.getMessage().error("The [BUY_COUNT] command can only be called from selectCount selectCount! It is allowed to open other menus on top of selectCount");

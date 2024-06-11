@@ -1,0 +1,44 @@
+menu_title: "&7Active Listings ({current_page}/{max_page})"
+size: 54
+type: CHEST
+
+provider: itemsForSale
+id: itemsForSale
+
+items-slots:
+  - 0-44
+
+item:
+  lore:
+    - '&r '
+    - '&#5AD9FB&n▌&r &fSeller: &#5AD9FB{seller_name}'
+    - '&#5AD9FB&n▌&r &fPrice: &#5AD9FB{price_format}'
+    - '&#5AD9FB&n▌&r &fExpires: &#5AD9FB{expires}'
+    - '&#5AD9FB▌&r &fSale by the piece: &#5AD9FB{sale_by_the_piece_format}'
+    - '&r '
+    - '&#5AD9FB▌&r &fTo remove from sale, click &#5AD9FBleft mouse button'
+  click_commands:
+    - '[TAKE_ITEM]'
+
+items:
+  back:
+    material: NETHER_STAR
+    slot: 45
+    display_name: "<gradient:#00E8FC:#9AF6FC>◀ Back to Main Menu"
+    lore: []
+    click_commands:
+      - '[BACK_OR_CLOSE]'
+  previous_page:
+    material: ARROW
+    slot: 48
+    display_name: "<gradient:#00E8FC:#9AF6FC>◀ Previous Page"
+    lore: []
+    click_commands:
+      - '[PREVIOUS_PAGE]'
+  next_page:
+    material: ARROW
+    slot: 50
+    display_name: "<gradient:#00E8FC:#9AF6FC>Next Page ▶"
+    lore: []
+    click_commands:
+      - '[NEXT_PAGE]'

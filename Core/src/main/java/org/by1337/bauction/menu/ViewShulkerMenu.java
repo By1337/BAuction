@@ -1,4 +1,4 @@
-package org.by1337.bauction.menu2;
+package org.by1337.bauction.menu;
 
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.entity.Player;

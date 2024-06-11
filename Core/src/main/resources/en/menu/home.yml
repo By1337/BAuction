@@ -1,0 +1,190 @@
+menu_title: "&7Auction ({current_page}/{max_page})"
+size: 54
+type: CHEST
+provider: home
+id: home
+
+items-slots:
+  - 0-44
+
+if-shulker:
+  lore:
+    - '&#5AD9FB&n▌&r &fPress &#5AD9FBShift + Right Click'
+    - '&#5AD9FB▌&r &fto view the shulker contents'
+    - '&r '
+  shift_right_click_commands:
+    - '[OPEN_MENU] viewShulker'
+
+if-admin:
+  lore:
+    - '&#5AD9FB&n▌&r &fPress &#5AD9FBMiddle Click'
+    - '&#5AD9FB▌&r &fto &cdelete&f this item'
+    - '&r '
+  middle_click_commands:
+    - '[REMOVE_SELL_ITEM]'
+
+selling-item-one:
+  lore:
+    - '&r '
+    - '&#5AD9FB&n▌&r &fSeller: &#5AD9FB{seller_name}'
+    - '&#5AD9FB&n▌&r &fPrice: &#5AD9FB{price_format}'
+    - '&#5AD9FB▌&r &fExpires: &#5AD9FB{expires}'
+    - '&r '
+  left_click_commands:
+    - '[OPEN_MENU] confirmBuyItem'
+  shift_left_click_commands:
+    - '[BUY_ITEM_FULL]'
+
+take-item:
+  lore:
+    - '&r '
+    - '&#5AD9FB&n▌&r &fSeller: &#5AD9FB{seller_name}'
+    - '&#5AD9FB&n▌&r &fPrice: &#5AD9FB{price_format}'
+    - '&#5AD9FB&n▌&r &fExpires: &#5AD9FB{expires}'
+    - '&#5AD9FB▌&r &fSale by piece: &#5AD9FB{sale_by_the_piece_format}'
+    - '&r '
+    - '&#5AD9FB▌&r &fPress &#5AD9FBLeft Click'
+    - '&#5AD9FB▌&r &fto take the item'
+  left_click_commands:
+    - '[TAKE_ITEM]'
+  shift_left_click_commands:
+    - '[TAKE_ITEM]'
+
+selling-item:
+  lore:
+    - '&r '
+    - '&#5AD9FB&n▌&r &fSeller: &#5AD9FB{seller_name}'
+    - '&#5AD9FB&n▌&r &fPrice: &#5AD9FB{price_format}'
+    - '&#5AD9FB&n▌&r &fPrice per piece: &#5AD9FB{price_for_one_format}'
+    - '&#5AD9FB▌&r &fExpires: &#5AD9FB{expires}'
+    - '&r '
+    - '&#5AD9FB▌&r &fPress &#5AD9FBLeft Click'
+    - '&#5AD9FB▌&r &fto buy all'
+    - '&#5AD9FB▌&r &fPress &#5AD9FBRight Click'
+    - '&#5AD9FB▌&r &fto buy by count'
+  left_click_commands:
+    - '[OPEN_MENU] confirmBuyItem'
+  shift_left_click_commands:
+    - '[BUY_ITEM_FULL]'
+  right_click_commands:
+    - '[OPEN_MENU] buyCount'
+
+selling-item-only-full:
+  lore:
+    - '&r '
+    - '&#5AD9FB&n▌&r &fSeller: &#5AD9FB{seller_name}'
+    - '&#5AD9FB&n▌&r &fPrice: &#5AD9FB{price_format}'
+    - '&#5AD9FB▌&r &fExpires: &#5AD9FB{expires}'
+    - '&r '
+    - '&#5AD9FB▌&r &fThe seller &#ABF0FAhas restricted &fthe purchase'
+    - '&#5AD9FB▌&r &fquantity of the item.'
+    - '&#5AD9FB▌&r &fYou can only buy in full.'
+  left_click_commands:
+    - '[OPEN_MENU] confirmBuyItem'
+  right_click_commands:
+    - '[OPEN_MENU] confirmBuyItem'
+  shift_left_click_commands:
+    - '[BUY_ITEM_FULL]'
+  shift_right_click_commands:
+    - '[BUY_ITEM_FULL]'
+items:
+  selling-item:
+    material: ENDER_CHEST
+    slot: 45
+    amount: 1
+    display_name: "&bActive Items for Sale"
+    lore:
+      - '&r'
+      - '&r  &7Click to view'
+      - '&r  &7a list of your items'
+      - '&r  &7currently on sale'
+      - '&r'
+      - '&7* &6Items for Sale: &b{selling_item_count}'
+    click_commands:
+      - '[OPEN_MENU] itemsForSale'
+
+  not-sold-item:
+    material: CHEST
+    slot: 46
+    amount: 1
+    display_name: "&bUnsold Items"
+    lore:
+      - '&r'
+      - '&r  &7Click to view'
+      - '&r  &7a list of your items'
+      - '&r  &7that have not been sold'
+      - '&r'
+      - '&7* &6Unsold Items: &b{not_sold_item_count}'
+    click_commands:
+      - '[OPEN_MENU] unsoldItems'
+
+  update-menu:
+    material: EMERALD
+    slot: 47
+    amount: 1
+    display_name: "&bRefresh Auction"
+    lore: [ ]
+    click_commands:
+      - '[REFRESH]'
+
+  previous-page:
+    material: ARROW
+    slot: 48
+    amount: 1
+    display_name: "&b<- Previous Page"
+    lore: [ ]
+    click_commands:
+      - '[PREVIOUS_PAGE]'
+
+  next-page:
+    material: ARROW
+    slot: 50
+    amount: 1
+    display_name: "&bNext Page ->"
+    lore: [ ]
+    click_commands:
+      - '[NEXT_PAGE]'
+
+  info:
+    material: PAPER
+    slot: 51
+    amount: 1
+    display_name: "&bHow to Sell Items"
+    lore:
+      - '&r'
+      - '&r &7To list items for sale,'
+      - '&r &7simply type the command:'
+      - '&r &6/ah sell <price>'
+      - '&r'
+      - '&r &7If you want to list items'
+      - '&r &7without the option to buy individually:'
+      - '&r &6/ah sell <price> full'
+      - '&r'
+      - '&r &7To find a specific item,'
+      - '&r &7use the command:'
+      - '&r &6/ah search <item name>'
+      - '&r'
+
+  sorting:
+    material: HOPPER
+    slot: 52
+    amount: 1
+    display_name: "&bSorting"
+    lore:
+      - '{sorting}'
+    left_click_commands:
+      - '[SORTING_NEXT]'
+    right_click_commands:
+      - '[SORTING_PREVIOUS]'
+
+  categories:
+    material: CHEST_MINECART
+    slot: 53
+    amount: 1
+    display_name: "&bItem Categories"
+    lore:
+      - '{categories}'
+    left_click_commands:
+      - '[CATEGORIES_NEXT]'
+    right_click_commands:
+      - '[CATEGORIES_PREVIOUS]'

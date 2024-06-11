@@ -1,0 +1,76 @@
+messages:
+  successful_loading: "Successfully loaded %s items in %s ms."
+  plugin_reload: "&#0dfb00» &fPlugin successfully reloaded in %s ms."
+  must_be_player: "You must be a player!"
+  item_in_hand_required: "&#fb093c» &fYou must have an item in your hand"
+  price_tag: "[price]"
+  quantity_tag: "[quantity]"
+  sale_time_tag: "[sale time]"
+  successful_listing: "&#0dfb00» &fYou successfully listed %s items for sale in %s milliseconds!"
+  cannot_trade_air: "&#fb093c» &fYou cannot trade air!"
+  successful_single_listing: "&#0dfb00» &fYou successfully listed an item for sale!"
+  tags_required: "&#fb093c» &fSpecify tags!"
+  start_entering_item_name: "start entering the item name"
+  auction_item_limit_reached: "&#fb093c» &fYou have reached the limit for the number of items on auction!"
+  error_occurred: "&#fb093c» &fAn error occurred!"
+  not_item_owner: "&#fb093c» &fYou are not the owner of the item!"
+  item_already_sold_or_removed: "&#fb093c» &fThe item has already been sold or removed from sale!"
+  item_not_found: "&#fb093c» &fIt seems that the item no longer exists!"
+  item_owner: "&#fb093c» &fYou are the owner of the item!"
+  quantity_limit_exceeded: "&#fb093c» &fSomeone bought part of the stock, and you can no longer buy this item in such quantity!"
+  successful_item_retrieval: "&#0dfb00» &fYou successfully retrieved your item!"
+  insufficient_balance: "&#fb093c» &fYou do not have enough balance to purchase the item!"
+  item_sold_to_buyer: "&#0dfb00» &fPlayer {buyer_name} bought '{item_name}&f' from you for {price}!"
+  successful_purchase: "&#0dfb00» &fYou successfully purchased '{item_name}&f' in quantity x{amount}!"
+  something_went_wrong: "&#fb093c» &fSomething went wrong!"
+  price_not_specified: "&#fb093c» &fYou must specify the price!"
+  insufficient_balance_for_purchase: "&#fb093c» &fYou do not have enough balance to purchase at least one item!"
+  item_no_longer_exists: "&#fb093c» &fIt seems this item no longer exists"
+  has_no_external_time: 'none'
+  player-not-found: '&#fb093c» &fPlayer not found!'
+  player-not-selected: '&#fb093c» &fYou must specify a player!'
+  auc-clear-confirm: '&#fb093c» &fAre you sure you want to clear the auction?'
+  auc-cleared: '&#0dfb00» &fAuction cleared!'
+  count-req: '&#fb093c» &fSpecify a number to sell a certain quantity of items!'
+  sale-by-the-piece-format-off: 'disabled'
+  sale-by-the-piece-format-on: 'enabled'
+  item-in-black-list: '&#fb093c» &fYou cannot list "{item_name}&f" for sale!'
+  update-msg-raw: '["",{"text":"[Bauction]","color":"green"},{"text":" A new version of the plugin is out! "},{"text":"Current ''"},{"text":"%s","color":"red"},{"text":"'', new ''"},{"text":"%s","color":"green"},{"text":"''","color":"#6AAB73"},{"text":"\n"},{"text":"[Bauction]","color":"green"},{"text":" Download link "},{"text":"%s","italic":true,"color":"aqua","clickEvent":{"action":"open_url","value":"%s"},"hoverEvent":{"action":"show_text","contents":"%s"}}]'
+  item-size-limit: '&#fb093c» &fYou cannot list this item for sale!'
+  online-seller: '&aonline'
+  offline-seller: '&coffline'
+time-format:
+  ago: 'ago'
+  in: 'in'
+  just-now: 'Just now'
+  formats:
+    years: '%years% %months%'
+    months: '%months% %days%'
+    days: '%days% %hours%'
+    hours: '%hours% %minutes%'
+    minutes: '%minutes% %seconds%'
+    seconds: '%seconds%'
+  years:
+    form-1: 'year'
+    form-2: 'years'
+    form-5: 'years'
+  months:
+    form-1: 'month'
+    form-2: 'months'
+    form-5: 'months'
+  days:
+    form-1: 'day'
+    form-2: 'days'
+    form-5: 'days'
+  hours:
+    form-1: 'hour'
+    form-2: 'hours'
+    form-5: 'hours'
+  minutes:
+    form-1: 'minute'
+    form-2: 'minutes'
+    form-5: 'minutes'
+  seconds:
+    form-1: 'second'
+    form-2: 'seconds'
+    form-5: 'seconds'

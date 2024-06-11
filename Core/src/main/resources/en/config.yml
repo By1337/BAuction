@@ -1,0 +1,51 @@
+version: 11 # DO NOT CHANGE
+# List of boosts
+boosts: # it's a list
+  - name: donat-1 # name (can be any)
+    permission: 'auc.boost.donat1' # permission used to determine the presence of the boost
+    external-slots: 2 # additional slots
+    external-sell-time: '1d' # additional sell time
+    # (next boost below)
+  - name: unlimited-slots
+    permission: 'bauc.unlimited.slots'
+    external-slots: 999999
+    external-sell-time: '0'
+
+  - name: unlimited-sell-time
+    permission: 'bauc.unlimited.sell-time'
+    external-slots: 0
+    external-sell-time: '10y'
+
+lang: 'en_us' # The plugin loads item names, full list of supported languages https://github.com/InventivetalentDev/minecraft-assets/tree/1.16.5/assets/minecraft/lang
+home-menu: 'home' # id of the menu opened by the /ah command
+player-items-view-menu: 'playerItemsView'
+default-slots: 10
+logging: false # whether to enable trade logging.
+# Limit on the size of an item, if the item weighs more, it cannot be listed on the auction
+item-max-size: 70000
+# The plugin will compress the item if it weighs more than {compress-if-more-than} bytes.
+compress-if-more-than: 30000
+# If after compression the item fits into {item-max-size}, then the next limit is checked
+# Normal item size with a large number of hexes is less than 10k bytes.
+# For shulkers, it is less than 100k bytes. But these are still very large items.
+maximum-uncompressed-item-size: 350000
+
+allow-buy-count: true
+
+# Default offer lifetime. Time can be specified using: 1s1m1h1d1w1mo1y
+default-offer-time: '2d'
+
+offer-min-price: 10
+offer-max-price: 100000000
+
+economy: 'Vault' # Vault | PlayerPoints | BVault (https://github.com/By1337/BVault)
+BVault-setting:
+  current-bank: vault
+
+remove-expired-items:
+  enable: true # Should expired items be removed?
+  time: '2d' # If yes, then after how long
+
+# Here you need to specify the tags
+black-list:
+  - 'debug_stick'

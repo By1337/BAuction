@@ -1,0 +1,14 @@
+menu_title: "&7Shulker View"
+size: 35
+type: CHEST
+provider: viewShulker
+id: viewShulker
+
+items:
+  categories:
+    material: BARRIER
+    slot: 31
+    amount: 1
+    display_name: "&cBack"
+    click_commands:
+      - '[BACK_OR_CLOSE]'

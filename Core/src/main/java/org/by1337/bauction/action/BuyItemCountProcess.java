@@ -20,13 +20,13 @@ import org.by1337.blib.chat.placeholder.Placeholder;
 import org.by1337.bmenu.menu.Menu;
 import org.jetbrains.annotations.Nullable;
 
-public class BuyItemCountProcessV2 extends Placeholder {
+public class BuyItemCountProcess extends Placeholder {
     private final Menu menu;
     private final User buyer;
     private @Nullable final SellItem buyingItem;
     private final int count;
 
-    public BuyItemCountProcessV2(Menu menu, @Nullable SellItem buyingItem, int count) {
+    public BuyItemCountProcess(Menu menu, @Nullable SellItem buyingItem, int count) {
         this.menu = menu;
         this.buyer = Main.getStorage().getUserOrCreate(menu.getPlayer());
         this.buyingItem = buyingItem;

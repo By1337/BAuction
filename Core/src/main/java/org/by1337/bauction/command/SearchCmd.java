@@ -5,14 +5,13 @@ import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.menu2.HomeMenu;
+import org.by1337.bauction.menu.HomeMenu;
 import org.by1337.bauction.util.Category;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.argument.ArgumentMap;
 import org.by1337.blib.command.argument.ArgumentStrings;
 import org.by1337.blib.command.requires.RequiresPermission;
-import org.by1337.bmenu.menu.Menu;
 import org.by1337.bmenu.menu.MenuLoader;
 
 import java.util.ArrayList;

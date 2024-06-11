@@ -1,4 +1,4 @@
-package org.by1337.bauction.menu2;
+package org.by1337.bauction.menu;
 
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.Player;
@@ -17,7 +17,6 @@ import org.by1337.bmenu.menu.click.ClickType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 public class HomeMenu extends Menu {
     private static final Command<HomeMenu> HOME_MENU_COMMAND;

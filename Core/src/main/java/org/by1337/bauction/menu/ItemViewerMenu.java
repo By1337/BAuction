@@ -1,10 +1,9 @@
-package org.by1337.bauction.menu2;
+package org.by1337.bauction.menu;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.ItemHolder;
-import org.by1337.bauction.lang.Lang;
 import org.by1337.blib.chat.placeholder.Placeholder;
 import org.by1337.blib.command.CommandException;
 import org.by1337.bmenu.menu.Menu;

@@ -1,4 +1,4 @@
-package org.by1337.bauction.menu2;
+package org.by1337.bauction.menu;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;

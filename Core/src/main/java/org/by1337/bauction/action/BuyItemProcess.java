@@ -17,16 +17,15 @@ import org.by1337.bauction.util.PlayerUtil;
 import org.by1337.blib.chat.placeholder.BiPlaceholder;
 import org.by1337.blib.chat.placeholder.Placeholder;
 import org.by1337.bmenu.menu.Menu;
-import org.by1337.bmenu.menu.MenuItem;
 import org.jetbrains.annotations.Nullable;
 
-public class BuyItemProcessV2 extends Placeholder {
+public class BuyItemProcess extends Placeholder {
     private final Menu menu;
     private final User buyer;
     private @Nullable
     final SellItem buyingItem;
 
-    public BuyItemProcessV2(Menu menu, User buyer, @Nullable SellItem buyingItem) {
+    public BuyItemProcess(Menu menu, User buyer, @Nullable SellItem buyingItem) {
         this.menu = menu;
         this.buyer = buyer;
         this.buyingItem = buyingItem;
@@ -37,7 +36,7 @@ public class BuyItemProcessV2 extends Placeholder {
 
     }
 
-    public BuyItemProcessV2(Menu menu) {
+    public BuyItemProcess(Menu menu) {
         this.menu = menu;
         this.buyer = Main.getStorage().getUserOrCreate(menu.getPlayer());
         if (menu.getLastClickedItem() != null && menu.getLastClickedItem().getData() instanceof SellItem) {
@@ -94,7 +93,7 @@ public class BuyItemProcessV2 extends Placeholder {
 
     @Override
     public String toString() {
-        return "BuyItemProcessV2{" +
+        return "BuyItemProcess{" +
                 "menu=" + menu +
                 ", buyer=" + buyer +
                 ", buyingItem=" + buyingItem +

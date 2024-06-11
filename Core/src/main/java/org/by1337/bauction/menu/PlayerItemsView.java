@@ -1,9 +1,8 @@
-package org.by1337.bauction.menu2;
+package org.by1337.bauction.menu;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.util.TagUtil;
-import org.by1337.blib.command.CommandException;
 import org.by1337.bmenu.menu.Menu;
 import org.by1337.bmenu.menu.MenuLoader;
 import org.by1337.bmenu.menu.MenuSetting;
@@ -27,6 +26,7 @@ public class PlayerItemsView extends HomeMenu {
 
     public void setName(String name) {
         this.name = name;
+        registerPlaceholder("{user_name}", () -> String.valueOf(this.name));
     }
 
     private void init(){

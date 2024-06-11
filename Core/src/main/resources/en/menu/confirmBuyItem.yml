@@ -1,0 +1,50 @@
+menu_title: "&7Confirmation"
+type: CHEST
+size: 27
+id: confirmBuyItem
+provider: itemViewer
+
+item:
+  slot: 13
+  lore:
+    - '&r '
+    - '&#5AD9FB&n▌&r &fSeller: &#5AD9FB{seller_name}'
+    - '&#5AD9FB&n▌&r &fPrice: &#5AD9FB{price_format}'
+    - '&#5AD9FB▌&r &fExpires: &#5AD9FB{expires}'
+    - '&r '
+    - '&#5AD9FB▌&r &fClick to buy'
+  click_commands:
+    - '[BUY_ITEM_FULL]'
+    - '[BACK_OR_CLOSE]'
+
+items:
+  accept:
+    material: LIME_STAINED_GLASS_PANE
+    slots:
+      - 0-3
+      - 9-12
+      - 18-21
+    display_name: "&aConfirm"
+    lore: [ ]
+    click_commands:
+      - '[BUY_ITEM_FULL] {id}'
+      - '[BACK_OR_CLOSE]'
+
+  deny:
+    material: RED_STAINED_GLASS_PANE
+    slots:
+      - 5-8
+      - 14-17
+      - 23-26
+    display_name: "&cDecline"
+    lore: [ ]
+    click_commands:
+      - '[BACK_OR_CLOSE]'
+
+  decor:
+    material: BLACK_STAINED_GLASS_PANE
+    slots:
+      - 4
+      - 22
+    display_name: " "
+    lore: [ ]

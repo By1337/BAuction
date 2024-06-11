@@ -2,9 +2,7 @@ package org.by1337.bauction.datafix.db.mysql;
 
 import org.bukkit.Material;
 import org.by1337.bauction.util.ConfigUtil;
-import org.by1337.bauction.util.DbCfg;
 import org.by1337.blib.configuration.YamlConfig;
-import org.by1337.blib.configuration.YamlContext;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.CSellItem;
 import org.by1337.bauction.util.CUniqueName;

@@ -2,11 +2,9 @@ package org.by1337.bauction.action;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.api.auc.SellItem;
+import org.by1337.bauction.api.auc.UnsoldItem;
 import org.by1337.bauction.api.auc.User;
-import org.by1337.bauction.db.event.TakeItemEvent;
-import org.by1337.bauction.db.kernel.CSellItem;
-
+import org.by1337.bauction.db.event.TakeUnsoldItemEvent;
 import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
 import org.by1337.bauction.lang.Lang;
@@ -16,41 +14,39 @@ import org.by1337.blib.chat.placeholder.Placeholder;
 import org.by1337.bmenu.menu.Menu;
 import org.jetbrains.annotations.Nullable;
 
-public class TakeItemProcessV2 extends Placeholder {
-    private final SellItem takingItem;
-    private final User taker;
+public class TakeUnsoldItemProcess extends Placeholder {
     private final Menu menu;
+    private final User taker;
+    private @Nullable
+    final UnsoldItem takingItem;
 
-    public TakeItemProcessV2(Menu menu, User taker, @Nullable SellItem takingItem) {
+    public TakeUnsoldItemProcess(Menu menu, User taker, @Nullable UnsoldItem takingItem) {
         this.menu = menu;
         this.taker = taker;
         this.takingItem = takingItem;
         if (takingItem != null) {
-            registerPlaceholder("{buyer_name}", taker::getNickName);
-            registerPlaceholders((CSellItem) takingItem);
+            registerPlaceholders((Placeholder) takingItem);
         }
-
     }
 
-    public TakeItemProcessV2(Menu menu) {
+    public TakeUnsoldItemProcess(Menu menu) {
         this.menu = menu;
         this.taker = Main.getStorage().getUserOrCreate(menu.getPlayer());
-        if (menu.getLastClickedItem() != null && menu.getLastClickedItem().getData() instanceof SellItem) {
-            takingItem = (SellItem) menu.getLastClickedItem().getData();
+        if (menu.getLastClickedItem() != null && menu.getLastClickedItem().getData() instanceof UnsoldItem) {
+            takingItem = (UnsoldItem) menu.getLastClickedItem().getData();
         } else {
             Main.getMessage().error("isn't sell item! Last clicked item='%s'", menu.getLastClickedItem());
             takingItem = null;
         }
-        registerPlaceholder("{taker_name}", taker::getNickName);
         if (takingItem != null)
-            registerPlaceholders((CSellItem) takingItem);
+            registerPlaceholders((Placeholder) takingItem);
     }
 
     public void run() {
         if (takingItem != null) {
             Player player = menu.getViewer();
 
-            TakeItemEvent event = new TakeItemEvent(taker, takingItem);
+            TakeUnsoldItemEvent event = new TakeUnsoldItemEvent(taker, takingItem);
             Main.getStorage().validateAndRemoveItem(event);
 
             if (event.isValid()) {
@@ -66,5 +62,13 @@ public class TakeItemProcessV2 extends Placeholder {
         }
         menu.refresh();
     }
-}
 
+    @Override
+    public String toString() {
+        return "TakeUnsoldItemProcess{" +
+                "menu=" + menu +
+                ", taker=" + taker +
+                ", takingItem=" + takingItem +
+                '}';
+    }
+}
