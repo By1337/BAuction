@@ -19,8 +19,13 @@ import org.by1337.bauction.util.CUniqueName;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.argument.ArgumentEnumValue;
+import org.by1337.blib.command.argument.ArgumentFloat;
 import org.by1337.blib.command.argument.ArgumentString;
 import org.by1337.blib.command.argument.ArgumentStrings;
+import org.by1337.blib.nbt.NBT;
+import org.by1337.blib.nbt.NBTParser;
+import org.by1337.blib.nbt.impl.ListNBT;
+import org.by1337.blib.nbt.impl.StringNBT;
 import org.by1337.bmenu.BMenuApi;
 import org.by1337.bmenu.menu.requirement.Requirements;
 import org.jetbrains.annotations.Nullable;
@@ -200,6 +205,24 @@ public abstract class Menu extends AsyncClickListener {
         return lastClickedItem;
     }
 
+    private static void runIn(String rawNBT, Menu menu){
+       if (rawNBT != null){
+           try {
+               ListNBT listNBT = (ListNBT) NBTParser.parseList(rawNBT);
+               List<String> list = new ArrayList<>();
+               for (NBT nbt : listNBT) {
+                   if (nbt instanceof StringNBT stringNBT){
+                       list.add(stringNBT.getValue());
+                   }else {
+                       throw new IllegalArgumentException(String.format("Input: '%s' expected StringNBT", nbt));
+                   }
+               }
+               menu.runCommands(list);
+           }catch (Throwable t){
+               BMenuApi.getMessage().error("Failed to parse commands \"%s\"", t, commands);
+           }
+       }
+    }
     static {
         commands = new Command<>("cmd");
         commands.addSubCommand(new Command<Menu>("[CONSOLE]")
@@ -220,9 +243,13 @@ public abstract class Menu extends AsyncClickListener {
         );
         commands.addSubCommand(new Command<Menu>("[SOUND]")
                 .argument(new ArgumentEnumValue<>("sound", Sound.class))
+                .argument(new ArgumentFloat<>("volume"))
+                .argument(new ArgumentFloat<>("pitch"))
                 .executor((v, args) -> {
+                            float volume = (float) args.getOrDefault("volume", 1F);
+                            float pitch = (float) args.getOrDefault("pitch", 1F);
                             Sound sound = (Sound) args.getOrThrow("sound");
-                            BMenuApi.getMessage().sendSound(Objects.requireNonNull(v.viewer, "player is null!"), sound);
+                            BMenuApi.getMessage().sendSound(Objects.requireNonNull(v.viewer, "player is null!"), sound, volume, pitch);
                         }
                 )
         );
@@ -230,9 +257,11 @@ public abstract class Menu extends AsyncClickListener {
                 .executor((v, args) -> AsyncClickListener.syncUtil(() -> Objects.requireNonNull(v.viewer, "player is null!").closeInventory()))
         );
         commands.addSubCommand(new Command<Menu>("[BACK_OR_CLOSE]")
+                .argument(new ArgumentStrings<>("commands"))
                 .executor((v, args) -> AsyncClickListener.syncUtil(() -> {
                     if (v.previousMenu != null) {
                         v.previousMenu.reopen();
+                        runIn((String) args.get("commands"), v.previousMenu);
                     } else {
                         Objects.requireNonNull(v.viewer, "player is null!").closeInventory();
                     }
@@ -240,6 +269,7 @@ public abstract class Menu extends AsyncClickListener {
         );
         commands.addSubCommand(new Command<Menu>("[BACK_TO_OR_CLOSE]")
                 .argument(new ArgumentString<>("id"))
+                .argument(new ArgumentStrings<>("commands"))
                 .executor((v, args) -> {
                     String id = (String) args.getOrThrow("id", "Use: [BACK_TO_OR_CLOSE] <id>");
                     AsyncClickListener.syncUtil(() -> {
@@ -250,6 +280,7 @@ public abstract class Menu extends AsyncClickListener {
                         }
                         if (m != null) {
                             m.reopen();
+                            runIn((String) args.get("commands"), m);
                         } else {
                             Objects.requireNonNull(v.viewer, "player is null!").closeInventory();
                         }
@@ -257,7 +288,12 @@ public abstract class Menu extends AsyncClickListener {
                 })
         );
         commands.addSubCommand(new Command<Menu>("[BACK]")
-                .executor((v, args) -> AsyncClickListener.syncUtil(() -> Objects.requireNonNull(v.previousMenu, "does not have a previous menu!").reopen()))
+                .argument(new ArgumentStrings<>("commands"))
+                .executor((v, args) -> {
+                    var m = Objects.requireNonNull(v.previousMenu, "does not have a previous menu!");
+                    m.reopen();
+                    runIn((String) args.get("commands"), m);
+                })
         );
         commands.addSubCommand(new Command<Menu>("[REFRESH]")
                 .executor((v, args) -> v.refresh())
@@ -272,6 +308,7 @@ public abstract class Menu extends AsyncClickListener {
         );
         commands.addSubCommand(new Command<Menu>("[OPEN_MENU]")
                 .argument(new ArgumentString<>("menu"))
+                .argument(new ArgumentStrings<>("commands"))
                 .executor((v, args) -> {
                             String menu = (String) args.getOrThrow("menu", "User [OPEN_MENU] <menu id>");
                             var settings = v.menuLoader.getMenu(menu);
@@ -280,6 +317,7 @@ public abstract class Menu extends AsyncClickListener {
                             }
                             var m = settings.create(v.viewer, v);
                             m.open();
+                            runIn((String) args.get("commands"), m);
                         }
                 )
         );

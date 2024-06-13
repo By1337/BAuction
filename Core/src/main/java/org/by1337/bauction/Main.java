@@ -126,7 +126,7 @@ public final class Main extends JavaPlugin {
         });
 
         enablePipeline.enable("load cfg", () -> {
-            cfg = new Config(this);
+            cfg = new Config();
         });
         enablePipeline.enable("load assetsManager", () -> {
             assetsManager = new AssetsManager(this, cfg.getLang());

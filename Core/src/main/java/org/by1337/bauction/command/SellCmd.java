@@ -81,7 +81,7 @@ public class SellCmd  extends Command<CommandSender> {
         Main.getStorage().validateAndAddItem(event);
         if (event.isValid()) {
             player.getInventory().getItemInMainHand().setAmount(cashback);
-            Main.getMessage().sendMsg(player, sellItem.replace(Lang.getMessage("successful_single_listing")));
+            //Main.getMessage().sendMsg(player, sellItem.replace(Lang.getMessage("successful_single_listing")));
             Event event1 = new Event(player, EventType.SELL_ITEM, new BiPlaceholder(sellItem, user));
             Main.getEventManager().onEvent(event1);
         } else {

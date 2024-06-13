@@ -32,12 +32,12 @@ public class Config {
     private String playerItemsViewMenu;
     private String lang;
 
-    public Config(Plugin plugin) {
-        reload(plugin);
+    public Config( ) {
+        reload();
     }
 
-    public void reload(Plugin plugin) {
-        loadConfigs(plugin);
+    public void reload() {
+        loadConfigs();
         sortingMap = new LinkedHashMap<>();
         categoryMap = new LinkedHashMap<>();
         sorting.getMap("sorting", Sorting.class).values().stream().sorted(Sorting::compareTo).forEach(sorting1 -> sortingMap.put(sorting1.nameKey(), sorting1));
@@ -61,11 +61,11 @@ public class Config {
 
     }
 
-    public void loadConfigs(Plugin plugin) {
+    public void loadConfigs() {
         message = ConfigUtil.load("message.yml");
         sorting = ConfigUtil.load("sorting.yml");
         config = ConfigUtil.load("config.yml");
-        ConfigUtil.trySave("menu/README.yaml");
+        ConfigUtil.trySave("menu/README.yml1");
     }
 
 

@@ -12,7 +12,9 @@ import org.by1337.bauction.util.Sorting;
 import org.by1337.bauction.util.TagUtil;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
+import org.by1337.blib.command.argument.ArgumentString;
 import org.by1337.blib.util.CyclicList;
+import org.by1337.blib.util.NameKey;
 import org.by1337.bmenu.menu.*;
 import org.by1337.bmenu.menu.click.ClickType;
 import org.jetbrains.annotations.Nullable;
@@ -216,6 +218,21 @@ public class HomeMenu extends Menu {
                         .executor((menu, args) -> {
                             if (menu.currentPage > 0) {
                                 menu.currentPage--;
+                                menu.refresh();
+                            }
+                        })
+        );
+        HOME_MENU_COMMAND.addSubCommand(
+                new Command<HomeMenu>("[SET_CATEGORY]")
+                        .argument(new ArgumentString<>("category"))
+                        .executor((menu, args) -> {
+                            String categoryS = (String) args.getOrThrow("category");
+                            Category category = Main.getCfg().getCategoryMap().get(new NameKey(categoryS));
+                            int index = menu.getCategories().indexOf(category);
+                            if (index == -1) {
+                                Main.getMessage().warning("unknown category %s", categoryS);
+                            } else {
+                                menu.getCategories().current = index;
                                 menu.refresh();
                             }
                         })

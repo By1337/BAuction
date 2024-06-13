@@ -69,16 +69,15 @@ public class BuyItemProcess extends Placeholder {
                     Main.getEcon().depositPlayer(seller, buyingItem.getPrice());
                 }
                 if (seller.isOnline()) {
-                    Main.getMessage().sendMsg(seller.getPlayer(),
-                            replace(Lang.getMessage("item_sold_to_buyer")));
+                    //Main.getMessage().sendMsg(seller.getPlayer(), replace(Lang.getMessage("item_sold_to_buyer")));
                     Event event1 = new Event(seller.getPlayer(), EventType.BUY_ITEM_TO_SELLER, new BiPlaceholder(buyingItem, buyer));
                     Main.getEventManager().onEvent(event1);
                 } else if (Main.getStorage() instanceof MysqlDb mysqlDb) {
-                    mysqlDb.getPacketConnection().saveSend(new PacketSendMessage(
-                            replace(Lang.getMessage("item_sold_to_buyer")), buyingItem.getSellerUuid()
-                    ));
+//                    mysqlDb.getPacketConnection().saveSend(new PacketSendMessage(
+//                            replace(Lang.getMessage("item_sold_to_buyer")), buyingItem.getSellerUuid() // todo
+//                    ));
                 }
-                Main.getMessage().sendMsg(player, replace(Lang.getMessage("successful_purchase")));
+               // Main.getMessage().sendMsg(player, replace(Lang.getMessage("successful_purchase")));
                 PlayerUtil.giveItems(player, buyingItem.getItemStack());
                 Event event1 = new Event(player, EventType.BUY_ITEM, new BiPlaceholder(buyingItem, buyer));
                 Main.getEventManager().onEvent(event1);

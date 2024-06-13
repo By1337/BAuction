@@ -78,6 +78,7 @@ special:
     name: search
     selected-name: '&r  &6✔ Поиск  &8(&7{custom_category_size} шт.&8)'
     unselected-name: '&r&7⏺ Поиск  &8(&7{custom_category_size} шт.&8)'
+    display-name: 'Поиск'
     priority: 0 # приоритет он влияет на то в каком порядке будут категории
     tags: [ ] # Теги сами подставятся
   # Все категории ниже можно изменять как угодно плагин не привязан к их ключам

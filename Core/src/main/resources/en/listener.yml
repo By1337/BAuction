@@ -1,8 +1,45 @@
 listeners:
+  ############# EXAMPLE #############
   default-listener:
-    event: sell_item # SELL_ITEM, BUY_ITEM, BUY_ITEM_COUNT, TAKE_ITEM, EXPIRED_ITEM, BUY_ITEM_TO_SELLER, BUY_ITEM_COUNT_SELLER
+    event: sell_item # SELL_ITEM, BUY_ITEM, BUY_ITEM_COUNT, TAKE_ITEM, EXPIRED_ITEM, BUY_ITEM_TO_SELLER, BUY_ITEM_COUNT_SELLER, TAKE_UNSOLD_ITEM
     commands:
       - '[SOUND] UI_BUTTON_CLICK'
-      # - '[MESSAGE] <gradient:#00E8FC:#9AF6FC>Message to player'
-      # - '[CONSOLE] say %player_name% has listed a new item for sale'
-      # - '[PLAYER] msg %player_name% command executed on behalf of player'
+      # - '[MESSAGE] <gradient:#00E8FC:#9AF6FC>Player message'
+      # - '[CONSOLE] say %player_name% listed a new item for sale'
+      # - '[PLAYER] msg %player_name% command executed on behalf of the player'
+  ############# EXAMPLE #############
+
+  sell_item:
+    event: sell_item
+    commands:
+      - '[MESSAGE] &#0dfb00» &fYou have successfully listed &6{item_name}&f for sale!'
+
+  buy_item_count_seller:
+    event: BUY_ITEM_COUNT_SELLER
+    commands:
+      - '[MESSAGE] &#0dfb00» &fPlayer {buyer_name} bought &6{item_name}&f from you for {price}!'
+
+  buy_item_to_seller:
+    event: BUY_ITEM_TO_SELLER
+    commands:
+      - '[MESSAGE] &#0dfb00» &fPlayer {buyer_name} bought &6{item_name}&f from you for {price}!'
+
+  buy_item_count:
+    event: BUY_ITEM_COUNT
+    commands:
+      - '[MESSAGE] &#0dfb00» &fYou have successfully bought &6{item_name}&f in quantity x{amount}!'
+
+  buy_item:
+    event: BUY_ITEM
+    commands:
+      - '[MESSAGE] &#0dfb00» &fYou have successfully bought &6{item_name}&f in quantity x{amount}!'
+
+  take_item:
+    event: TAKE_ITEM
+    commands:
+      - '[MESSAGE] &#0dfb00» &fYou have successfully taken &6{item_name}&f off the auction'
+
+  take_unsold_item:
+    event: TAKE_UNSOLD_ITEM
+    commands:
+      - '[MESSAGE] &#0dfb00» &fYou have successfully retrieved the item!'

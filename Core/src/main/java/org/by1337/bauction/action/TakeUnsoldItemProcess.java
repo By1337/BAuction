@@ -50,9 +50,9 @@ public class TakeUnsoldItemProcess extends Placeholder {
             Main.getStorage().validateAndRemoveItem(event);
 
             if (event.isValid()) {
-                Main.getMessage().sendMsg(player, takingItem.replace(Lang.getMessage("successful_item_retrieval")));
+                // Main.getMessage().sendMsg(player, takingItem.replace(Lang.getMessage("successful_item_retrieval")));
                 PlayerUtil.giveItems(player, takingItem.getItemStack());
-                Event event1 = new Event(player, EventType.TAKE_ITEM, new BiPlaceholder(taker, takingItem));
+                Event event1 = new Event(player, EventType.TAKE_UNSOLD_ITEM, new BiPlaceholder(taker, takingItem));
                 Main.getEventManager().onEvent(event1);
             } else {
                 Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));

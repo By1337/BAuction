@@ -1,8 +1,45 @@
 listeners:
+  ############# EXAMPLE #############
   default-listener:
-    event: sell_item # SELL_ITEM, BUY_ITEM, BUY_ITEM_COUNT, TAKE_ITEM, EXPIRED_ITEM, BUY_ITEM_TO_SELLER, BUY_ITEM_COUNT_SELLER
+    event: sell_item # SELL_ITEM, BUY_ITEM, BUY_ITEM_COUNT, TAKE_ITEM, EXPIRED_ITEM, BUY_ITEM_TO_SELLER, BUY_ITEM_COUNT_SELLER, TAKE_UNSOLD_ITEM
     commands:
       - '[SOUND] UI_BUTTON_CLICK'
-     # - '[MESSAGE] <gradient:#00E8FC:#9AF6FC>Сообщение игроку'
-     # - '[CONSOLE] say %player_name% выставил новый предмет на продажу'
-     # - '[PLAYER] msg %player_name% команда выполнилась от имени игрока'
+      # - '[MESSAGE] <gradient:#00E8FC:#9AF6FC>Сообщение игроку'
+      # - '[CONSOLE] say %player_name% выставил новый предмет на продажу'
+      # - '[PLAYER] msg %player_name% команда выполнилась от имени игрока'
+  ############# EXAMPLE #############
+
+  sell_item:
+    event: sell_item
+    commands:
+      - '[MESSAGE] &#0dfb00» &fВы успешно выставили &6{item_name}&f предмет на продажу!'
+
+  buy_item_count_seller:
+    event: BUY_ITEM_COUNT_SELLER
+    commands:
+      - '[MESSAGE] &#0dfb00» &fИгрок {buyer_name} купил у вас &6{item_name}&f за {price}!'
+
+  buy_item_to_seller:
+    event: BUY_ITEM_TO_SELLER
+    commands:
+      - '[MESSAGE] &#0dfb00» &fИгрок {buyer_name} купил у вас &6{item_name}&f за {price}!'
+
+  buy_item_count:
+    event: BUY_ITEM_COUNT
+    commands:
+      - '[MESSAGE] &#0dfb00» &fВы успешно купили &6{item_name}&f в количестве x{amount}!'
+
+  buy_item:
+    event: BUY_ITEM
+    commands:
+      - '[MESSAGE] &#0dfb00» &fВы успешно купили &6{item_name}&f в количестве x{amount}!'
+
+  take_item:
+    event: TAKE_ITEM
+    commands:
+      - '[MESSAGE] &#0dfb00» &fВы успешно сняли &6{item_name}&f с аукциона'
+
+  take_unsold_item:
+    event: TAKE_UNSOLD_ITEM
+    commands:
+      - '[MESSAGE] &#0dfb00» &fВы успешно забрали предмет!'

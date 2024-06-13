@@ -57,8 +57,8 @@ public class MenuLoader implements Closeable {
                 YamlContext context = new YamlContext(cfg);
                 MenuSetting setting = MenuFactory.create(context, this);
                 menus.put(setting.getId(), setting);
-            } catch (Exception e) {
-                BMenuApi.getMessage().error(e);
+            } catch (Throwable e) {
+                BMenuApi.getMessage().error("Failed to load menu '%s'", e, file1.getPath());
             }
         }
     }
@@ -78,17 +78,24 @@ public class MenuLoader implements Closeable {
     private void resourceLeakDetectorTick() {
         for (RegisteredListener listener : InventoryCloseEvent.getHandlerList().getRegisteredListeners()) {
             if (listener.getListener() instanceof AsyncClickListener asyncClickListener) {
-                if (
-                        (asyncClickListener.getViewer().getOpenInventory().getTopInventory() != asyncClickListener.getInventory()) ||
-                        !asyncClickListener.getViewer().isOnline()
-                ) {
-                    BMenuApi.getMessage().error("[ResourceLeakDetector] Detected unused menu " + asyncClickListener);
+                boolean isDifferentInventory = !asyncClickListener.getViewer().getOpenInventory().getTopInventory().equals(asyncClickListener.getInventory());
+                boolean isViewerOffline = !asyncClickListener.getViewer().isOnline();
+
+                if (isDifferentInventory || isViewerOffline) {
+                    BMenuApi.getMessage().error(
+                            "[ResourceLeakDetector] Checking listener: " + asyncClickListener +
+                            ", TopInventory: " + asyncClickListener.getViewer().getOpenInventory().getTopInventory() +
+                            ", Listener Inventory: " + asyncClickListener.getInventory() +
+                            ", Is Different Inventory: " + isDifferentInventory +
+                            ", Is Viewer Offline: " + isViewerOffline
+                    );
                     asyncClickListener.close();
                     asyncClickListener.getViewer().closeInventory(InventoryCloseEvent.Reason.PLUGIN);
                 }
             }
         }
     }
+
 
     @EventHandler
     public void on(InventoryCloseEvent event) {

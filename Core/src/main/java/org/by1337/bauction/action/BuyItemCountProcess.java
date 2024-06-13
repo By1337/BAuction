@@ -14,6 +14,7 @@ import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.network.impl.PacketSendMessage;
+import org.by1337.bauction.util.NumberUtil;
 import org.by1337.bauction.util.PlayerUtil;
 import org.by1337.blib.chat.placeholder.MultiPlaceholder;
 import org.by1337.blib.chat.placeholder.Placeholder;
@@ -32,10 +33,12 @@ public class BuyItemCountProcess extends Placeholder {
         this.buyingItem = buyingItem;
         this.count = count;
 
-        registerPlaceholder("{buyer_name}", buyer::getNickName);
-        registerPlaceholder("{count}", () -> count);
-        if (buyingItem != null)
+
+        if (buyingItem != null) {
             registerPlaceholders((CSellItem) buyingItem);
+            registerPlaceholder("{price}", () -> NumberUtil.format(buyingItem.getPriceForOne() * count));
+        }
+        registerPlaceholder("{amount}", () -> count);
     }
     public void run(){
         if (buyingItem == null){
@@ -62,21 +65,20 @@ public class BuyItemCountProcess extends Placeholder {
                 Main.getEcon().depositPlayer(seller, price);
             }
             if (seller.isOnline()) {
-                Main.getMessage().sendMsg(seller.getPlayer(),
-                        replace(Lang.getMessage("item_sold_to_buyer")));
-                Event event1 = new Event(seller.getPlayer(), EventType.BUY_ITEM_COUNT_SELLER, new MultiPlaceholder(buyer, buyingItem, this));
+                //Main.getMessage().sendMsg(seller.getPlayer(), replace(Lang.getMessage("item_sold_to_buyer")));
+                Event event1 = new Event(seller.getPlayer(), EventType.BUY_ITEM_COUNT_SELLER, new MultiPlaceholder(this, buyer, buyingItem));
                 Main.getEventManager().onEvent(event1);
             } else if (Main.getStorage() instanceof MysqlDb mysqlDb) {
-                mysqlDb.getPacketConnection().saveSend(new PacketSendMessage(
-                        replace(Lang.getMessage("item_sold_to_buyer")), buyingItem.getSellerUuid()
-                ));
+//                mysqlDb.getPacketConnection().saveSend(new PacketSendMessage(
+//                        replace(Lang.getMessage("item_sold_to_buyer")), buyingItem.getSellerUuid() // todo
+//                ));
             }
 
-            Main.getMessage().sendMsg(player, replace(Lang.getMessage("successful_purchase")));
+            //Main.getMessage().sendMsg(player, replace(Lang.getMessage("successful_purchase")));
             ItemStack itemStack = buyingItem.getItemStack();
             itemStack.setAmount(count);
             PlayerUtil.giveItems(player, itemStack);
-            Event event1 = new Event(player, EventType.BUY_ITEM_COUNT, new MultiPlaceholder(buyer, buyingItem, this));
+            Event event1 = new Event(player, EventType.BUY_ITEM_COUNT, new MultiPlaceholder(this, buyer, buyingItem));
             Main.getEventManager().onEvent(event1);
         } else {
             Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
