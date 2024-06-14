@@ -11,10 +11,9 @@ Before compiling BAuction, ensure you have the following prerequisites installed
 
 2. Complete Spigot JAR for various versions using the following command:
    ```bash
-   java -jar BuildTools.jar --rev 1.16.5
+   java -jar BuildTools.jar --rev 1.17.1
    ```
-
-   Execute this operation for the following versions: 1.17.1, 1.18.2, 1.19.4, 1.20.1, 1.20.2, 1.20.4, but with an additional flag: `--remapped`.
+   Execute this operation for the following versions: 1.17.1, 1.18.2, 1.19.4, 1.20.1, 1.20.2, 1.20.4.
 
 ## Compiling BAuction
 1. Clone this repository to your local machine:

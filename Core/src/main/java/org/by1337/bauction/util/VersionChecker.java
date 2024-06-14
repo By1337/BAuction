@@ -9,8 +9,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.by1337.blib.BLib;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.blib.nbt.NBTParser;
-import org.by1337.blib.nbt.impl.CompoundTag;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,13 +27,12 @@ public class VersionChecker implements Listener {
     public VersionChecker() {
         listener = this;
         currentVersion = Main.getInstance().getDescription().getVersion();
-        if (!Main.IS_RELEASE) return;
         new Thread(() -> {
             String result = parsePage();
             if (result != null) {
-                CompoundTag compoundTag = NBTParser.parseAsCompoundTag(result);
-                actualVersion = compoundTag.getAsString("actualVersion");
-                downloadLink = compoundTag.getAsString("download");
+                String[] args = result.split("=");
+                actualVersion = args[0];
+                downloadLink = args[1];
                 if (actualVersion.equals(currentVersion)) return;
                 message = String.format(Lang.getMessage("update-msg-raw"), currentVersion, actualVersion, downloadLink, downloadLink, downloadLink);
                 Bukkit.getPluginManager().registerEvents(listener, Main.getInstance());
@@ -62,7 +59,7 @@ public class VersionChecker implements Listener {
     private String parsePage() {
         HttpURLConnection connection = null;
         try {
-            URL url = new URL("http://api.by1337.space/version?plugin=BAuction");
+            URL url = new URL("https://raw.githubusercontent.com/By1337/BAuction/master/version");
             connection = (HttpURLConnection) url.openConnection();
             connection.setConnectTimeout(5000);
             connection.setReadTimeout(15000);

@@ -48,7 +48,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 public final class Main extends JavaPlugin {
-    public static final boolean IS_RELEASE = false;
+    public static final boolean IS_RELEASE = true;
     private static Message message;
     private static Main instance;
     private static Config cfg;
@@ -68,7 +68,7 @@ public final class Main extends JavaPlugin {
     private PluginEnablePipeline enablePipeline;
     private Metrics metrics;
     private PluginLogger pluginLogger;
-    private static boolean DEBUG_MODE = true;
+    private static boolean DEBUG_MODE = false;
     private AssetsManager assetsManager;
 
     @Override

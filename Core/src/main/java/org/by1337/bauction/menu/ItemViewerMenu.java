@@ -60,6 +60,7 @@ public class ItemViewerMenu extends Menu {
         if (itemStack != null) {
             customItems.clear();
             var item = cash.getItem().build(this, itemStack);
+            item.getItemStack().setAmount(itemStack.getAmount());
             item.setData(data);
             customItems.add(item);
         }

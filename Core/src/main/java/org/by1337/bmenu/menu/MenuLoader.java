@@ -2,8 +2,13 @@ package org.by1337.bmenu.menu;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -19,8 +24,9 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 
-public class MenuLoader implements Closeable {
+public class MenuLoader implements Closeable, Listener {
     private final Map<NameKey, MenuSetting> menus;
     private final Plugin plugin;
     private final File menuFolder;
@@ -43,10 +49,6 @@ public class MenuLoader implements Closeable {
         this(plugin, menuFolder, ResourceLeakDetectorMode.DEFAULT);
     }
 
-    public void reload() {
-        load();
-    }
-
     public void load() {
         menus.clear();
         for (File file1 : getFiles(menuFolder)) {
@@ -61,6 +63,7 @@ public class MenuLoader implements Closeable {
                 BMenuApi.getMessage().error("Failed to load menu '%s'", e, file1.getPath());
             }
         }
+        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
     private List<File> getFiles(File folder) {
@@ -99,12 +102,22 @@ public class MenuLoader implements Closeable {
 
     @EventHandler
     public void on(InventoryCloseEvent event) {
-        for (ItemStack itemStack : event.getPlayer().getInventory()) {
-            if (itemStack == null) continue;
-            ItemMeta im = itemStack.getItemMeta();
-            if (im == null) continue;
-            if (im.getPersistentDataContainer().has(MenuItemBuilder.MENU_ITEM_KEY, PersistentDataType.INTEGER)) {
-                event.getPlayer().getInventory().remove(itemStack);
+        if (event.getPlayer() instanceof Player player)
+            removeAll(player, i -> i.hasItemMeta() && i.getItemMeta().getPersistentDataContainer().has(MenuItemBuilder.MENU_ITEM_KEY, PersistentDataType.INTEGER));
+    }
+
+    @EventHandler
+    public void on(InventoryOpenEvent event) {
+        if (event.getPlayer() instanceof Player player)
+            removeAll(player, i -> i.hasItemMeta() && i.getItemMeta().getPersistentDataContainer().has(MenuItemBuilder.MENU_ITEM_KEY, PersistentDataType.INTEGER));
+    }
+
+    public void removeAll(Player player, Predicate<ItemStack> filter) {
+        var inv = player.getInventory();
+        for (int i = 0; i < inv.getSize(); i++) {
+            var item = inv.getItem(i);
+            if (item != null && filter.test(item)) {
+                inv.setItem(i, null);
             }
         }
     }
@@ -136,6 +149,7 @@ public class MenuLoader implements Closeable {
         if (task != null) {
             task.cancel();
         }
+        HandlerList.unregisterAll(this);
     }
 
     public enum ResourceLeakDetectorMode {
