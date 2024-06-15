@@ -32,6 +32,8 @@ public class UpdateManager {
         if (CURRENT_VERSION != version) {
             Main.getMessage().warning("detected deprecated config!");
             Main.getMessage().log("start update...");
+        } else {
+            return;
         }
 
         try {
@@ -116,7 +118,7 @@ public class UpdateManager {
                 Main.getMessage().error(throwable);
             }
         } else if (version == 9) {
-            config.set("lang", "ru");
+            config.set("lang", "en_us");
             version++;
             run(version, config);
         } else if (version == 10) {
