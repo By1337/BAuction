@@ -21,7 +21,7 @@ public class MenuSetting {
     private final NameKey id;
     private final String provider;
     private final MenuLoader loader;
-    private Object cash;
+    private Object cache;
 
     public MenuSetting(List<MenuItemBuilder> items, String title, int size, Requirements viewRequirement, InventoryType type, List<String> openCommands, YamlContext context, NameKey id, MenuLoader loader) {
         this.items = items;
@@ -65,12 +65,12 @@ public class MenuSetting {
         return type;
     }
 
-    public Object getCash() {
-        return cash;
+    public Object getCache() {
+        return cache;
     }
 
-    public void setCash(Object cash) {
-        this.cash = cash;
+    public void setCache(Object cash) {
+        this.cache = cash;
     }
 
     public Menu create(Player player, @Nullable Menu backMenu) {

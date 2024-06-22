@@ -19,23 +19,23 @@ public class UnsoldItemsMenu extends Menu {
     protected int maxPage = 0;
 
     protected CUser user;
-    private final Cash cash;
+    private final Cache cache;
     private static boolean seenIllegalCash;
     private final List<UnsoldItem> unsoldItems = new ArrayList<>();
 
     public UnsoldItemsMenu(MenuSetting setting, Player player, @Nullable Menu previousMenu, MenuLoader menuLoader) {
         super(setting, player, previousMenu, menuLoader);
-        if (setting.getCash() == null) {
-            cash = new Cash();
-            setting.setCash(cash);
-        } else if (setting.getCash() instanceof Cash cash0) {
-            this.cash = cash0;
+        if (setting.getCache() == null) {
+            cache = new Cache();
+            setting.setCache(cache);
+        } else if (setting.getCache() instanceof Cache cache0) {
+            this.cache = cache0;
         } else {
             if (!seenIllegalCash) {
-                Main.getMessage().error("Illegal cash type '%s'! Excepted %s", setting.getCash().getClass(), Cash.class);
+                Main.getMessage().error("Illegal cache type '%s'! Excepted %s", setting.getCache().getClass(), Cache.class);
                 seenIllegalCash = true;
             }
-            cash = new Cash();
+            cache = new Cache();
         }
         init();
     }
@@ -50,14 +50,14 @@ public class UnsoldItemsMenu extends Menu {
     @Override
     protected void generate() {
         setSellItems();
-        Iterator<Integer> slotsIterator = cash.getSlots().listIterator();
+        Iterator<Integer> slotsIterator = cache.getSlots().listIterator();
         customItems.clear();
-        for (int x = currentPage * cash.getSlots().size(); x < unsoldItems.size(); x++) {
+        for (int x = currentPage * cache.getSlots().size(); x < unsoldItems.size(); x++) {
             UnsoldItem item = unsoldItems.get(x);
             if (slotsIterator.hasNext()) {
                 int slot = slotsIterator.next();
 
-                MenuItemBuilder menuItemBuilder = cash.getItem();
+                MenuItemBuilder menuItemBuilder = cache.getItem();
 
                 MenuItem menuItem = menuItemBuilder.build(this, item.getItemStack(), item);
 
@@ -74,12 +74,12 @@ public class UnsoldItemsMenu extends Menu {
     protected void setSellItems() {
         unsoldItems.clear();
         Main.getStorage().forEachUnsoldItemsByUser(unsoldItems::add, user.getUuid());
-        maxPage = (int) Math.ceil((double) unsoldItems.size() / cash.getSlots().size());
+        maxPage = (int) Math.ceil((double) unsoldItems.size() / cache.getSlots().size());
         if (currentPage > maxPage) {
             currentPage = maxPage - 1;
             if (currentPage < 0) currentPage = 0;
         }
-        if (currentPage * cash.getSlots().size() >= unsoldItems.size()) {
+        if (currentPage * cache.getSlots().size() >= unsoldItems.size()) {
             maxPage = 0;
         }
     }
@@ -115,7 +115,7 @@ public class UnsoldItemsMenu extends Menu {
         );
     }
 
-    private class Cash {
+    private class Cache {
         private List<Integer> slots;
         private MenuItemBuilder item;
 

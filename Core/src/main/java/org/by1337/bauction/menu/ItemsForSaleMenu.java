@@ -24,14 +24,14 @@ public class ItemsForSaleMenu extends Menu {
 
     public ItemsForSaleMenu(MenuSetting setting, Player player, @Nullable Menu previousMenu, MenuLoader menuLoader) {
         super(setting, player, previousMenu, menuLoader);
-        if (setting.getCash() == null) {
+        if (setting.getCache() == null) {
             cash = new Cash();
-            setting.setCash(cash);
-        } else if (setting.getCash() instanceof Cash cash0) {
+            setting.setCache(cash);
+        } else if (setting.getCache() instanceof Cash cash0) {
             this.cash = cash0;
         } else {
             if (!seenIllegalCash) {
-                Main.getMessage().error("Illegal cash type '%s'! Excepted %s", setting.getCash().getClass(), Cash.class);
+                Main.getMessage().error("Illegal cache type '%s'! Excepted %s", setting.getCache().getClass(), Cash.class);
                 seenIllegalCash = true;
             }
             cash = new Cash();

@@ -9,7 +9,6 @@ import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.util.Category;
 import org.by1337.bauction.util.ItemUtil;
 import org.by1337.bauction.util.Sorting;
-import org.by1337.bauction.util.TagUtil;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.argument.ArgumentString;
@@ -34,22 +33,22 @@ public class HomeMenu extends Menu {
     protected Sorting lastSorting = null;
     protected int lastPage = -1;
     protected CUser user;
-    protected final Cash cash;
+    protected final Cache cache;
     private static boolean seenIllegalCash;
 
     public HomeMenu(MenuSetting setting, Player player, @Nullable Menu previousMenu, MenuLoader menuLoader) {
         super(setting, player, previousMenu, menuLoader);
-        if (setting.getCash() == null) {
-            cash = new Cash();
-            setting.setCash(cash);
-        } else if (setting.getCash() instanceof Cash cash0) {
-            this.cash = cash0;
+        if (setting.getCache() == null) {
+            cache = new Cache();
+            setting.setCache(cache);
+        } else if (setting.getCache() instanceof Cache cache0) {
+            this.cache = cache0;
         } else {
             if (!seenIllegalCash) {
-                Main.getMessage().error("Illegal cash type '%s'! Excepted %s", setting.getCash().getClass(), Cash.class);
+                Main.getMessage().error("Illegal cache type '%s'! Excepted %s", setting.getCache().getClass(), Cache.class);
                 seenIllegalCash = true;
             }
-            cash = new Cash();
+            cache = new Cache();
         }
         init();
     }
@@ -69,25 +68,25 @@ public class HomeMenu extends Menu {
     @Override
     protected void generate() {
         setSellItems();
-        Iterator<Integer> slotsIterator = cash.getSlots().listIterator();
+        Iterator<Integer> slotsIterator = cache.getSlots().listIterator();
         customItems.clear();
-        for (int x = currentPage * cash.getSlots().size(); x < sellItems.size(); x++) {
+        for (int x = currentPage * cache.getSlots().size(); x < sellItems.size(); x++) {
             SellItem item = sellItems.get(x);
             if (slotsIterator.hasNext()) {
                 int slot = slotsIterator.next();
                 MenuItemBuilder menuItemBuilder;
                 if (item.getSellerUuid().equals(user.getUuid())) {
-                    menuItemBuilder = cash.getTakeItem();
+                    menuItemBuilder = cache.getTakeItem();
                 } else if (item.getAmount() == 1) {
-                    menuItemBuilder = cash.getSellingItemOne();
+                    menuItemBuilder = cache.getSellingItemOne();
                 } else if (item.isSaleByThePiece()) {
-                    menuItemBuilder = cash.getSellingItem();
+                    menuItemBuilder = cache.getSellingItem();
                 } else {
-                    menuItemBuilder = cash.getSellingItemOnlyFull();
+                    menuItemBuilder = cache.getSellingItemOnlyFull();
                 }
                 MenuItem menuItem = menuItemBuilder.build(this, item.getItemStack(), item);
                 if (ItemUtil.isShulker(item.getMaterial())) {
-                    var toAdd = cash.getIfShulker();
+                    var toAdd = cache.getIfShulker();
                     menuItem.getItemStack().editMeta(m -> {
                         var lore = new ArrayList<>(Objects.requireNonNullElse(m.lore(), Collections.emptyList()));
                         lore.addAll(toAdd.getLore().stream().map(s ->
@@ -106,7 +105,7 @@ public class HomeMenu extends Menu {
 
                 }
                 if (viewer.hasPermission("bauc.admin") && !item.getSellerUuid().equals(user.getUuid())) {
-                    var toAdd = cash.getIfAdmin();
+                    var toAdd = cache.getIfAdmin();
                     menuItem.getItemStack().editMeta(m -> {
                         var lore = new ArrayList<>(Objects.requireNonNullElse(m.lore(), Collections.emptyList()));
                         lore.addAll(toAdd.getLore().stream().map(s ->
@@ -155,14 +154,14 @@ public class HomeMenu extends Menu {
             }, lastCategory.nameKey(), lastSorting.nameKey());
         }
 
-        maxPage = (int) Math.ceil((double) sellItems.size() / cash.getSlots().size());
+        maxPage = (int) Math.ceil((double) sellItems.size() / cache.getSlots().size());
 
         if (currentPage > maxPage) {
             currentPage = maxPage - 1;
             if (currentPage < 0) currentPage = 0;
         }
 
-        if (currentPage * cash.getSlots().size() >= sellItems.size()) {
+        if (currentPage * cache.getSlots().size() >= sellItems.size()) {
             maxPage = 0;
         }
     }
@@ -283,7 +282,7 @@ public class HomeMenu extends Menu {
         this.custom = custom;
     }
 
-    protected class Cash {
+    protected class Cache {
         private List<Integer> slots;
         private MenuItemBuilder sellingItemOne;
         private MenuItemBuilder takeItem;

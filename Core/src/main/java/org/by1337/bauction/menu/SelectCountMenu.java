@@ -20,23 +20,23 @@ import org.jetbrains.annotations.Nullable;
 public class SelectCountMenu extends Menu implements ItemHolder {
     private int count = 1;
     private static final Command<SelectCountMenu> SELECT_COUNT_MENU_COMMAND;
-    private final Cash cash;
+    private final Cache cache;
     private static boolean seenIllegalCash;
     private SellItem sellItem;
 
     public SelectCountMenu(MenuSetting setting, Player player, @Nullable Menu previousMenu, MenuLoader menuLoader) {
         super(setting, player, previousMenu, menuLoader);
-        if (setting.getCash() == null) {
-            cash = new Cash();
-            setting.setCash(cash);
-        } else if (setting.getCash() instanceof Cash cash0) {
-            this.cash = cash0;
+        if (setting.getCache() == null) {
+            cache = new Cache();
+            setting.setCache(cache);
+        } else if (setting.getCache() instanceof Cache cache0) {
+            this.cache = cache0;
         } else {
             if (!seenIllegalCash) {
-                Main.getMessage().error("Illegal cash type '%s'! Excepted %s", setting.getCash().getClass(), Cash.class);
+                Main.getMessage().error("Illegal cache type '%s'! Excepted %s", setting.getCache().getClass(), Cache.class);
                 seenIllegalCash = true;
             }
-            cash = new Cash();
+            cache = new Cache();
         }
         if (previousMenu != null) {
             if (previousMenu.getLastClickedItem() != null) {
@@ -62,7 +62,7 @@ public class SelectCountMenu extends Menu implements ItemHolder {
     @Override
     protected void generate() {
         customItems.clear();
-        var item = cash.getItem().build(this, sellItem.getItemStack());
+        var item = cache.getItem().build(this, sellItem.getItemStack());
         item.getItemStack().setAmount(count);
         customItems.add(item);
     }
@@ -94,7 +94,7 @@ public class SelectCountMenu extends Menu implements ItemHolder {
         return item;
     }
 
-    private class Cash {
+    private class Cache {
         private MenuItemBuilder item;
 
         public MenuItemBuilder getItem() {

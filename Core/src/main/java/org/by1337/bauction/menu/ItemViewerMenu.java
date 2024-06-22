@@ -13,24 +13,24 @@ import org.by1337.bmenu.menu.MenuSetting;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemViewerMenu extends Menu {
-    private final Cash cash;
+    private final Cache cache;
     private ItemStack itemStack;
     private Object data;
     private static boolean seenIllegalCash;
 
     public ItemViewerMenu(MenuSetting setting, Player player, @Nullable Menu previousMenu, MenuLoader menuLoader) {
         super(setting, player, previousMenu, menuLoader);
-        if (setting.getCash() == null) {
-            cash = new Cash();
-            setting.setCash(cash);
-        } else if (setting.getCash() instanceof Cash cash0) {
-            this.cash = cash0;
+        if (setting.getCache() == null) {
+            cache = new Cache();
+            setting.setCache(cache);
+        } else if (setting.getCache() instanceof Cache cache0) {
+            this.cache = cache0;
         } else {
             if (!seenIllegalCash) {
-                Main.getMessage().error("Illegal cash type '%s'! Excepted %s", setting.getCash().getClass(), Cash.class);
+                Main.getMessage().error("Illegal cache type '%s'! Excepted %s", setting.getCache().getClass(), Cache.class);
                 seenIllegalCash = true;
             }
-            cash = new Cash();
+            cache = new Cache();
         }
         if (previousMenu != null) {
             var item = previousMenu.getLastClickedItem();
@@ -59,7 +59,7 @@ public class ItemViewerMenu extends Menu {
     protected void generate() {
         if (itemStack != null) {
             customItems.clear();
-            var item = cash.getItem().build(this, itemStack);
+            var item = cache.getItem().build(this, itemStack);
             item.getItemStack().setAmount(itemStack.getAmount());
             item.setData(data);
             customItems.add(item);
@@ -71,7 +71,7 @@ public class ItemViewerMenu extends Menu {
         return false;
     }
 
-    private class Cash {
+    private class Cache {
         private MenuItemBuilder item;
 
         public MenuItemBuilder getItem() {

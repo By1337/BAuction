@@ -15,6 +15,7 @@ import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.network.impl.PacketSendMessage;
 import org.by1337.bauction.util.PlayerUtil;
 import org.by1337.blib.chat.placeholder.BiPlaceholder;
+import org.by1337.blib.chat.placeholder.MultiPlaceholder;
 import org.by1337.blib.chat.placeholder.Placeholder;
 import org.by1337.bmenu.menu.Menu;
 import org.jetbrains.annotations.Nullable;
@@ -70,7 +71,7 @@ public class BuyItemProcess extends Placeholder {
                 }
                 if (seller.isOnline()) {
                     //Main.getMessage().sendMsg(seller.getPlayer(), replace(Lang.getMessage("item_sold_to_buyer")));
-                    Event event1 = new Event(seller.getPlayer(), EventType.BUY_ITEM_TO_SELLER, new BiPlaceholder(buyingItem, buyer));
+                    Event event1 = new Event(seller.getPlayer(), EventType.BUY_ITEM_TO_SELLER, new MultiPlaceholder(buyingItem, buyer, this));
                     Main.getEventManager().onEvent(event1);
                 } else if (Main.getStorage() instanceof MysqlDb mysqlDb) {
 //                    mysqlDb.getPacketConnection().saveSend(new PacketSendMessage(

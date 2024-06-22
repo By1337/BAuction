@@ -49,14 +49,14 @@ public class PlayerItemsView extends HomeMenu {
         }, uuid);
         sellItems.sort(lastSorting.getComparator());
 
-        maxPage = (int) Math.ceil((double) sellItems.size() / cash.getSlots().size());
+        maxPage = (int) Math.ceil((double) sellItems.size() / cache.getSlots().size());
 
         if (currentPage > maxPage) {
             currentPage = maxPage - 1;
             if (currentPage < 0) currentPage = 0;
         }
 
-        if (currentPage * cash.getSlots().size() >= sellItems.size()) {
+        if (currentPage * cache.getSlots().size() >= sellItems.size()) {
             maxPage = 0;
         }
     }
