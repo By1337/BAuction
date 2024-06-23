@@ -34,15 +34,22 @@ public class SearchCmd extends Command<CommandSender> {
 
         String[] rawTags = ((String) args.getOrThrow("tags", Lang.getMessage("tags_required"))).split(" ");
         List<String> tags = new ArrayList<>();
+        boolean soft = true;
         for (String rawTag : rawTags) {
+            if (rawTag.equals(Lang.getMessage("search-type"))){
+                soft = false;
+                continue;
+            }
             tags.addAll(Main.getTrieManager().getTrie().getAllWithPrefix(rawTag));
         }
         Category custom = Main.getCfg().getSorting().getAs("special.search", Category.class);
+        custom.setSoft(soft);
         custom.setTags(new HashSet<>(tags));
 
         var menu = menuLoader.getMenu(homeMenuId);
         Objects.requireNonNull(menu, "Menu " + homeMenuId + " not found!");
         var m = menu.create(player, null);
+
         if (m instanceof HomeMenu homeMenu0){
             homeMenu0.setCustom(custom);
             homeMenu0.getCategories().add(custom);

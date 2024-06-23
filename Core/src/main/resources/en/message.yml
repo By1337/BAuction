@@ -35,6 +35,7 @@ messages:
   item-size-limit: '&#fb093c» &fYou cannot list this item for sale!'
   online-seller: '&aonline'
   offline-seller: '&coffline'
+  search-type: '-complete_matches'
 time-format:
   ago: 'ago'
   in: 'in'

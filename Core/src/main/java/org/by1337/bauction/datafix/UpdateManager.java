@@ -20,7 +20,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 public class UpdateManager {
-    private final static int CURRENT_VERSION = 11;
+    private final static int CURRENT_VERSION = 12;
 
     public static void checkUpdate() {
         Plugin plugin = Main.getInstance();
@@ -123,6 +123,10 @@ public class UpdateManager {
             run(version, config);
         } else if (version == 10) {
             config.set("BVault-setting.current-bank", "vault");
+            version++;
+            run(version, config);
+        } else if (version == 11) {
+            new MessagesUpdater().update();
             version++;
             run(version, config);
         }

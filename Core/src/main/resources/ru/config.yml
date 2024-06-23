@@ -1,4 +1,4 @@
-version: 11 # НЕ МЕНЯТЬ
+version: 12 # НЕ МЕНЯТЬ
 # список бустов
 boosts: # it's list
   - name: donat-1 # имя (может быть любым)

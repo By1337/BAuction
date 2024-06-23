@@ -37,6 +37,7 @@ messages:
   item-size-limit: '&#fb093c» &fВы не можете выставить этот предмет на продажу!'
   online-seller: '&aонлайн'
   offline-seller: '&cоффлайн'
+  search-type: '-полное_совпадение'
 time-format:
   ago: 'назад'
   in: 'через'

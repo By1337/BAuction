@@ -13,6 +13,7 @@ public class Category implements Comparable<Category> {
     private int priority;
     private HashSet<String> tags;
     private NameKey nameKey;
+    private boolean soft = false;
 
     public Category(String selectedName, String unselectedName, int priority, HashSet<String> tags, NameKey nameKey) {
         this.selectedName = selectedName;
@@ -64,6 +65,14 @@ public class Category implements Comparable<Category> {
     @Override
     public int hashCode() {
         return Objects.hash(selectedName, unselectedName, priority, tags, nameKey);
+    }
+
+    public boolean isSoft() {
+        return soft;
+    }
+
+    public void setSoft(boolean soft) {
+        this.soft = soft;
     }
 
     @Override

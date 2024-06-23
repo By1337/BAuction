@@ -34,6 +34,7 @@ import org.by1337.bauction.placeholder.PlaceholderHook;
 import org.by1337.bauction.search.TrieManager;
 import org.by1337.bauction.util.*;
 import org.by1337.bauction.util.plugin.PluginEnablePipeline;
+import org.by1337.blib.BLib;
 import org.by1337.blib.chat.util.Message;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
@@ -372,7 +373,14 @@ public final class Main extends JavaPlugin {
         try {
             if (args[0].equals("search") && sender.hasPermission("bauc.search")) {
                 String last = args[args.length - 1].toLowerCase();
-                if (last.isEmpty()) return List.of(Lang.getMessage("start_entering_item_name"));
+                if (last.isEmpty()) {
+                    if (args.length > 2){
+                        if (Arrays.stream(args).noneMatch(s -> s.equals(Lang.getMessage("search-type")))){
+                            return Collections.singletonList(Lang.getMessage("search-type"));
+                        }
+                    }
+                    return List.of(Lang.getMessage("start_entering_item_name"));
+                }
                 return trieManager.getTrie().getAllKeysWithPrefix(last);
             }
             return command.getTabCompleter(sender, args);

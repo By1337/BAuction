@@ -141,9 +141,16 @@ public class HomeMenu extends Menu {
         if (lastCategory == custom && (sortChanged || sellItems == null || sellItems.isEmpty())) {
             sellItems = new ArrayList<>();
             Main.getStorage().forEachSellItems(item -> {
-                if (((CSellItem) item).hasAllTags(custom)) {
-                    sellItems.add(item);
+                if (!custom.isSoft()){
+                    if (((CSellItem) item).hasAllTags(custom)) {
+                        sellItems.add(item);
+                    }
+                }else {
+                    if (custom.matches(item)) {
+                        sellItems.add(item);
+                    }
                 }
+
             });
             sellItems.sort(lastSorting.getComparator());
             lastCustomCategorySize = sellItems.size();
