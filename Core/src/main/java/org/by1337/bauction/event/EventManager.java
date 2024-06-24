@@ -57,12 +57,12 @@ public class EventManager {
                 .argument(new ArgumentStrings<>("command"))
                 .executor((event, args) -> {
                     String msg = (String) args.getOrThrow("command", "Use: [CONSOLE] <command>");
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), Main.getMessage().messageBuilder(event.replace(msg)));
+                    Bukkit.getScheduler().runTask(Main.getInstance(), () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), Main.getMessage().messageBuilder(event.replace(msg))));
                 })).addSubCommand(new Command<Event>("[PLAYER]")
                 .argument(new ArgumentStrings<>("command"))
                 .executor((event, args) -> {
                     String msg = (String) args.getOrThrow("command", "Use: [PLAYER] <command>");
-                    event.getPlayer().performCommand(Main.getMessage().messageBuilder(event.replace(msg)));
+                    Bukkit.getScheduler().runTask(Main.getInstance(), () -> event.getPlayer().performCommand(Main.getMessage().messageBuilder(event.replace(msg))));
                 }));
     }
 

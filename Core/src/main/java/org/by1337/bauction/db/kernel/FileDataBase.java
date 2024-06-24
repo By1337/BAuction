@@ -147,7 +147,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             }
             CUser user = (CUser) getUser(event.getUser().getUuid());
 
-            SellItemProcess sellItemProcess = new SellItemProcess(!SyncDetectorManager.isSync(), user, sellItem);
+            SellItemProcess sellItemProcess = new SellItemProcess(!Bukkit.isPrimaryThread(), user, sellItem);
             Bukkit.getPluginManager().callEvent(sellItemProcess);
             if (sellItemProcess.isCancelled()) {
                 event.setValid(false);
@@ -175,7 +175,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             }
             addSellItem(sellItem);
             event.setValid(true);
-            Bukkit.getPluginManager().callEvent(new EventSellItem(!SyncDetectorManager.isSync(), user, sellItem));
+            Bukkit.getPluginManager().callEvent(new EventSellItem(!Bukkit.isPrimaryThread(), user, sellItem));
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
@@ -202,7 +202,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             return;
         }
 
-        TakeItemProcess event1 = new TakeItemProcess(!SyncDetectorManager.isSync(), user, sellItem);
+        TakeItemProcess event1 = new TakeItemProcess(!Bukkit.isPrimaryThread(), user, sellItem);
         Bukkit.getPluginManager().callEvent(event1);
 
         if (event1.isCancelled()) {
@@ -212,7 +212,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
         }
         try {
             removeSellItem(sellItem.getUniqueName());
-            Bukkit.getPluginManager().callEvent(new EventTakeItem(!SyncDetectorManager.isSync(), user, sellItem));
+            Bukkit.getPluginManager().callEvent(new EventTakeItem(!Bukkit.isPrimaryThread(), user, sellItem));
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
@@ -234,7 +234,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             User user = getUser(event.getUser().getUuid());
             UnsoldItem unsoldItem = getUnsoldItem(event.getUnsoldItem().getUniqueName());
 
-            TakeUnsoldItemProcess event1 = new TakeUnsoldItemProcess(!SyncDetectorManager.isSync(), user, unsoldItem);
+            TakeUnsoldItemProcess event1 = new TakeUnsoldItemProcess(!Bukkit.isPrimaryThread(), user, unsoldItem);
             Bukkit.getPluginManager().callEvent(event1);
 
             if (event1.isCancelled()) {
@@ -255,7 +255,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
 
             removeUnsoldItem(unsoldItem.getUniqueName());
             event.setValid(true);
-            Bukkit.getPluginManager().callEvent(new EventTakeUnsoldItem(!SyncDetectorManager.isSync(), user, unsoldItem));
+            Bukkit.getPluginManager().callEvent(new EventTakeUnsoldItem(!Bukkit.isPrimaryThread(), user, unsoldItem));
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
@@ -284,7 +284,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             event.setReason(Lang.getMessage("item_owner"));
             return;
         }
-        BuyItemProcess event1 = new BuyItemProcess(!SyncDetectorManager.isSync(), user, sellItem);
+        BuyItemProcess event1 = new BuyItemProcess(!Bukkit.isPrimaryThread(), user, sellItem);
         Bukkit.getPluginManager().callEvent(event1);
 
         if (event1.isCancelled()) {
@@ -301,7 +301,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             }
             user.dealCount++;
             user.dealSum += sellItem.getPrice();
-            Bukkit.getPluginManager().callEvent(new EventBuyItem(!SyncDetectorManager.isSync(), user, sellItem));
+            Bukkit.getPluginManager().callEvent(new EventBuyItem(!Bukkit.isPrimaryThread(), user, sellItem));
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
@@ -338,7 +338,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
                 event.setReason(Lang.getMessage("quantity_limit_exceeded"));
                 return;
             }
-            BuyItemCountProcess event1 = new BuyItemCountProcess(!SyncDetectorManager.isSync(), buyer, sellItem, event.getCount());
+            BuyItemCountProcess event1 = new BuyItemCountProcess(!Bukkit.isPrimaryThread(), buyer, sellItem, event.getCount());
             Bukkit.getPluginManager().callEvent(event1);
             if (event1.isCancelled()) {
                 event.setValid(false);
@@ -381,7 +381,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
 
                 addSellItem(newItem);
             }
-            Bukkit.getPluginManager().callEvent(new EventBuyItemCount(!SyncDetectorManager.isSync(), buyer, sellItem, event.getCount()));
+            Bukkit.getPluginManager().callEvent(new EventBuyItemCount(!Bukkit.isPrimaryThread(), buyer, sellItem, event.getCount()));
         } catch (Exception e) {
             Main.getMessage().error(e);
             event.setValid(false);
