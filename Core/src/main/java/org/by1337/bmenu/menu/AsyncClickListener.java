@@ -1,5 +1,6 @@
 package org.by1337.bmenu.menu;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -68,7 +69,7 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
         }
     }
 
-    protected void createInventory(int size, String title, InventoryType type) {
+    protected void createInventory(int size, Component title, InventoryType type) {
         if (type == InventoryType.CHEST) {
             inventory = Bukkit.createInventory(null, size, title);
         } else {

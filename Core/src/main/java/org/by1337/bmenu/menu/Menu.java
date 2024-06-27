@@ -63,14 +63,15 @@ public abstract class Menu extends AsyncClickListener {
         this.size = setting.getSize();
         this.previousMenu = previousMenu;
         this.menuLoader = menuLoader;
-        createInventory(size, replace(title), setting.getType());
         registerPlaceholder("{has-back-menu}", () -> String.valueOf(previousMenu != null));
     }
 
     public void open() {
-        Menu menu = this;
+        if (inventory == null){
+            createInventory(size, BMenuApi.getMessage().componentBuilder(replace(title)), setting.getType());
+        }
         syncUtil(() -> {
-            if (openRequirements != null && !openRequirements.check(menu, viewer)) {
+            if (openRequirements != null && !openRequirements.check(Menu.this, viewer)) {
                 List<String> list = new ArrayList<>(openRequirements.getDenyCommands());
                 list.replaceAll(this::replace);
                 runCommands(list);
