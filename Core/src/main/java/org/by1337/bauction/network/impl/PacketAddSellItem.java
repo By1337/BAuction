@@ -1,14 +1,10 @@
 package org.by1337.bauction.network.impl;
 
-import org.by1337.bauction.api.auc.SellItem;
-import org.by1337.bauction.db.kernel.CSellItem;
-import org.by1337.bauction.db.kernel.CUnsoldItem;
+import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.network.ByteBuffer;
 import org.by1337.bauction.network.Packet;
 import org.by1337.bauction.network.PacketType;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class PacketAddSellItem extends Packet {
@@ -40,7 +36,7 @@ public class PacketAddSellItem extends Packet {
         try {
             byte[] arr = new byte[buffer.readVarInt()];
             buffer.readBytes(arr);
-            sellItem = CSellItem.fromBytes(arr);
+            sellItem = SellItem.fromBytes(arr);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -1,7 +1,7 @@
 package org.by1337.bauction.config.adapter;
 
 import org.bukkit.configuration.ConfigurationSection;
-import org.by1337.bauction.util.Category;
+import org.by1337.bauction.util.auction.Category;
 import org.by1337.blib.configuration.YamlContext;
 import org.by1337.blib.configuration.adapter.ClassAdapter;
 import org.by1337.blib.util.NameKey;

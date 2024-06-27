@@ -1,19 +1,16 @@
 package org.by1337.bauction.network.impl;
 
-import org.by1337.bauction.api.auc.UnsoldItem;
-import org.by1337.bauction.db.kernel.CUnsoldItem;
+import org.by1337.bauction.db.kernel.UnsoldItem;
 import org.by1337.bauction.network.ByteBuffer;
 import org.by1337.bauction.network.Packet;
 import org.by1337.bauction.network.PacketType;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class PacketAddUnsoldItem extends Packet {
-    private CUnsoldItem unsoldItem;
+    private UnsoldItem unsoldItem;
 
-    public PacketAddUnsoldItem(CUnsoldItem unsoldItem) {
+    public PacketAddUnsoldItem(UnsoldItem unsoldItem) {
         super(PacketType.ADD_UNSOLD_ITEM);
         this.unsoldItem = unsoldItem;
     }
@@ -40,13 +37,13 @@ public class PacketAddUnsoldItem extends Packet {
         try {
             byte[] arr = new byte[buffer.readVarInt()];
             buffer.readBytes(arr);
-            unsoldItem = CUnsoldItem.fromBytes(arr);
+            unsoldItem = UnsoldItem.fromBytes(arr);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public CUnsoldItem getUnsoldItem() {
+    public UnsoldItem getUnsoldItem() {
         return unsoldItem;
     }
 }

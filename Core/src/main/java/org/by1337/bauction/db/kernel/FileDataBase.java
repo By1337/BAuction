@@ -12,19 +12,17 @@ import org.bukkit.scheduler.BukkitTask;
 import org.by1337.bauction.api.event.*;
 import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
+import org.by1337.bauction.util.auction.Category;
+import org.by1337.bauction.util.auction.Sorting;
+import org.by1337.bauction.util.common.NumberUtil;
+import org.by1337.bauction.util.time.TimeCounter;
 import org.by1337.blib.BLib;
-import org.by1337.blib.chat.placeholder.BiPlaceholder;
 import org.by1337.blib.chat.placeholder.MultiPlaceholder;
 import org.by1337.blib.util.NameKey;
-import org.by1337.bauc.util.SyncDetectorManager;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.api.auc.SellItem;
-import org.by1337.bauction.api.auc.UnsoldItem;
-import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.db.event.*;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.serialize.FileUtil;
-import org.by1337.bauction.util.*;
 import org.by1337.blib.util.Pair;
 
 import java.io.File;
@@ -36,7 +34,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
     protected final long removeTime;
     protected final boolean removeExpiredItems;
 
-    private BukkitTask boostTask;
+    private final BukkitTask boostTask;
 
     public FileDataBase(Map<NameKey, Category> categoryMap, Map<NameKey, Sorting> sortingMap) {
         super(categoryMap, sortingMap);
@@ -125,7 +123,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
     @Override
     protected void expiredItem(SellItem item) {
         removeSellItem(item.getUniqueName());
-        CUnsoldItem unsoldItem = new CUnsoldItem(item.getItem(), item.getSellerUuid(), item.getRemovalDate(), item.getRemovalDate() + removeTime, item.isCompressed());
+        UnsoldItem unsoldItem = new UnsoldItem(item.getItem(), item.getSellerUuid(), item.getRemovalDate(), item.getRemovalDate() + removeTime, item.isCompressed());
         addUnsoldItem(unsoldItem);
         Player player = Bukkit.getPlayer(item.getSellerUuid());
         if (player != null){
@@ -145,7 +143,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             if (hasSellItem(sellItem.getUniqueName())) {
                 throw new IllegalStateException("sell item already exist: " + event.getSellItem());
             }
-            CUser user = (CUser) getUser(event.getUser().getUuid());
+            User user = getUser(event.getUser().getUuid());
 
             SellItemProcess sellItemProcess = new SellItemProcess(!Bukkit.isPrimaryThread(), user, sellItem);
             Bukkit.getPluginManager().callEvent(sellItemProcess);
@@ -270,7 +268,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             event.setReason(Lang.getMessage("error_occurred"));
             return;
         }
-        CUser user = (CUser) getUser(event.getUser().getUuid());
+        User user = getUser(event.getUser().getUuid());
         SellItem sellItem = getSellItem(event.getSellItem().getUniqueName());
 
         if (sellItem == null) {
@@ -295,7 +293,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
         try {
             removeSellItem(sellItem.getUniqueName());
             if (hasUser(sellItem.getSellerUuid())) {
-                CUser owner = (CUser) getUser(sellItem.getSellerUuid());
+                User owner = getUser(sellItem.getSellerUuid());
                 owner.dealSum += sellItem.getPrice();
                 owner.dealCount++;
             }
@@ -317,8 +315,8 @@ public class FileDataBase extends DataBaseCore implements Listener {
             if (!hasUser(event.getUser().getUuid())) {
                 throw new IllegalStateException("user non-exist: " + event.getUser());
             }
-            CUser buyer = (CUser) getUser(event.getUser().getUuid());
-            CSellItem sellItem = (CSellItem) getSellItem(event.getSellItem().getUniqueName());
+            User buyer = getUser(event.getUser().getUuid());
+            SellItem sellItem = getSellItem(event.getSellItem().getUniqueName());
 
             if (buyer.getUuid().equals(sellItem.getSellerUuid())) {
                 event.setValid(false);
@@ -331,7 +329,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
                 event.setReason(Lang.getMessage("item_already_sold_or_removed"));
                 return;
             }
-            CSellItem updated = (CSellItem) getSellItem(sellItem.getUniqueName());
+            SellItem updated = getSellItem(sellItem.getUniqueName());
 
             if (updated.getAmount() < event.getCount()) {
                 event.setValid(false);
@@ -349,7 +347,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             removeSellItem(sellItem.getUniqueName());
             buyer.dealCount++;
             buyer.dealSum += updated.priceForOne * event.getCount();
-            CUser owner = (CUser) getUser(updated.sellerUuid);
+            User owner = getUser(updated.sellerUuid);
             if (owner != null) {
                 owner.dealCount++;
                 owner.dealSum += updated.priceForOne * event.getCount();
@@ -358,9 +356,9 @@ public class FileDataBase extends DataBaseCore implements Listener {
             ItemStack itemStack = updated.getItemStack();
             itemStack.setAmount(newCount);
 
-            Pair<String, Boolean> item = CSellItem.serializeItemStack(itemStack);
+            Pair<String, Boolean> item = SellItem.serializeItemStack(itemStack);
             if (newCount != 0) {
-                CSellItem newItem = CSellItem.builder()
+                SellItem newItem = SellItem.builder()
                         .item(item.getLeft())
                         .sellerName(updated.sellerName)
                         .sellerUuid(updated.sellerUuid)
@@ -396,26 +394,26 @@ public class FileDataBase extends DataBaseCore implements Listener {
         if (!home.exists()) {
             home.mkdir();
         }
-        List<CSellItem> items;
-        List<CUser> users;
-        List<CUnsoldItem> unsoldItems;
+        List<SellItem> items;
+        List<User> users;
+        List<UnsoldItem> unsoldItems;
 
         File fItems = new File(home + "/items.bauc");
         File fUsers = new File(home + "/users.bauc");
         File fUnsoldItems = new File(home + "/unsoldItems.bauc");
 
         if (fItems.exists()) {
-            items = FileUtil.read(fItems, CSellItem::fromBytes);
+            items = FileUtil.read(fItems, SellItem::fromBytes);
         } else {
             items = new ArrayList<>();
         }
         if (fUsers.exists()) {
-            users = FileUtil.read(fUsers, CUser::fromBytes);
+            users = FileUtil.read(fUsers, User::fromBytes);
         } else {
             users = new ArrayList<>();
         }
         if (fUnsoldItems.exists()) {
-            unsoldItems = FileUtil.read(fUnsoldItems, CUnsoldItem::fromBytes);
+            unsoldItems = FileUtil.read(fUnsoldItems, UnsoldItem::fromBytes);
         } else {
             unsoldItems = new ArrayList<>();
         }

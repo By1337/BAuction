@@ -4,11 +4,7 @@ import org.by1337.bauction.network.ByteBuffer;
 import org.by1337.bauction.network.Packet;
 import org.by1337.bauction.network.PacketType;
 import org.by1337.bauction.api.util.UniqueName;
-import org.by1337.bauction.util.CUniqueName;
-
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import org.by1337.bauction.util.id.CUniqueName;
 
 public class PacketRemoveUnsoldItem extends Packet {
     private UniqueName name;

@@ -1,20 +1,16 @@
 package org.by1337.bauction.network.impl;
 
-import org.by1337.bauction.api.auc.User;
-import org.by1337.bauction.db.kernel.CSellItem;
-import org.by1337.bauction.db.kernel.CUser;
+import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.network.ByteBuffer;
 import org.by1337.bauction.network.Packet;
 import org.by1337.bauction.network.PacketType;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class PacketUpdateUser extends Packet {
-    private CUser user;
+    private User user;
 
-    public PacketUpdateUser(CUser user) {
+    public PacketUpdateUser(User user) {
         super(PacketType.UPDATE_USER);
         this.user = user;
     }
@@ -40,13 +36,13 @@ public class PacketUpdateUser extends Packet {
         try {
             byte[] arr = new byte[buffer.readVarInt()];
             buffer.readBytes(arr);
-            user = CUser.fromBytes(arr);
+            user = User.fromBytes(arr);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public CUser getUser() {
+    public User getUser() {
         return user;
     }
 }

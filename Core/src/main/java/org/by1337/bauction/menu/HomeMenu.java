@@ -3,12 +3,11 @@ package org.by1337.bauction.menu;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.api.auc.SellItem;
-import org.by1337.bauction.db.kernel.CSellItem;
-import org.by1337.bauction.db.kernel.CUser;
-import org.by1337.bauction.util.Category;
-import org.by1337.bauction.util.ItemUtil;
-import org.by1337.bauction.util.Sorting;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.util.auction.Category;
+import org.by1337.bauction.util.common.ItemUtil;
+import org.by1337.bauction.util.auction.Sorting;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.argument.ArgumentString;
@@ -32,7 +31,7 @@ public class HomeMenu extends Menu {
     protected Category lastCategory = null;
     protected Sorting lastSorting = null;
     protected int lastPage = -1;
-    protected CUser user;
+    protected User user;
     protected final Cache cache;
     private static boolean seenIllegalCash;
 
@@ -56,7 +55,7 @@ public class HomeMenu extends Menu {
     private void init() {
         sortings.addAll(Main.getCfg().getSortingMap().values());
         categories.addAll(Main.getCfg().getCategoryMap().values());
-        user = (CUser) Main.getStorage().getUserOrCreate(viewer);
+        user = (User) Main.getStorage().getUserOrCreate(viewer);
         registerPlaceholder("{max_page}", () -> maxPage == 0 ? 1 : maxPage);
         registerPlaceholder("{current_page}", () -> currentPage + 1);
         registerPlaceholder("{categories}", this::getCategoriesNames);
@@ -142,7 +141,7 @@ public class HomeMenu extends Menu {
             sellItems = new ArrayList<>();
             Main.getStorage().forEachSellItems(item -> {
                 if (!custom.isSoft()){
-                    if (((CSellItem) item).hasAllTags(custom)) {
+                    if (((SellItem) item).hasAllTags(custom)) {
                         sellItems.add(item);
                     }
                 }else {

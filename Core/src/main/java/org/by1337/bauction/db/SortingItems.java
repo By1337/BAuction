@@ -1,8 +1,8 @@
 package org.by1337.bauction.db;
 
 import org.by1337.blib.util.NameKey;
-import org.by1337.bauction.api.auc.SellItem;
-import org.by1337.bauction.util.Sorting;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.util.auction.Sorting;
 
 import java.util.*;
 

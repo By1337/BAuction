@@ -1,11 +1,11 @@
 package org.by1337.bauction.datafix.db.mysql;
 
 import org.bukkit.Material;
-import org.by1337.bauction.util.ConfigUtil;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.util.config.ConfigUtil;
 import org.by1337.blib.configuration.YamlConfig;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.CSellItem;
-import org.by1337.bauction.util.CUniqueName;
+import org.by1337.bauction.util.id.CUniqueName;
 
 import java.sql.*;
 import java.util.*;
@@ -29,7 +29,7 @@ public class MySqlDBUpdater1 {
                 cfg.getAsString("mysql-settings.password")
         );) {
 
-            List<CSellItem> sellItems = parseSellItems(connection);
+            List<SellItem> sellItems = parseSellItems(connection);
             try (PreparedStatement stat = connection.prepareStatement("DROP TABLE IF EXISTS sell_items")) {
                 stat.execute();
             }
@@ -37,7 +37,7 @@ public class MySqlDBUpdater1 {
                 stat.execute();
             }
 
-            for (CSellItem sellItem : sellItems) {
+            for (SellItem sellItem : sellItems) {
                 try (PreparedStatement stat = connection.prepareStatement(sellItem.toSql("sell_items"))) {
                     stat.execute();
                 }
@@ -48,8 +48,8 @@ public class MySqlDBUpdater1 {
         }
     }
 
-    private List<CSellItem> parseSellItems(Connection connection) {
-        List<CSellItem> sellItems = new ArrayList<>();
+    private List<SellItem> parseSellItems(Connection connection) {
+        List<SellItem> sellItems = new ArrayList<>();
 
         String query = "SELECT * FROM sell_items";
         try (PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -63,10 +63,10 @@ public class MySqlDBUpdater1 {
         return sellItems;
     }
 
-    private static CSellItem fromResultSet(ResultSet resultSet) throws SQLException {
+    private static SellItem fromResultSet(ResultSet resultSet) throws SQLException {
         String server = Main.getServerId();
         if (server == null) server = "server-1";
-        return CSellItem.builder()
+        return SellItem.builder()
                 .uniqueName(new CUniqueName(resultSet.getString("uuid")))
                 .sellerUuid(UUID.fromString(resultSet.getString("seller_uuid")))
                 .item(resultSet.getString("item"))

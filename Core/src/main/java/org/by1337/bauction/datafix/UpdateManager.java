@@ -3,7 +3,7 @@ package org.by1337.bauction.datafix;
 import org.bukkit.plugin.Plugin;
 import org.by1337.bauction.datafix.db.DBUpdate110;
 import org.by1337.bauction.datafix.db.mysql.MySqlDBUpdater2;
-import org.by1337.bauction.util.ConfigUtil;
+import org.by1337.bauction.util.config.ConfigUtil;
 import org.by1337.blib.configuration.YamlConfig;
 import org.by1337.blib.configuration.YamlContext;
 import org.by1337.bauction.Main;

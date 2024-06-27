@@ -1,8 +1,8 @@
 package org.by1337.bauction.db.event;
 
 
-import org.by1337.bauction.api.auc.SellItem;
-import org.by1337.bauction.api.auc.User;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

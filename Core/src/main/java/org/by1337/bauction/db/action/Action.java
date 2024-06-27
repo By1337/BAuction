@@ -1,6 +1,6 @@
 package org.by1337.bauction.db.action;
 
-import org.by1337.bauction.util.CUniqueName;
+import org.by1337.bauction.util.id.CUniqueName;
 import org.by1337.bauction.api.util.UniqueName;
 
 import javax.annotation.Nullable;

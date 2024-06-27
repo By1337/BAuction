@@ -10,7 +10,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.by1337.bauction.assets.AssetsManager;
 import org.by1337.bauction.boost.Boost;
-import org.by1337.bauction.command.*;
+import org.by1337.bauction.command.impl.*;
 import org.by1337.bauction.config.Config;
 import org.by1337.bauction.config.adapter.AdapterBoost;
 import org.by1337.bauction.config.adapter.AdapterCategory;
@@ -19,10 +19,10 @@ import org.by1337.bauction.datafix.UpdateManager;
 import org.by1337.bauction.db.kernel.FileDataBase;
 import org.by1337.bauction.db.kernel.MysqlDb;
 import org.by1337.bauction.event.EventManager;
-import org.by1337.bauction.hook.EconomyHook;
-import org.by1337.bauction.hook.impl.BVaultHook;
-import org.by1337.bauction.hook.impl.PlayerPointsHook;
-import org.by1337.bauction.hook.impl.VaultHook;
+import org.by1337.bauction.hook.econ.EconomyHook;
+import org.by1337.bauction.hook.econ.impl.BVaultHook;
+import org.by1337.bauction.hook.econ.impl.PlayerPointsHook;
+import org.by1337.bauction.hook.econ.impl.VaultHook;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.log.FileLogger;
 import org.by1337.bauction.log.PluginLogger;
@@ -30,7 +30,16 @@ import org.by1337.bauction.menu.*;
 import org.by1337.bauction.placeholder.PlaceholderHook;
 import org.by1337.bauction.search.TrieManager;
 import org.by1337.bauction.util.*;
+import org.by1337.bauction.util.auction.Category;
+import org.by1337.bauction.util.auction.Sorting;
+import org.by1337.bauction.util.auction.TagUtil;
+import org.by1337.bauction.util.config.ConfigUtil;
+import org.by1337.bauction.util.config.DbCfg;
+import org.by1337.bauction.util.id.UniqueNameGenerator;
 import org.by1337.bauction.util.plugin.PluginEnablePipeline;
+import org.by1337.bauction.util.threading.ThreadCreator;
+import org.by1337.bauction.util.time.TimeCounter;
+import org.by1337.bauction.util.time.TimeUtil;
 import org.by1337.blib.chat.util.Message;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
@@ -62,7 +71,6 @@ public final class Main extends JavaPlugin {
     private PlaceholderHook placeholderHook;
     private static UniqueNameGenerator uniqueNameGenerator;
     private static DbCfg dbCfg;
-    private boolean loaded;
     private static Set<String> blackList = new HashSet<>();
     private static EventManager eventManager;
     private FileLogger fileLogger;
@@ -241,7 +249,6 @@ public final class Main extends JavaPlugin {
                 try {
                     storage = new MysqlDb(cfg.getCategoryMap(), cfg.getSortingMap(), dbCfg);
                     storage.load();
-                    loaded = true;
                 } catch (IOException | SQLException e) {
                     message.error("failed to load db!", e);
                     instance.getServer().getPluginManager().disablePlugin(instance);
@@ -257,7 +264,6 @@ public final class Main extends JavaPlugin {
                 storage = new FileDataBase(cfg.getCategoryMap(), cfg.getSortingMap());
                 try {
                     storage.load();
-                    loaded = true;
                 } catch (IOException e) {
                     message.error("failed to load db!", e);
                     instance.getServer().getPluginManager().disablePlugin(instance);
@@ -416,10 +422,6 @@ public final class Main extends JavaPlugin {
 
     public PlaceholderHook getPlaceholderHook() {
         return placeholderHook;
-    }
-
-    public boolean isLoaded() {
-        return loaded;
     }
 
     public static EventManager getEventManager() {

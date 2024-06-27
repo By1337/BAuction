@@ -2,16 +2,14 @@ package org.by1337.bauction.db.kernel;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.api.util.UniqueName;
+import org.by1337.bauction.util.auction.Category;
+import org.by1337.bauction.util.auction.Sorting;
 import org.by1337.blib.chat.util.Message;
 import org.by1337.blib.util.NameKey;
 import org.by1337.blib.util.Pair;
 import org.by1337.blib.util.SupplerPair;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.api.auc.SellItem;
-import org.by1337.bauction.api.auc.UnsoldItem;
-import org.by1337.bauction.api.auc.User;
 import org.by1337.bauction.db.SortingItems;
-import org.by1337.bauction.util.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,13 +22,13 @@ import java.util.function.Supplier;
 @ThreadSafe
 public abstract class DataBaseCore {
 
-    private final Map<UUID, CUser> users = new HashMap<>(); // main
-    private final TreeSet<CSellItem> sortedSellItems; // main
-    private final TreeSet<CUnsoldItem> sortedUnsoldItems; // main
+    private final Map<UUID, User> users = new HashMap<>(); // main
+    private final TreeSet<SellItem> sortedSellItems; // main
+    private final TreeSet<UnsoldItem> sortedUnsoldItems; // main
 
-    private final Map<UniqueName, CSellItem> sellItemsMap = new HashMap<>();
-    private final Map<UniqueName, CUnsoldItem> unsoldItemsMap = new HashMap<>();
-    private final Map<UUID, Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>>> itemsByOwner = new HashMap<>();
+    private final Map<UniqueName, SellItem> sellItemsMap = new HashMap<>();
+    private final Map<UniqueName, UnsoldItem> unsoldItemsMap = new HashMap<>();
+    private final Map<UUID, Pair<HashSet<SellItem>, HashSet<UnsoldItem>>> itemsByOwner = new HashMap<>();
 
     private final Map<NameKey, Map<NameKey, SortingItems>> sortedItems = new HashMap<>();
 
@@ -72,12 +70,12 @@ public abstract class DataBaseCore {
     protected void boostCheck(UUID uuid) {
         if (hasUser(uuid)) {
             writeLock(() -> {
-                Main.getCfg().getBoostManager().userUpdate((CUser) getUser(uuid));
+                Main.getCfg().getBoostManager().userUpdate((User) getUser(uuid));
             });
         }
     }
 
-    protected void addSellItem0(CSellItem sellItem) {
+    protected void addSellItem0(SellItem sellItem) {
         isWriteLock();
         if (hasSellItem(sellItem.uniqueName)) {
             throw new IllegalStateException("item already exist");
@@ -85,7 +83,7 @@ public abstract class DataBaseCore {
         sellItemsMap.put(sellItem.uniqueName, sellItem);
         sortedSellItems.add(sellItem);
 
-        Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, sellItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
+        Pair<HashSet<SellItem>, HashSet<UnsoldItem>> pair = getValue(itemsByOwner, sellItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
         pair.getLeft().add(sellItem);
         itemsByOwner.put(sellItem.sellerUuid, pair);
 
@@ -98,20 +96,20 @@ public abstract class DataBaseCore {
         });
     }
 
-    protected void removeSellItem0(CSellItem sellItem) {
+    protected void removeSellItem0(SellItem sellItem) {
         isWriteLock();
         if (!hasSellItem(sellItem.uniqueName)) {
             throw new IllegalStateException("item " + sellItem.uniqueName + " non-exist");
         }
         sellItemsMap.remove(sellItem.uniqueName);
         sortedSellItems.remove(sellItem);
-        Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, sellItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
+        Pair<HashSet<SellItem>, HashSet<UnsoldItem>> pair = getValue(itemsByOwner, sellItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
         pair.getLeft().remove(sellItem);
         itemsByOwner.put(sellItem.sellerUuid, pair);
         removeIf(sellItem);
     }
 
-    protected void addUnsoldItem0(CUnsoldItem unsoldItem) {
+    protected void addUnsoldItem0(UnsoldItem unsoldItem) {
         isWriteLock();
         if (hasUnsoldItem(unsoldItem.uniqueName)) {
             throw new IllegalStateException("item already exist");
@@ -119,12 +117,12 @@ public abstract class DataBaseCore {
         unsoldItemsMap.put(unsoldItem.uniqueName, unsoldItem);
         sortedUnsoldItems.add(unsoldItem);
 
-        Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, unsoldItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
+        Pair<HashSet<SellItem>, HashSet<UnsoldItem>> pair = getValue(itemsByOwner, unsoldItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
         pair.getRight().add(unsoldItem);
         itemsByOwner.put(unsoldItem.sellerUuid, pair);
     }
 
-    protected void removeUnsoldItem0(CUnsoldItem unsoldItem) {
+    protected void removeUnsoldItem0(UnsoldItem unsoldItem) {
         isWriteLock();
         if (!hasUnsoldItem(unsoldItem.uniqueName)) {
             throw new IllegalStateException("unsold item " + unsoldItem.getUniqueName() + " non-exist");
@@ -132,12 +130,12 @@ public abstract class DataBaseCore {
         unsoldItemsMap.remove(unsoldItem.uniqueName);
         sortedUnsoldItems.remove(unsoldItem);
 
-        Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, unsoldItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
+        Pair<HashSet<SellItem>, HashSet<UnsoldItem>> pair = getValue(itemsByOwner, unsoldItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
         pair.getRight().remove(unsoldItem);
         itemsByOwner.put(unsoldItem.sellerUuid, pair);
     }
 
-    protected CUser addUser(CUser user) {
+    protected User addUser(User user) {
         isWriteLock();
         if (hasUser(user.uuid)) {
             throw new IllegalStateException("user already exist!");
@@ -146,7 +144,7 @@ public abstract class DataBaseCore {
         return user;
     }
 
-    protected void replaceUser(CUser user) {
+    protected void replaceUser(User user) {
         isWriteLock();
         if (!hasUser(user.uuid)) {
             throw new IllegalStateException("user non-exist!");
@@ -159,25 +157,20 @@ public abstract class DataBaseCore {
             if (hasSellItem(sellItem.getUniqueName())) {
                 throw new IllegalStateException("sell item already exist!");
             }
-            if (sellItem instanceof CSellItem cSellItem) {
-                addSellItem0(cSellItem);
-            } else {
-                CSellItem sellItem1 = CSellItem.parse(sellItem);
-                addSellItem0(sellItem1);
-            }
+            addSellItem0(sellItem);
         });
     }
 
     public UnsoldItem removeUnsoldItem(UniqueName name) {
         return writeLock(() -> {
-            CUnsoldItem item1 = (CUnsoldItem) getUnsoldItem(name);
+            UnsoldItem item1 = getUnsoldItem(name);
             if (item1 == null) throw new IllegalStateException("unsold " + name + " non-exist");
             removeUnsoldItem0(item1);
             return item1;
         });
     }
 
-    public void addUnsoldItem(CUnsoldItem unsoldItem) {
+    public void addUnsoldItem(UnsoldItem unsoldItem) {
         writeLock(() -> {
             if (hasUnsoldItem(unsoldItem.getUniqueName())) {
                 throw new IllegalStateException("unsold item " + unsoldItem.getUniqueName() + " already exist!");
@@ -189,7 +182,7 @@ public abstract class DataBaseCore {
 
     public SellItem removeSellItem(UniqueName name) {
         return writeLock(() -> {
-            CSellItem item1 = (CSellItem) getSellItem(name);
+            SellItem item1 = (SellItem) getSellItem(name);
             if (item1 == null) throw new IllegalStateException("sell item " + name + " non-exist");
             removeSellItem0(item1);
             return item1;
@@ -291,29 +284,29 @@ public abstract class DataBaseCore {
 
     public void forEachSellItemsByUser(Consumer<? super SellItem> action, @NotNull UUID uuid) {
         readLock(() -> {
-            Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
+            Pair<HashSet<SellItem>, HashSet<UnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
             pair.getKey().forEach(action);
         });
     }
 
 
-    public void forEachUnsoldItemsByUser(Consumer<? super CUnsoldItem> action, @NotNull UUID uuid) {
+    public void forEachUnsoldItemsByUser(Consumer<? super UnsoldItem> action, @NotNull UUID uuid) {
         readLock(() -> {
-            Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
+            Pair<HashSet<SellItem>, HashSet<UnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
             pair.getRight().forEach(action);
         });
     }
 
     public int sellItemsCountByUser(@NotNull UUID uuid) {
         return readLock(() -> {
-            Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
+            Pair<HashSet<SellItem>, HashSet<UnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
             return pair.getKey().size();
         });
     }
 
     public int unsoldItemsCountByUser(@NotNull UUID uuid) {
         return readLock(() -> {
-            Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
+            Pair<HashSet<SellItem>, HashSet<UnsoldItem>> pair = getValue(itemsByOwner, uuid, () -> new SupplerPair<>(HashSet::new, HashSet::new));
             return pair.getRight().size();
         });
     }
@@ -323,7 +316,7 @@ public abstract class DataBaseCore {
         if (hasUser(uuid)) {
             return getUser(uuid);
         } else {
-            return writeLock(() -> addUser(new CUser(nickName, uuid)));
+            return writeLock(() -> addUser(new User(nickName, uuid)));
         }
     }
 
@@ -342,7 +335,7 @@ public abstract class DataBaseCore {
 
     protected abstract void expiredItem(SellItem sellItem);
 
-    protected void load(List<CSellItem> items, List<CUser> users, List<CUnsoldItem> unsoldItems) {
+    protected void load(List<SellItem> items, List<User> users, List<UnsoldItem> unsoldItems) {
         writeLock(() -> {
             Message message = Main.getMessage();
             users.removeIf(user -> {
@@ -371,7 +364,7 @@ public abstract class DataBaseCore {
             items.forEach(sellItem -> {
                 sellItemsMap.put(sellItem.uniqueName, sellItem);
                 sortedSellItems.add(sellItem);
-                Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, sellItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
+                Pair<HashSet<SellItem>, HashSet<UnsoldItem>> pair = getValue(itemsByOwner, sellItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
                 pair.getLeft().add(sellItem);
                 itemsByOwner.put(sellItem.sellerUuid, pair);
                 sortedItems.forEach((key, value) -> {
@@ -386,7 +379,7 @@ public abstract class DataBaseCore {
                 unsoldItemsMap.put(unsoldItem.uniqueName, unsoldItem);
                 sortedUnsoldItems.add(unsoldItem);
 
-                Pair<HashSet<CSellItem>, HashSet<CUnsoldItem>> pair = getValue(itemsByOwner, unsoldItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
+                Pair<HashSet<SellItem>, HashSet<UnsoldItem>> pair = getValue(itemsByOwner, unsoldItem.sellerUuid, () -> new Pair<>(new HashSet<>(), new HashSet<>()));
                 pair.getRight().add(unsoldItem);
                 itemsByOwner.put(unsoldItem.sellerUuid, pair);
             });

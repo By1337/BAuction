@@ -4,7 +4,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.by1337.blib.configuration.YamlContext;
 import org.by1337.blib.configuration.adapter.ClassAdapter;
 import org.by1337.blib.util.NameKey;
-import org.by1337.bauction.util.Sorting;
+import org.by1337.bauction.util.auction.Sorting;
 
 public class AdapterSortingType implements ClassAdapter<Sorting> {
     @Override

@@ -2,13 +2,13 @@ package org.by1337.bauction.action;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.api.auc.UnsoldItem;
-import org.by1337.bauction.api.auc.User;
+import org.by1337.bauction.db.kernel.UnsoldItem;
+import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.db.event.TakeUnsoldItemEvent;
 import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.util.PlayerUtil;
+import org.by1337.bauction.util.player.PlayerUtil;
 import org.by1337.blib.chat.placeholder.BiPlaceholder;
 import org.by1337.blib.chat.placeholder.Placeholder;
 import org.by1337.bmenu.menu.Menu;

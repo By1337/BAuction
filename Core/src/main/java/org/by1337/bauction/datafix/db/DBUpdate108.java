@@ -2,12 +2,12 @@ package org.by1337.bauction.datafix.db;
 
 import org.bukkit.Material;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.CSellItem;
-import org.by1337.bauction.db.kernel.CUnsoldItem;
-import org.by1337.bauction.db.kernel.CUser;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.UnsoldItem;
+import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.serialize.FileUtil;
 import org.by1337.bauction.serialize.SerializeUtils;
-import org.by1337.bauction.util.CUniqueName;
+import org.by1337.bauction.util.id.CUniqueName;
 import org.by1337.bauction.api.util.UniqueName;
 
 import java.io.ByteArrayInputStream;
@@ -30,7 +30,7 @@ public class DBUpdate108 {
             home.mkdir();
         }
         File fItems = new File(home + "/items.bauc");
-        List<CSellItem> items;
+        List<SellItem> items;
 
         if (fItems.exists()) {
             items = FileUtil.read(fItems, DBUpdate108::fromBytesSellItem);
@@ -47,7 +47,7 @@ public class DBUpdate108 {
     public void updateUnsoldItems() throws IOException {
         File home = new File(Main.getInstance().getDataFolder() + "/data");
         File fUnsoldItems = new File(home + "/unsoldItems.bauc");
-        List<CUnsoldItem> unsoldItems;
+        List<UnsoldItem> unsoldItems;
 
         if (fUnsoldItems.exists()) {
             unsoldItems = FileUtil.read(fUnsoldItems, DBUpdate108::fromBytesUnsoldItem);
@@ -64,7 +64,7 @@ public class DBUpdate108 {
     public void updateUsers() throws IOException {
         File home = new File(Main.getInstance().getDataFolder() + "/data");
         File fUsers = new File(home + "/users.bauc");
-        List<CUser> users;
+        List<User> users;
 
         if (fUsers.exists()) {
             users = FileUtil.read(fUsers, DBUpdate108::fromBytesUser);
@@ -78,20 +78,20 @@ public class DBUpdate108 {
         Main.getMessage().logger("users updated!");
     }
 
-    public static CUser fromBytesUser(byte[] arr) throws IOException {
+    public static User fromBytesUser(byte[] arr) throws IOException {
         try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
             String nickName = in.readUTF();
             UUID uuid = UUID.fromString(in.readUTF());
             int dealCount = in.readInt();
             double dealSum = in.readDouble();
 
-            return new CUser(
+            return new User(
                     nickName, uuid, dealCount, dealSum
             );
         }
     }
 
-    public static CSellItem fromBytesSellItem(byte[] arr) throws IOException {
+    public static SellItem fromBytesSellItem(byte[] arr) throws IOException {
         try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
             String item = in.readUTF();
             String sellerName = in.readUTF();
@@ -111,13 +111,13 @@ public class DBUpdate108 {
             double priceForOne = in.readDouble();
             Set<String> sellFor = new HashSet<>(SerializeUtils.readCollectionFromStream(in));
 
-            return new CSellItem(
+            return new SellItem(
                     item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, null, Main.getServerId(),false
             );
         }
     }
 
-    public static CUnsoldItem fromBytesUnsoldItem(byte[] arr) throws IOException {
+    public static UnsoldItem fromBytesUnsoldItem(byte[] arr) throws IOException {
         try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
 
             String item = in.readUTF();
@@ -130,7 +130,7 @@ public class DBUpdate108 {
             );
             long deleteVia = in.readLong();
 
-            return new CUnsoldItem(
+            return new UnsoldItem(
                     item, expired, sellerUuid, uniqueName, deleteVia, false
             );
         }

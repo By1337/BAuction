@@ -6,12 +6,10 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.api.auc.SellItem;
-import org.by1337.bauction.api.auc.User;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.db.event.BuyItemEvent;
 import org.by1337.bauction.db.event.SellItemEvent;
-import org.by1337.bauction.db.kernel.CSellItem;
-import org.by1337.bauction.db.kernel.CUser;
 import org.by1337.bauction.db.kernel.FileDataBase;
 
 import java.util.Random;
@@ -62,11 +60,11 @@ public class FakePlayer {
     }
 
     private void sellItem() {
-        CUser user = (CUser) storage.getUserOrCreate(nickName, uuid);
+        User user = (User) storage.getUserOrCreate(nickName, uuid);
         user.setExternalSlots(9999);
         ItemStack itemStack = new ItemStack(Material.values()[random.nextInt(50) + 1]);
         itemStack.setAmount(random.nextInt(itemStack.getType().getMaxStackSize() - 1) + 1);
-        CSellItem sellItem = new CSellItem(nickName, uuid, itemStack, random.nextInt(200) + 200, Main.getCfg().getDefaultSellTime() + user.getExternalSellTime(), true);
+        SellItem sellItem = new SellItem(nickName, uuid, itemStack, random.nextInt(200) + 200, Main.getCfg().getDefaultSellTime() + user.getExternalSellTime(), true);
         SellItemEvent event = new SellItemEvent(user, sellItem);
         storage.validateAndAddItem(event);
     }

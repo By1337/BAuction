@@ -2,15 +2,14 @@ package org.by1337.bauction.action;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.api.auc.SellItem;
-import org.by1337.bauction.api.auc.User;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.db.event.TakeItemEvent;
-import org.by1337.bauction.db.kernel.CSellItem;
 
 import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.util.PlayerUtil;
+import org.by1337.bauction.util.player.PlayerUtil;
 import org.by1337.blib.chat.placeholder.BiPlaceholder;
 import org.by1337.blib.chat.placeholder.Placeholder;
 import org.by1337.bmenu.menu.Menu;
@@ -27,7 +26,7 @@ public class TakeItemProcess extends Placeholder {
         this.takingItem = takingItem;
         if (takingItem != null) {
             registerPlaceholder("{buyer_name}", taker::getNickName);
-            registerPlaceholders((CSellItem) takingItem);
+            registerPlaceholders((SellItem) takingItem);
         }
 
     }
@@ -43,7 +42,7 @@ public class TakeItemProcess extends Placeholder {
         }
         registerPlaceholder("{taker_name}", taker::getNickName);
         if (takingItem != null)
-            registerPlaceholders((CSellItem) takingItem);
+            registerPlaceholders((SellItem) takingItem);
     }
 
     public void run() {

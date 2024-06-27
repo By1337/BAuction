@@ -2,7 +2,7 @@ package org.by1337.bauction.menu;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.util.TagUtil;
+import org.by1337.bauction.util.auction.TagUtil;
 import org.by1337.bmenu.menu.Menu;
 import org.by1337.bmenu.menu.MenuLoader;
 import org.by1337.bmenu.menu.MenuSetting;

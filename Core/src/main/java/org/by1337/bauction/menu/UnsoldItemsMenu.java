@@ -2,8 +2,8 @@ package org.by1337.bauction.menu;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.api.auc.UnsoldItem;
-import org.by1337.bauction.db.kernel.CUser;
+import org.by1337.bauction.db.kernel.UnsoldItem;
+import org.by1337.bauction.db.kernel.User;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.bmenu.menu.*;
@@ -18,7 +18,7 @@ public class UnsoldItemsMenu extends Menu {
     protected int currentPage = 0;
     protected int maxPage = 0;
 
-    protected CUser user;
+    protected User user;
     private final Cache cache;
     private static boolean seenIllegalCash;
     private final List<UnsoldItem> unsoldItems = new ArrayList<>();
@@ -41,7 +41,7 @@ public class UnsoldItemsMenu extends Menu {
     }
 
     private void init() {
-        user = (CUser) Main.getStorage().getUserOrCreate(viewer);
+        user = (User) Main.getStorage().getUserOrCreate(viewer);
         registerPlaceholder("{max_page}", () -> maxPage == 0 ? 1 : maxPage);
         registerPlaceholder("{current_page}", () -> currentPage + 1);
         registerPlaceholders(user);

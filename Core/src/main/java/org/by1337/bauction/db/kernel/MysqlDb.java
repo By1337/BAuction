@@ -5,11 +5,9 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.by1337.bauction.network.Packet;
-import org.by1337.bauction.util.DbCfg;
+import org.by1337.bauction.util.config.DbCfg;
 import org.by1337.blib.util.NameKey;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.api.auc.SellItem;
-import org.by1337.bauction.api.auc.UnsoldItem;
 import org.by1337.bauction.db.action.Action;
 import org.by1337.bauction.db.action.ActionGiveMoney;
 import org.by1337.bauction.db.action.ActionType;
@@ -19,9 +17,9 @@ import org.by1337.bauction.network.PacketConnection;
 import org.by1337.bauction.network.PacketListener;
 import org.by1337.bauction.network.PacketType;
 import org.by1337.bauction.network.impl.*;
-import org.by1337.bauction.util.Category;
-import org.by1337.bauction.util.MoneyGiver;
-import org.by1337.bauction.util.Sorting;
+import org.by1337.bauction.util.auction.Category;
+import org.by1337.bauction.util.player.MoneyGiver;
+import org.by1337.bauction.util.auction.Sorting;
 import org.by1337.bauction.api.util.UniqueName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -204,7 +202,7 @@ CREATE TABLE IF NOT EXISTS logs (
     }
 
     @Override
-    protected void replaceUser(CUser user) {
+    protected void replaceUser(User user) {
         super.replaceUser(user);
         execute(user.toSqlUpdate("users"));
         log(new Action(ActionType.UPDATE_USER, user.getUuid(), null, server));
@@ -212,7 +210,7 @@ CREATE TABLE IF NOT EXISTS logs (
     }
 
     @Override
-    protected CUser addUser(CUser user) {
+    protected User addUser(User user) {
         super.addUser(user);
         execute(user.toSql("users"));
         log(new Action(ActionType.UPDATE_USER, user.getUuid(), null, server));
@@ -221,8 +219,8 @@ CREATE TABLE IF NOT EXISTS logs (
     }
 
     private void updateUsers(UUID user, UUID user1) {
-        CUser buyer = (CUser) getUser(user);
-        CUser owner = (CUser) getUser(user1);
+        User buyer = getUser(user);
+        User owner = getUser(user1);
 
         if (buyer != null) {
             execute(buyer.toSqlUpdate("users"));
@@ -263,7 +261,7 @@ CREATE TABLE IF NOT EXISTS logs (
     }
 
     @Override
-    public void addUnsoldItem(CUnsoldItem unsoldItem) {
+    public void addUnsoldItem(UnsoldItem unsoldItem) {
         super.addUnsoldItem(unsoldItem);
         execute(unsoldItem.toSql("unsold_items"));
         log(new Action(ActionType.ADD_UNSOLD_ITEM, unsoldItem.getSellerUuid(), unsoldItem.uniqueName, server));
@@ -302,9 +300,9 @@ CREATE TABLE IF NOT EXISTS logs (
     @Override
     public void load() {
         writeLock(() -> {
-            List<CSellItem> items = parseSellItems();
-            List<CUser> users = parseUsers();
-            List<CUnsoldItem> unsoldItems = parseUnsoldItems();
+            List<SellItem> items = parseSellItems();
+            List<User> users = parseUsers();
+            List<UnsoldItem> unsoldItems = parseUnsoldItems();
             lastLogCheck = System.currentTimeMillis();
 
             if (!items.isEmpty() || !users.isEmpty() || !unsoldItems.isEmpty()) {
@@ -313,14 +311,14 @@ CREATE TABLE IF NOT EXISTS logs (
         });
     }
 
-    private List<CSellItem> parseSellItems() {
-        List<CSellItem> sellItems = new ArrayList<>();
+    private List<SellItem> parseSellItems() {
+        List<SellItem> sellItems = new ArrayList<>();
 
         String query = "SELECT * FROM sell_items";
         try (PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSet resultSet = preparedStatement.executeQuery()) {
             while (resultSet.next()) {
-                sellItems.add(CSellItem.fromResultSet(resultSet));
+                sellItems.add(SellItem.fromResultSet(resultSet));
             }
         } catch (SQLException e) {
             Main.getMessage().error(e);
@@ -328,14 +326,14 @@ CREATE TABLE IF NOT EXISTS logs (
         return sellItems;
     }
 
-    private List<CUser> parseUsers() {
-        List<CUser> userList = new ArrayList<>();
+    private List<User> parseUsers() {
+        List<User> userList = new ArrayList<>();
         String query = "SELECT * FROM users";
         try (PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSet resultSet = preparedStatement.executeQuery()) {
 
             while (resultSet.next()) {
-                userList.add(CUser.fromResultSet(resultSet));
+                userList.add(User.fromResultSet(resultSet));
             }
         } catch (SQLException e) {
             Main.getMessage().error(e);
@@ -343,14 +341,14 @@ CREATE TABLE IF NOT EXISTS logs (
         return userList;
     }
 
-    private List<CUnsoldItem> parseUnsoldItems() {
-        List<CUnsoldItem> userList = new ArrayList<>();
+    private List<UnsoldItem> parseUnsoldItems() {
+        List<UnsoldItem> userList = new ArrayList<>();
         String query = "SELECT * FROM unsold_items";
         try (PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSet resultSet = preparedStatement.executeQuery()) {
 
             while (resultSet.next()) {
-                userList.add(CUnsoldItem.fromResultSet(resultSet));
+                userList.add(UnsoldItem.fromResultSet(resultSet));
             }
         } catch (SQLException e) {
             Main.getMessage().error(e);
@@ -384,7 +382,7 @@ CREATE TABLE IF NOT EXISTS logs (
                         try (PreparedStatement preparedStatement = connection.prepareStatement(String.format("SELECT * FROM sell_items WHERE uuid = '%s'", action.getItem().getKey()));
                              ResultSet resultSet = preparedStatement.executeQuery()) {
                             if (!resultSet.next()) break;
-                            CSellItem sellItem = CSellItem.fromResultSet(resultSet);
+                            SellItem sellItem = SellItem.fromResultSet(resultSet);
                             writeLock(() -> addSellItem0(sellItem));
                         }
                     }
@@ -392,7 +390,7 @@ CREATE TABLE IF NOT EXISTS logs (
                         try (PreparedStatement preparedStatement = connection.prepareStatement(String.format("SELECT * FROM users WHERE uuid = '%s'", action.getOwner()));
                              ResultSet resultSet = preparedStatement.executeQuery()) {
                             if (!resultSet.next()) break;
-                            CUser user = CUser.fromResultSet(resultSet);
+                            User user = User.fromResultSet(resultSet);
                             if (hasUser(user.uuid)) {
                                 writeLock(() -> super.replaceUser(user));
                             } else {
@@ -406,7 +404,7 @@ CREATE TABLE IF NOT EXISTS logs (
                         try (PreparedStatement preparedStatement = connection.prepareStatement(String.format("SELECT * FROM unsold_items WHERE uuid = '%s'", action.getItem().getKey()));
                              ResultSet resultSet = preparedStatement.executeQuery()) {
                             if (!resultSet.next()) break;
-                            CUnsoldItem unsoldItem = CUnsoldItem.fromResultSet(resultSet);
+                            UnsoldItem unsoldItem = UnsoldItem.fromResultSet(resultSet);
                             writeLock(() -> addUnsoldItem0(unsoldItem));
                         }
                     }
@@ -479,9 +477,9 @@ CREATE TABLE IF NOT EXISTS logs (
         if (id == PacketType.ADD_SELL_ITEM.getId()) {
             SellItem sellItem = ((PacketAddSellItem) packetIn).getSellItem();
             if (hasSellItem(sellItem.getUniqueName())) return;
-            writeLock(() -> addSellItem0((CSellItem) sellItem));
+            writeLock(() -> addSellItem0(sellItem));
         } else if (id == PacketType.UPDATE_USER.getId()) {
-            CUser user = ((PacketUpdateUser) packetIn).getUser();
+            User user = ((PacketUpdateUser) packetIn).getUser();
             if (hasUser(user.uuid)) {
                 writeLock(() -> super.replaceUser(user));
             } else {
@@ -489,7 +487,7 @@ CREATE TABLE IF NOT EXISTS logs (
             }
             boostCheck(user.uuid);
         } else if (id == PacketType.ADD_UNSOLD_ITEM.getId()) {
-            CUnsoldItem unsoldItem = ((PacketAddUnsoldItem) packetIn).getUnsoldItem();
+            UnsoldItem unsoldItem = ((PacketAddUnsoldItem) packetIn).getUnsoldItem();
             if (hasUnsoldItem(unsoldItem.uniqueName)) return;
             writeLock(() -> addUnsoldItem0(unsoldItem));
         } else if (id == PacketType.REMOVE_SELL_ITEM.getId()) {

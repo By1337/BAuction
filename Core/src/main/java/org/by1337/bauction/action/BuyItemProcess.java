@@ -4,16 +4,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.api.auc.SellItem;
-import org.by1337.bauction.api.auc.User;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.db.event.BuyItemEvent;
-import org.by1337.bauction.db.kernel.CSellItem;
 import org.by1337.bauction.db.kernel.MysqlDb;
 import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.network.impl.PacketSendMessage;
-import org.by1337.bauction.util.PlayerUtil;
+import org.by1337.bauction.util.player.PlayerUtil;
 import org.by1337.blib.chat.placeholder.BiPlaceholder;
 import org.by1337.blib.chat.placeholder.MultiPlaceholder;
 import org.by1337.blib.chat.placeholder.Placeholder;
@@ -32,7 +30,7 @@ public class BuyItemProcess extends Placeholder {
         this.buyingItem = buyingItem;
         if (buyingItem != null) {
             registerPlaceholder("{buyer_name}", buyer::getNickName);
-            registerPlaceholders((CSellItem) buyingItem);
+            registerPlaceholders((SellItem) buyingItem);
         }
 
     }
@@ -48,7 +46,7 @@ public class BuyItemProcess extends Placeholder {
         }
         registerPlaceholder("{buyer_name}", buyer::getNickName);
         if (buyingItem != null)
-            registerPlaceholders((CSellItem) buyingItem);
+            registerPlaceholders((SellItem) buyingItem);
     }
 
     public void run() {

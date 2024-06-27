@@ -1,16 +1,13 @@
 package org.by1337.bauction.config;
 
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.Plugin;
 import org.by1337.bauction.boost.BoostManager;
-import org.by1337.bauction.util.Category;
-import org.by1337.bauction.util.ConfigUtil;
-import org.by1337.bauction.util.NumberUtil;
-import org.by1337.bauction.util.Sorting;
+import org.by1337.bauction.util.auction.Category;
+import org.by1337.bauction.util.config.ConfigUtil;
+import org.by1337.bauction.util.common.NumberUtil;
+import org.by1337.bauction.util.auction.Sorting;
 import org.by1337.blib.configuration.YamlContext;
 import org.by1337.blib.util.NameKey;
 
-import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 

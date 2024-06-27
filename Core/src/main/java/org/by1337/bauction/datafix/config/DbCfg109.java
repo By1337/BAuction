@@ -1,7 +1,7 @@
 package org.by1337.bauction.datafix.config;
 
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.by1337.bauction.util.ConfigUtil;
+import org.by1337.bauction.util.config.ConfigUtil;
 
 import java.io.IOException;
 

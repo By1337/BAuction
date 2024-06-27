@@ -1,7 +1,7 @@
 package org.by1337.bauction.datafix.db.mysql;
 
 import org.by1337.bauction.Main;
-import org.by1337.bauction.util.ConfigUtil;
+import org.by1337.bauction.util.config.ConfigUtil;
 import org.by1337.blib.configuration.YamlConfig;
 
 import java.sql.Connection;

@@ -2,10 +2,10 @@ package org.by1337.bauction.auto.buy;
 
 import org.bukkit.inventory.ItemStack;
 import org.by1337.blib.BLib;
-import org.by1337.bauction.api.auc.SellItem;
+import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.api.serialize.SerializableToByteArray;
 import org.by1337.bauction.serialize.SerializeUtils;
-import org.by1337.bauction.util.TagUtil;
+import org.by1337.bauction.util.auction.TagUtil;
 
 import java.io.*;
 import java.util.Collection;

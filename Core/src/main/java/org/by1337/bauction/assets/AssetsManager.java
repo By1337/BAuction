@@ -39,6 +39,10 @@ public class AssetsManager {
         private Map<String, String> translationTabCompleterStyle;
 
         public ItemNames() throws IOException {
+            if (!locale.contains("_")){
+                plugin.getLogger().log(Level.SEVERE, "Invalid locale syntax! Example: ru_ru, en_us. locale=" + locale);
+                throw new IllegalArgumentException("Invalid locale syntax! Example: ru_ru, en_us. locale=" + locale);
+            }
             try {
                 downloadAndApply();
             } catch (IOException e) {

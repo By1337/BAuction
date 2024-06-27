@@ -5,7 +5,7 @@ import org.by1337.blib.configuration.YamlContext;
 import org.by1337.blib.configuration.adapter.ClassAdapter;
 import org.by1337.blib.util.NameKey;
 import org.by1337.bauction.boost.Boost;
-import org.by1337.bauction.util.NumberUtil;
+import org.by1337.bauction.util.common.NumberUtil;
 
 public class AdapterBoost implements ClassAdapter<Boost> {
     @Override

@@ -2,7 +2,7 @@ package org.by1337.bmenu;
 
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.plugin.Plugin;
-import org.by1337.bauction.util.ThreadCreator;
+import org.by1337.bauction.util.threading.ThreadCreator;
 import org.by1337.blib.chat.util.Message;
 import org.by1337.blib.configuration.adapter.AdapterRegistry;
 import org.by1337.blib.configuration.adapter.impl.primitive.AdapterEnum;

@@ -3,11 +3,11 @@ package org.by1337.bauction.datafix.db;
 import org.bukkit.Material;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.util.UniqueName;
-import org.by1337.bauction.db.kernel.CSellItem;
-import org.by1337.bauction.db.kernel.CUnsoldItem;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.UnsoldItem;
 import org.by1337.bauction.serialize.FileUtil;
 import org.by1337.bauction.serialize.SerializeUtils;
-import org.by1337.bauction.util.CUniqueName;
+import org.by1337.bauction.util.id.CUniqueName;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -32,7 +32,7 @@ public class DBUpdate110 {
             home.mkdir();
         }
         File fItems = new File(home + "/unsoldItems.bauc");
-        List<CUnsoldItem> items;
+        List<UnsoldItem> items;
 
         if (fItems.exists()) {
             items = FileUtil.read(fItems, DBUpdate110::fromBytesUnsoldItem);
@@ -52,7 +52,7 @@ public class DBUpdate110 {
             home.mkdir();
         }
         File fItems = new File(home + "/items.bauc");
-        List<CSellItem> items;
+        List<SellItem> items;
 
         if (fItems.exists()) {
             items = FileUtil.read(fItems, DBUpdate110::fromBytesSellItem);
@@ -66,7 +66,7 @@ public class DBUpdate110 {
         Main.getMessage().logger("sell items updated!");
     }
 
-    private static CUnsoldItem fromBytesUnsoldItem(byte[] arr) throws IOException {
+    private static UnsoldItem fromBytesUnsoldItem(byte[] arr) throws IOException {
         try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
 
             String item = in.readUTF();
@@ -77,13 +77,13 @@ public class DBUpdate110 {
             );
             long deleteVia = in.readLong();
 
-            return new CUnsoldItem(
+            return new UnsoldItem(
                     item, expired, sellerUuid, uniqueName, deleteVia, false
             );
         }
     }
 
-    private static CSellItem fromBytesSellItem(byte[] arr) throws IOException {
+    private static SellItem fromBytesSellItem(byte[] arr) throws IOException {
         try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
             String item = in.readUTF();
             String sellerName = in.readUTF();
@@ -102,7 +102,7 @@ public class DBUpdate110 {
             Set<String> sellFor = new HashSet<>(SerializeUtils.readCollectionFromStream(in));
             String server = in.readUTF();
 
-            return new CSellItem(
+            return new SellItem(
                     item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, null, server, false
             );
         }

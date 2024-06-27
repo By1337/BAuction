@@ -5,17 +5,15 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.api.auc.SellItem;
-import org.by1337.bauction.api.auc.User;
+import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.db.event.BuyItemCountEvent;
-import org.by1337.bauction.db.kernel.CSellItem;
 import org.by1337.bauction.db.kernel.MysqlDb;
 import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.network.impl.PacketSendMessage;
-import org.by1337.bauction.util.NumberUtil;
-import org.by1337.bauction.util.PlayerUtil;
+import org.by1337.bauction.util.common.NumberUtil;
+import org.by1337.bauction.util.player.PlayerUtil;
 import org.by1337.blib.chat.placeholder.MultiPlaceholder;
 import org.by1337.blib.chat.placeholder.Placeholder;
 import org.by1337.bmenu.menu.Menu;
@@ -35,7 +33,7 @@ public class BuyItemCountProcess extends Placeholder {
 
 
         if (buyingItem != null) {
-            registerPlaceholders((CSellItem) buyingItem);
+            registerPlaceholders((SellItem) buyingItem);
             registerPlaceholder("{price}", () -> NumberUtil.format(buyingItem.getPriceForOne() * count));
         }
         registerPlaceholder("{amount}", () -> count);

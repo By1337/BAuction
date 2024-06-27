@@ -2,10 +2,10 @@ package org.by1337.bauction.datafix.db;
 
 import org.bukkit.Material;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.CSellItem;
+import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.serialize.FileUtil;
 import org.by1337.bauction.serialize.SerializeUtils;
-import org.by1337.bauction.util.CUniqueName;
+import org.by1337.bauction.util.id.CUniqueName;
 import org.by1337.bauction.api.util.UniqueName;
 
 import java.io.ByteArrayInputStream;
@@ -29,7 +29,7 @@ public class DBUpdate109 {
             home.mkdir();
         }
         File fItems = new File(home + "/items.bauc");
-        List<CSellItem> items;
+        List<SellItem> items;
 
         if (fItems.exists()) {
             items = FileUtil.read(fItems, DBUpdate109::fromBytesSellItem);
@@ -43,7 +43,7 @@ public class DBUpdate109 {
         Main.getMessage().logger("sell items updated!");
     }
 
-    public static CSellItem fromBytesSellItem(byte[] arr) throws IOException {
+    public static SellItem fromBytesSellItem(byte[] arr) throws IOException {
         try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
             String item = in.readUTF();
             String sellerName = in.readUTF();
@@ -61,7 +61,7 @@ public class DBUpdate109 {
             double priceForOne = in.readDouble();
             Set<String> sellFor = new HashSet<>(SerializeUtils.readCollectionFromStream(in));
 
-            return new CSellItem(
+            return new SellItem(
                     item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, null, Main.getServerId(), false
             );
         }

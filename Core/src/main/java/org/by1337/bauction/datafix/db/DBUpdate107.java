@@ -9,7 +9,7 @@ import org.by1337.bauction.Main;
 import org.by1337.bauction.serialize.FileUtil;
 import org.by1337.bauction.api.serialize.SerializableToByteArray;
 import org.by1337.bauction.serialize.SerializeUtils;
-import org.by1337.bauction.util.TimeCounter;
+import org.by1337.bauction.util.time.TimeCounter;
 
 import java.io.*;
 import java.lang.reflect.Type;
