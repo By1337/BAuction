@@ -6,16 +6,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class Category implements Comparable<Category> {
     private String selectedName;
     private String unselectedName;
     private int priority;
-    private HashSet<String> tags;
+    private Set<String> tags;
     private NameKey nameKey;
     private boolean soft = false;
 
-    public Category(String selectedName, String unselectedName, int priority, HashSet<String> tags, NameKey nameKey) {
+    public Category(String selectedName, String unselectedName, int priority, Set<String> tags, NameKey nameKey) {
         this.selectedName = selectedName;
         this.unselectedName = unselectedName;
         this.priority = priority;
@@ -47,7 +48,7 @@ public class Category implements Comparable<Category> {
         return priority;
     }
 
-    public HashSet<String> tags() {
+    public Set<String> tags() {
         return tags;
     }
 
@@ -55,7 +56,7 @@ public class Category implements Comparable<Category> {
         return nameKey;
     }
 
-    public void setTags(HashSet<String> tags) {
+    public void setTags(Set<String> tags) {
         this.tags = tags;
     }
 

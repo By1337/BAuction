@@ -10,6 +10,7 @@ import org.by1337.bauction.util.common.ItemUtil;
 import org.by1337.bauction.util.auction.Sorting;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
+import org.by1337.blib.command.argument.ArgumentBoolean;
 import org.by1337.blib.command.argument.ArgumentString;
 import org.by1337.blib.util.CyclicList;
 import org.by1337.blib.util.NameKey;
@@ -132,27 +133,30 @@ public class HomeMenu extends Menu {
     }
 
     protected void setSellItems() {
+        boolean categoryChanged = lastCategory != categories.getCurrent();
         lastCategory = categories.getCurrent();
-        boolean sortChanged = Objects.equals(lastSorting, sortings.getCurrent());
-        lastSorting = sortings.getCurrent();
         lastPage = currentPage;
+        boolean sortChanged = !Objects.equals(lastSorting, sortings.getCurrent());
+        lastSorting = sortings.getCurrent();
 
-        if (lastCategory == custom && (sortChanged || sellItems == null || sellItems.isEmpty())) {
-            sellItems = new ArrayList<>();
-            Main.getStorage().forEachSellItems(item -> {
-                if (!custom.isSoft()){
-                    if (((SellItem) item).hasAllTags(custom)) {
-                        sellItems.add(item);
+        if (lastCategory == custom) {
+            if (sortChanged || sellItems == null || sellItems.isEmpty() || categoryChanged) {
+                sellItems = new ArrayList<>();
+                Main.getStorage().forEachSellItems(item -> {
+                    if (!custom.isSoft()) {
+                        if (item.hasAllTags(custom)) {
+                            sellItems.add(item);
+                        }
+                    } else {
+                        if (custom.matches(item)) {
+                            sellItems.add(item);
+                        }
                     }
-                }else {
-                    if (custom.matches(item)) {
-                        sellItems.add(item);
-                    }
-                }
 
-            });
-            sellItems.sort(lastSorting.getComparator());
-            lastCustomCategorySize = sellItems.size();
+                });
+                sellItems.sort(lastSorting.getComparator());
+                lastCustomCategorySize = sellItems.size();
+            }
         } else {
             sellItems = new ArrayList<>();
             Main.getStorage().forEachSellItemsBy(item -> {
@@ -267,6 +271,29 @@ public class HomeMenu extends Menu {
                 new Command<HomeMenu>("[SORTING_PREVIOUS]")
                         .executor((menu, args) -> {
                             menu.sortings.getPrevious();
+                            menu.refresh();
+                        })
+        );
+        HOME_MENU_COMMAND.addSubCommand(
+                new Command<HomeMenu>("[FIND_ANALOGS]")
+                        .argument(new ArgumentBoolean<>("soft"))
+                        .executor((menu, args) -> {
+                            if (menu.getLastClickedItem() == null || !(menu.getLastClickedItem().getData() instanceof SellItem sellItem))
+                                throw new CommandException("Clicked item is not sell item!");
+                            boolean soft = (boolean) args.getOrDefault("soft", false);
+
+                            Category custom = Main.getCfg().getSorting().getAs("special.search", Category.class);
+                            custom.setSoft(soft);
+                            custom.setTags(sellItem.getTags());
+
+                            if (menu.custom != null) {
+                                menu.categories.remove(menu.custom);
+                            }
+                            menu.custom = custom;
+                            menu.categories.add(custom);
+                            Collections.sort(menu.categories);
+                            menu.categories.current = menu.categories.indexOf(custom);
+                            menu.currentPage = 0;
                             menu.refresh();
                         })
         );

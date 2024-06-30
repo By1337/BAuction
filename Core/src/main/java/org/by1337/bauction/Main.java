@@ -405,7 +405,7 @@ public final class Main extends JavaPlugin {
     }
 
     public static String getServerId() {
-        return dbCfg.getServerId();
+        return dbCfg == null ? "unknown" : dbCfg.getServerId();
     }
 
     public static Set<String> getBlackList() {

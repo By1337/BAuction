@@ -37,6 +37,7 @@ public class BuyItemCountProcess extends Placeholder {
             registerPlaceholder("{price}", () -> NumberUtil.format(buyingItem.getPriceForOne() * count));
         }
         registerPlaceholder("{amount}", () -> count);
+        registerPlaceholder("{buyer_name}", buyer::getNickName);
     }
     public void run(){
         if (buyingItem == null){
