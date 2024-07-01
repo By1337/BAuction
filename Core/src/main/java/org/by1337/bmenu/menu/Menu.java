@@ -133,6 +133,8 @@ public abstract class Menu extends AsyncClickListener {
         if (e.getCurrentItem() == null || e.getCurrentItem().getItemMeta() == null) {
             return;
         }
+        if (!inventory.equals(e.getClickedInventory())) return;
+
         MenuItem menuItem = findItemInSlot(e.getSlot());
         lastClickedItem = menuItem;
         if (menuItem == null) {

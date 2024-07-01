@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.by1337.bauction.api.auc.ItemHolder;
 import org.by1337.bauction.api.serialize.SerializableToByteArray;
 import org.by1337.bauction.db.kernel.util.InsertBuilder;
 
@@ -31,7 +32,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-public class SellItem extends Placeholder implements SerializableToByteArray {
+public class SellItem extends Placeholder implements SerializableToByteArray, ItemHolder {
     final String item;
     final String sellerName;
     final UUID sellerUuid;

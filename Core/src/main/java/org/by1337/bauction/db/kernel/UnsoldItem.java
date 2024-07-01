@@ -1,6 +1,7 @@
 package org.by1337.bauction.db.kernel;
 
 import org.bukkit.inventory.ItemStack;
+import org.by1337.bauction.api.auc.ItemHolder;
 import org.by1337.bauction.api.serialize.SerializableToByteArray;
 import org.by1337.bauction.db.kernel.util.InsertBuilder;
 import org.by1337.blib.BLib;
@@ -20,7 +21,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 
-public class UnsoldItem extends Placeholder implements SerializableToByteArray {
+public class UnsoldItem extends Placeholder implements SerializableToByteArray, ItemHolder {
     final String item;
     final long expired;
     final UUID sellerUuid;

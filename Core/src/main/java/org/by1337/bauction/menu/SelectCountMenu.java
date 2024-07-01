@@ -42,7 +42,7 @@ public class SelectCountMenu extends Menu implements ItemHolder {
             if (previousMenu.getLastClickedItem() != null) {
                 if (previousMenu.getLastClickedItem().getData() instanceof SellItem sellItem0) {
                     sellItem = sellItem0;
-                    registerPlaceholders((Placeholder) sellItem);
+                    registerPlaceholders(sellItem);
                     registerPlaceholder("{count}", () -> count);
                     registerPlaceholder("{price_count}", () -> NumberUtil.format(sellItem.getPriceForOne() * count));
                 }
@@ -86,7 +86,7 @@ public class SelectCountMenu extends Menu implements ItemHolder {
 
     @Override
     public ItemStack getItemStack() {
-        if (sellItem == null){
+        if (sellItem == null) {
             return new ItemStack(Material.JIGSAW);
         }
         var item = sellItem.getItemStack();
