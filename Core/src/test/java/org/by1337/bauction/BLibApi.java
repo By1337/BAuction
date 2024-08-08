@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.blib.Api;
 import org.by1337.blib.BLib;
+import org.by1337.blib.block.replacer.PooledBlockReplacer;
 import org.by1337.blib.chat.util.Message;
 import org.by1337.blib.command.BukkitCommandRegister;
 import org.by1337.blib.command.CommandUtil;
@@ -186,5 +187,10 @@ public class BLibApi implements Api {
     @Override
     public @NotNull ComponentToANSI getComponentToANSI() {
         return Mockito.mock(ComponentToANSI.class);
+    }
+
+    @Override
+    public @NotNull PooledBlockReplacer getPooledBlockReplacer() {
+        return Mockito.mock(PooledBlockReplacer.class);
     }
 }

@@ -6,10 +6,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.Plugin;
+import org.by1337.blib.BLib;
 import org.by1337.blib.configuration.YamlContext;
 import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauc.util.ParsePDCTagsMagager;
+import org.by1337.blib.nbt.impl.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -42,7 +44,7 @@ public class TagUtil {
         Material material = itemStack.getType();
         list.add(material.name());
         ItemMeta im = itemStack.getItemMeta();
-        if (im.hasCustomModelData()){
+        if (im.hasCustomModelData()) {
             list.add("customModelData:" + im.getCustomModelData());
         }
         itemStack.getEnchantments().forEach((e, i) -> {
@@ -58,11 +60,11 @@ public class TagUtil {
                     list.add(potionEffect.getType().getName() + ":" + potionEffect.getAmplifier());
                 });
                 list.add(potionMeta.getBasePotionData().getType().name());
-                if (potionMeta.getBasePotionData().isUpgraded()){
+                if (potionMeta.getBasePotionData().isUpgraded()) {
                     list.add(potionMeta.getBasePotionData().getType().name() + ":1");
                 }
             }
-            list.addAll(ParsePDCTagsMagager.parseTags(im.getPersistentDataContainer()));
+            list.addAll(parseTags(im.getPersistentDataContainer()));
             if (im instanceof EnchantmentStorageMeta enchantmentStorageMeta) {
                 enchantmentStorageMeta.getStoredEnchants().keySet().forEach(e -> list.add(e.getKey().getKey()));
             }
@@ -78,6 +80,17 @@ public class TagUtil {
         }
 
         return new HashSet<>(list);
+    }
+
+    public static List<String> parseTags(PersistentDataContainer pdc) {
+        CompoundTag compound = BLib.getApi().getParseCompoundTag().pdcToCompoundTag(pdc);
+
+        List<String> list = new ArrayList<>();
+
+        for (String key : compound.getTags().keySet()) {
+            list.add(key + ":" + compound.get(key).getAsObject());
+        }
+        return list;
     }
 
     public static List<String> getTags(Material material) {

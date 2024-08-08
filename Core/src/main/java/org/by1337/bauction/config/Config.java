@@ -54,7 +54,7 @@ public class Config {
         logging = config.getAsBoolean("logging", false);
         homeMenu = config.getAsString("home-menu");
         playerItemsViewMenu = config.getAsString("player-items-view-menu");
-        lang = config.getAsString("lang", "en");
+        lang = config.getAsString("lang", "en_us");
 
     }
 

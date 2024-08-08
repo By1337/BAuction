@@ -48,6 +48,7 @@ public abstract class Menu extends AsyncClickListener {
     protected final MenuLoader menuLoader;
     @Nullable
     protected MenuItem lastClickedItem;
+    protected final Map<Integer, MenuItem> matrix = new HashMap<>();
 
     public Menu(MenuSetting setting, Player player, @Nullable Menu previousMenu, MenuLoader menuLoader) {
         this(setting, player, previousMenu, true, menuLoader);
@@ -67,7 +68,7 @@ public abstract class Menu extends AsyncClickListener {
     }
 
     public void open() {
-        if (inventory == null){
+        if (inventory == null) {
             createInventory(size, BMenuApi.getMessage().componentBuilder(replace(title)), setting.getType());
         }
         syncUtil(() -> {
@@ -88,6 +89,7 @@ public abstract class Menu extends AsyncClickListener {
     private void generate0() {
         inventory.clear();
         currentItems.clear();
+        matrix.clear();
         generate();
         currentItems = new ArrayList<>(items.stream().map(m -> m.build(this)).filter(Objects::nonNull).toList());
         setItems(currentItems);
@@ -104,7 +106,9 @@ public abstract class Menu extends AsyncClickListener {
             for (int slot : menuItem.getSlots()) {
                 ItemStack item = menuItem.getItemStack();
                 inventory.setItem(slot, item);
+                matrix.put(slot, menuItem);
             }
+
         }
     }
 
@@ -135,7 +139,7 @@ public abstract class Menu extends AsyncClickListener {
         }
         if (!inventory.equals(e.getClickedInventory())) return;
 
-        MenuItem menuItem = findItemInSlot(e.getSlot());
+        MenuItem menuItem = matrix.get(e.getSlot());
         lastClickedItem = menuItem;
         if (menuItem == null) {
             inventory.clear();
@@ -208,24 +212,25 @@ public abstract class Menu extends AsyncClickListener {
         return lastClickedItem;
     }
 
-    private static void runIn(String rawNBT, Menu menu){
-       if (rawNBT != null){
-           try {
-               ListNBT listNBT = (ListNBT) NBTParser.parseList(rawNBT);
-               List<String> list = new ArrayList<>();
-               for (NBT nbt : listNBT) {
-                   if (nbt instanceof StringNBT stringNBT){
-                       list.add(stringNBT.getValue());
-                   }else {
-                       throw new IllegalArgumentException(String.format("Input: '%s' expected StringNBT", nbt));
-                   }
-               }
-               menu.runCommands(list);
-           }catch (Throwable t){
-               BMenuApi.getMessage().error("Failed to parse commands \"%s\"", t, commands);
-           }
-       }
+    private static void runIn(String rawNBT, Menu menu) {
+        if (rawNBT != null) {
+            try {
+                ListNBT listNBT = (ListNBT) NBTParser.parseList(rawNBT);
+                List<String> list = new ArrayList<>();
+                for (NBT nbt : listNBT) {
+                    if (nbt instanceof StringNBT stringNBT) {
+                        list.add(stringNBT.getValue());
+                    } else {
+                        throw new IllegalArgumentException(String.format("Input: '%s' expected StringNBT", nbt));
+                    }
+                }
+                menu.runCommands(list);
+            } catch (Throwable t) {
+                BMenuApi.getMessage().error("Failed to parse commands \"%s\"", t, commands);
+            }
+        }
     }
+
     static {
         commands = new Command<>("cmd");
         commands.addSubCommand(new Command<Menu>("[CONSOLE]")
