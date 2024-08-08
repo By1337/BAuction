@@ -140,13 +140,6 @@
             <version>1.16.5-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
-        <!--compile-->
-        <dependency>
-            <groupId>org.by1337.bauction.api</groupId>
-            <artifactId>BaucApi</artifactId>
-            <version>${version}</version>
-            <scope>compile</scope>
-        </dependency>
         <!--libs-->
         <dependency>
             <groupId>org.by1337.bvault.api</groupId>
