@@ -8,9 +8,6 @@ import org.by1337.blib.configuration.YamlConfig;
 import org.by1337.blib.configuration.YamlContext;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.datafix.config.*;
-import org.by1337.bauction.datafix.db.DBUpdate107;
-import org.by1337.bauction.datafix.db.DBUpdate108;
-import org.by1337.bauction.datafix.db.DBUpdate109;
 import org.by1337.bauction.datafix.db.mysql.MySqlDBUpdater1;
 
 import java.io.File;
@@ -18,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.UUID;
 
 public class UpdateManager {
     private final static int CURRENT_VERSION = 12;
@@ -60,13 +58,15 @@ public class UpdateManager {
             version++;
             run(version, config);
         } else if (version == 2) {
-            new DBUpdate107().update();
+            Main.getMessage().error("It is impossible to update files with such an old version!");
+            makeDataFolderAsOld();
             new Messages107().update();
             new TagUtil107().update();
             version++;
             run(version, config);
         } else if (version == 3) {
-            new DBUpdate108().update();
+            Main.getMessage().error("It is impossible to update files with such an old version!");
+            makeDataFolderAsOld();
             new MessagesUpdater().update();
             config.set("allow-buy-count", true);
             config.set("black-list", List.of("debug_stick"));
@@ -74,7 +74,8 @@ public class UpdateManager {
             run(version, config);
         } else if (version == 4) {
             new DbCfg109().run();
-            new DBUpdate109().update();
+            Main.getMessage().error("It is impossible to update files with such an old version!");
+            makeDataFolderAsOld();
             new MySqlDBUpdater1().update();
             new MessagesUpdater().update();
             version++;
@@ -129,6 +130,22 @@ public class UpdateManager {
             new MessagesUpdater().update();
             version++;
             run(version, config);
+        }
+    }
+    private static void makeDataFolderAsOld(){
+        File home = new File(Main.getInstance().getDataFolder() + "/data");
+        if (home.exists()) {
+            File moveTo = new File(Main.getInstance().getDataFolder() + "/data_old");
+            if (moveTo.exists()) {
+                moveTo = new File(Main.getInstance().getDataFolder() + "/data_old" + UUID.randomUUID());
+            }
+            moveTo.mkdirs();
+            try {
+                Files.move(home.toPath(), moveTo.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                Main.getMessage().error(e);
+            }
+
         }
     }
 }
