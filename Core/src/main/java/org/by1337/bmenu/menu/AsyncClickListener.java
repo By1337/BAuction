@@ -6,20 +6,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 import org.by1337.bauction.Main;
 import org.by1337.blib.BLib;
 import org.by1337.blib.chat.placeholder.Placeholder;
 import org.by1337.bmenu.BMenuApi;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,6 +26,7 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
     /**
      * The inventory associated with this click listener.
      */
+    @Nullable
     protected Inventory inventory;
     /**
      * The player viewing the inventory.
@@ -105,7 +101,7 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
      */
     @EventHandler
     public void onClose0(InventoryCloseEvent e) {
-        if (inventory.equals(e.getInventory())) {
+        if (Objects.equals(e.getInventory(), inventory)) {
             onClose(e);
             close();
         }
@@ -127,21 +123,7 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
      */
     @EventHandler
     public void onClick0(InventoryClickEvent e) {
-        if (inventory.equals(e.getInventory())) {
-            e.setCancelled(true);
-            if ((System.currentTimeMillis() - lastClick) < 50) {
-                return;
-            } else {
-                lastClick = System.currentTimeMillis() + 50;
-            }
-            runManager.run(() -> {
-                try {
-                    onClick(e);
-                }catch (Throwable t){
-                    Main.getMessage().error("An error occurred while processing the click!", t);
-                }
-            });
-        }
+        doClick(e);
     }
 
     /**
@@ -151,17 +133,25 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
      */
     @EventHandler
     public void onClick0(InventoryDragEvent e) {
-        if (inventory.equals(e.getInventory())) {
+        doClick(e);
+    }
+
+    private void doClick(InventoryInteractEvent e) {
+        if (Objects.equals(e.getInventory(), inventory)) {
             e.setCancelled(true);
             if ((System.currentTimeMillis() - lastClick) < 50) {
                 return;
             } else {
                 lastClick = System.currentTimeMillis() + 50;
             }
-            runManager.run(() ->{
+            runManager.run(() -> {
                 try {
-                    onClick(e);
-                }catch (Throwable t){
+                    if (e instanceof InventoryDragEvent dragEvent) {
+                        onClick(dragEvent);
+                    } else if (e instanceof InventoryClickEvent clickEvent) {
+                        onClick(clickEvent);
+                    }
+                } catch (Throwable t) {
                     Main.getMessage().error("An error occurred while processing the click!", t);
                 }
             });
@@ -208,7 +198,7 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
         return viewer;
     }
 
-    public Inventory getInventory() {
+    public @Nullable Inventory getInventory() {
         return inventory;
     }
 
@@ -220,12 +210,12 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
     @Override
     public String toString() {
         return "AsyncClickListener{" +
-                "inventory=" + inventory +
-                ", viewer=" + viewer +
-                ", lastClick=" + lastClick +
-                ", executor=" + executor +
-                ", runManager=" + runManager +
-                ", async=" + async +
-                '}';
+               "inventory=" + inventory +
+               ", viewer=" + viewer +
+               ", lastClick=" + lastClick +
+               ", executor=" + executor +
+               ", runManager=" + runManager +
+               ", async=" + async +
+               '}';
     }
 }
