@@ -21,25 +21,25 @@ public class PacketUpdateUser extends Packet {
 
     @Override
     public void write(ByteBuffer buffer) {
-        try {
+     /*   try {
             byte[] arr = user.getBytes();
             buffer.writeVarInt(arr.length);
             buffer.writeBytes(arr);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
+        }*/
 
     }
 
     @Override
     public void read(ByteBuffer buffer) {
-        try {
+        /*try {
             byte[] arr = new byte[buffer.readVarInt()];
             buffer.readBytes(arr);
             user = User.fromBytes(arr);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
+        }*/
     }
 
     public User getUser() {

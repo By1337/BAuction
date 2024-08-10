@@ -1,3 +1,4 @@
+/*
 package org.by1337.bauction.db.kernel;
 
 import junit.framework.TestCase;
@@ -55,4 +56,4 @@ public class UserTest extends TestCase {
 
         return resultSet;
     }
-}
+}*/

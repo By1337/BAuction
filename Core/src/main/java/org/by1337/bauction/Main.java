@@ -17,7 +17,6 @@ import org.by1337.bauction.config.adapter.AdapterCategory;
 import org.by1337.bauction.config.adapter.AdapterSortingType;
 import org.by1337.bauction.datafix.UpdateManager;
 import org.by1337.bauction.db.kernel.FileDataBase;
-import org.by1337.bauction.db.kernel.MysqlDb;
 import org.by1337.bauction.event.EventManager;
 import org.by1337.bauction.hook.econ.EconomyHook;
 import org.by1337.bauction.hook.econ.impl.BVaultHook;
@@ -29,13 +28,14 @@ import org.by1337.bauction.log.PluginLogger;
 import org.by1337.bauction.menu.*;
 import org.by1337.bauction.placeholder.PlaceholderHook;
 import org.by1337.bauction.search.TrieManager;
-import org.by1337.bauction.util.*;
+import org.by1337.bauction.util.Metrics;
+import org.by1337.bauction.util.VersionChecker;
 import org.by1337.bauction.util.auction.Category;
 import org.by1337.bauction.util.auction.Sorting;
 import org.by1337.bauction.util.auction.TagUtil;
 import org.by1337.bauction.util.config.ConfigUtil;
 import org.by1337.bauction.util.config.DbCfg;
-import org.by1337.bauction.util.id.UniqueNameGenerator;
+import org.by1337.bauction.util.id.UniqueIdGenerator;
 import org.by1337.bauction.util.plugin.PluginEnablePipeline;
 import org.by1337.bauction.util.threading.ThreadCreator;
 import org.by1337.bauction.util.time.TimeCounter;
@@ -55,7 +55,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.*;
 
 public final class Main extends JavaPlugin {
@@ -69,7 +68,7 @@ public final class Main extends JavaPlugin {
     private static TrieManager trieManager;
     private static TimeUtil timeUtil;
     private PlaceholderHook placeholderHook;
-    private static UniqueNameGenerator uniqueNameGenerator;
+    private static UniqueIdGenerator uniqueIdGenerator;
     private static DbCfg dbCfg;
     private static Set<String> blackList = new HashSet<>();
     private static EventManager eventManager;
@@ -128,13 +127,16 @@ public final class Main extends JavaPlugin {
         enablePipeline.enable("registerAdapters", this::registerAdapters);
 
         enablePipeline.enable("load UniqueNameGenerator", () -> {
-            var cfg = ConfigUtil.load("dbCfg.yml");
-            int seed = cfg.getAsInteger("name-generator.last-seed");
-            uniqueNameGenerator = new UniqueNameGenerator(++seed);
-            cfg.set("name-generator.last-seed", seed);
-            cfg.save();
+            uniqueIdGenerator = new UniqueIdGenerator(0); // todo load last pos
+//            var cfg = ConfigUtil.load("dbCfg.yml");
+//            int seed = cfg.getAsInteger("name-generator.last-seed");
+//            uniqueIdGenerator = new UniqueNameGenerator(++seed);
+//            cfg.set("name-generator.last-seed", seed);
+//            cfg.save();
         });
-
+        enablePipeline.disable("disable UniqueNameGenerator", p -> p.isEnabled("load UniqueNameGenerator"), () -> {
+            // todo save last pos
+        });
         enablePipeline.enable("load cfg", () -> {
             cfg = new Config();
         });
@@ -242,22 +244,22 @@ public final class Main extends JavaPlugin {
             throw new IllegalStateException("data base already loaded!");
         }
 
-        if (dbCfg.getDbType() == DbCfg.DbType.MYSQL) {
-            ThreadCreator.createThreadWithName("bauc Mysql Db loader", () -> {
-                TimeCounter timeCounter = new TimeCounter();
-
-                try {
-                    storage = new MysqlDb(cfg.getCategoryMap(), cfg.getSortingMap(), dbCfg);
-                    storage.load();
-                } catch (IOException | SQLException e) {
-                    message.error("failed to load db!", e);
-                    instance.getServer().getPluginManager().disablePlugin(instance);
-                }
-                message.log(Lang.getMessage("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
-
-                getCommand("bauc").setTabCompleter(this::onTabComplete0);
-                getCommand("bauc").setExecutor(this::onCommand0);
-            }).start();
+        if (dbCfg.getDbType() == DbCfg.DbType.MYSQL && false) {
+//            ThreadCreator.createThreadWithName("bauc Mysql Db loader", () -> {
+//                TimeCounter timeCounter = new TimeCounter();
+//
+//                try {
+//                    storage = new MysqlDb(cfg.getCategoryMap(), cfg.getSortingMap(), dbCfg);
+//                    storage.load();
+//                } catch (IOException | SQLException e) {
+//                    message.error("failed to load db!", e);
+//                    instance.getServer().getPluginManager().disablePlugin(instance);
+//                }
+//                message.log(Lang.getMessage("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
+//
+//                getCommand("bauc").setTabCompleter(this::onTabComplete0);
+//                getCommand("bauc").setExecutor(this::onCommand0);
+//            }).start();
         } else {
             ThreadCreator.createThreadWithName("bauc File Db loader", () -> {
                 TimeCounter timeCounter = new TimeCounter();
@@ -292,8 +294,8 @@ public final class Main extends JavaPlugin {
         return dbCfg;
     }
 
-    public static UniqueNameGenerator getUniqueNameGenerator() {
-        return uniqueNameGenerator;
+    public static UniqueIdGenerator getUniqueIdGenerator() {
+        return uniqueIdGenerator;
     }
 
     public static Message getMessage() {

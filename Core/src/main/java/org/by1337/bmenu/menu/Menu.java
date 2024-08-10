@@ -15,7 +15,6 @@ import org.by1337.bauction.action.TakeItemProcess;
 import org.by1337.bauction.action.TakeUnsoldItemProcess;
 import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.menu.SelectCountMenu;
-import org.by1337.bauction.util.id.CUniqueName;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.argument.ArgumentEnumValue;
@@ -334,11 +333,12 @@ public abstract class Menu extends AsyncClickListener {
                 .executor((v, args) -> {
                             BuyItemProcess buyItemProcess;
                             if (args.containsKey("id")) {
-                                CUniqueName uniqueName = new CUniqueName((String) args.get("id"));
+                                long id = Long.parseLong(((String) args.get("id")));
+
                                 buyItemProcess = new BuyItemProcess(
                                         v,
                                         Main.getStorage().getUserOrCreate(v.viewer),
-                                        Main.getStorage().getSellItem(uniqueName)
+                                        Main.getStorage().getSellItem(id)
                                 );
                             } else {
                                 buyItemProcess = new BuyItemProcess(v);
@@ -352,11 +352,11 @@ public abstract class Menu extends AsyncClickListener {
                 .executor((v, args) -> {
                             TakeItemProcess takeItemProcess;
                             if (args.containsKey("id")) {
-                                CUniqueName uniqueName = new CUniqueName((String) args.get("id"));
+                                long id = Long.parseLong(((String) args.get("id")));
                                 takeItemProcess = new TakeItemProcess(
                                         v,
                                         Main.getStorage().getUserOrCreate(v.viewer),
-                                        Main.getStorage().getSellItem(uniqueName)
+                                        Main.getStorage().getSellItem(id)
                                 );
                             } else {
                                 takeItemProcess = new TakeItemProcess(v);
@@ -370,11 +370,11 @@ public abstract class Menu extends AsyncClickListener {
                 .executor((v, args) -> {
                             TakeUnsoldItemProcess takeUnsoldItemProcess;
                             if (args.containsKey("id")) {
-                                CUniqueName uniqueName = new CUniqueName((String) args.get("id"));
+                                long id = Long.parseLong(((String) args.get("id")));
                                 takeUnsoldItemProcess = new TakeUnsoldItemProcess(
                                         v,
                                         Main.getStorage().getUserOrCreate(v.viewer),
-                                        Main.getStorage().getUnsoldItem(uniqueName)
+                                        Main.getStorage().getUnsoldItem(id)
                                 );
                             } else {
                                 takeUnsoldItemProcess = new TakeUnsoldItemProcess(v);
@@ -389,8 +389,8 @@ public abstract class Menu extends AsyncClickListener {
                 .executor((v, args) -> {
                             SellItem sellItem;
                             if (args.containsKey("id")) {
-                                CUniqueName uniqueName = new CUniqueName((String) args.get("id"));
-                                sellItem = Main.getStorage().getSellItem(uniqueName);
+                                long id = Long.parseLong(((String) args.get("id")));
+                                sellItem = Main.getStorage().getSellItem(id);
                                 if (sellItem == null) {
                                     Main.getMessage().error("Unknown sell item %s!", args.get("id"));
                                     return;
@@ -401,7 +401,7 @@ public abstract class Menu extends AsyncClickListener {
                                 Main.getMessage().error("[REMOVE_SELL_ITEM] The command does not specify an id which means that I will expect the item clicked by the player to be a SellItem! Last click %s", v.lastClickedItem);
                                 return;
                             }
-                            Main.getStorage().removeSellItem(sellItem.getUniqueName());
+                            Main.getStorage().removeSellItem(sellItem.getId());
                             v.refresh();
                         }
                 )

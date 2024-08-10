@@ -1,35 +1,48 @@
+
 package org.by1337.bauction.db.kernel;
 
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.by1337.bauction.network.Packet;
-import org.by1337.bauction.util.config.DbCfg;
-import org.by1337.blib.util.NameKey;
-import org.by1337.bauction.Main;
-import org.by1337.bauction.db.action.Action;
-import org.by1337.bauction.db.action.ActionGiveMoney;
-import org.by1337.bauction.db.action.ActionType;
-import org.by1337.bauction.db.event.BuyItemCountEvent;
-import org.by1337.bauction.db.event.BuyItemEvent;
 import org.by1337.bauction.network.PacketConnection;
 import org.by1337.bauction.network.PacketListener;
-import org.by1337.bauction.network.PacketType;
-import org.by1337.bauction.network.impl.*;
 import org.by1337.bauction.util.auction.Category;
-import org.by1337.bauction.util.player.MoneyGiver;
 import org.by1337.bauction.util.auction.Sorting;
-import org.by1337.bauction.api.util.UniqueName;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.by1337.bauction.util.player.MoneyGiver;
+import org.by1337.blib.util.NameKey;
 
-import java.sql.*;
-import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Map;
 
 public class MysqlDb extends FileDataBase implements PacketListener {
+    public MysqlDb(Map<NameKey, Category> categoryMap, Map<NameKey, Sorting> sortingMap) {
+        super(categoryMap, sortingMap);
+    }
 
+    @Override
+    public void update(Packet packetIn) {
+
+    }
+
+    @Override
+    public void connectionLost() {
+
+    }
+
+    @Override
+    public void connectionRestored() {
+
+    }
+    public PacketConnection getPacketConnection() {
+        return null;
+    }
+
+    public MoneyGiver getMoneyGiver() {
+        return null;
+    }
+    public void addSqlToQueue(String sql) {
+    }
+
+    public void addSqlToQueue(String sql, Object... objects) {
+    }
+/*
     private final Connection connection;
     private final PacketConnection packetConnection;
     private final UUID server = UUID.randomUUID();
@@ -517,4 +530,6 @@ CREATE TABLE IF NOT EXISTS logs (
     public MoneyGiver getMoneyGiver() {
         return moneyGiver;
     }
+    */
 }
+

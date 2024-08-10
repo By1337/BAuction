@@ -9,25 +9,22 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.by1337.bauction.Main;
 import org.by1337.bauction.api.event.*;
+import org.by1337.bauction.db.event.*;
 import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
+import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.util.auction.Category;
 import org.by1337.bauction.util.auction.Sorting;
 import org.by1337.bauction.util.common.NumberUtil;
-import org.by1337.bauction.util.time.TimeCounter;
 import org.by1337.blib.BLib;
 import org.by1337.blib.chat.placeholder.MultiPlaceholder;
 import org.by1337.blib.util.NameKey;
-import org.by1337.bauction.Main;
-import org.by1337.bauction.db.event.*;
-import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.serialize.FileUtil;
 import org.by1337.blib.util.Pair;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
 
 public class FileDataBase extends DataBaseCore implements Listener {
 
@@ -96,7 +93,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
                     while (getUnsoldItemsSize() > 0) {
                         UnsoldItem unsoldItem = getFirstUnsoldItem();
                         if (unsoldItem.getDeleteVia() < time) {
-                            removeUnsoldItem(unsoldItem.getUniqueName());
+                            removeUnsoldItem(unsoldItem.id);
                             removed++;
                             if (removed >= 30)
                                 break;
@@ -122,7 +119,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
 
     @Override
     protected void expiredItem(SellItem item) {
-        removeSellItem(item.getUniqueName());
+        removeSellItem(item.id);
         UnsoldItem unsoldItem = new UnsoldItem(item.getItem(), item.getSellerUuid(), item.getRemovalDate(), item.getRemovalDate() + removeTime, item.isCompressed());
         addUnsoldItem(unsoldItem);
         Player player = Bukkit.getPlayer(item.getSellerUuid());
@@ -140,7 +137,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             if (!hasUser(event.getUser().getUuid())) {
                 throw new IllegalStateException("user non-exist: " + event.getUser());
             }
-            if (hasSellItem(sellItem.getUniqueName())) {
+            if (hasSellItem(sellItem.id)) {
                 throw new IllegalStateException("sell item already exist: " + event.getSellItem());
             }
             User user = getUser(event.getUser().getUuid());
@@ -186,13 +183,13 @@ public class FileDataBase extends DataBaseCore implements Listener {
         if (!hasUser(event.getUser().getUuid())) {
             throw new IllegalStateException("user non-exist: " + event.getUser());
         }
-        if (!hasSellItem(event.getSellItem().getUniqueName())) {
+        if (!hasSellItem(event.getSellItem().id)) {
             event.setValid(false);
             event.setReason(Lang.getMessage("item_already_sold_or_removed"));
             return;
         }
         User user = getUser(event.getUser().getUuid());
-        SellItem sellItem = getSellItem(event.getSellItem().getUniqueName());
+        SellItem sellItem = getSellItem(event.getSellItem().id);
 
         if (!user.getUuid().equals(sellItem.getSellerUuid())) {
             event.setValid(false);
@@ -209,7 +206,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             return;
         }
         try {
-            removeSellItem(sellItem.getUniqueName());
+            removeSellItem(sellItem.id);
             Bukkit.getPluginManager().callEvent(new EventTakeItem(!Bukkit.isPrimaryThread(), user, sellItem));
         } catch (Exception e) {
             Main.getMessage().error(e);
@@ -226,11 +223,11 @@ public class FileDataBase extends DataBaseCore implements Listener {
             if (!hasUser(event.getUser().getUuid())) {
                 throw new IllegalStateException("user non-exist");
             }
-            if (!hasUnsoldItem(event.getUnsoldItem().getUniqueName())) {
+            if (!hasUnsoldItem(event.getUnsoldItem().id)) {
                 throw new IllegalStateException("unsold item non-exist");
             }
             User user = getUser(event.getUser().getUuid());
-            UnsoldItem unsoldItem = getUnsoldItem(event.getUnsoldItem().getUniqueName());
+            UnsoldItem unsoldItem = getUnsoldItem(event.getUnsoldItem().id);
 
             TakeUnsoldItemProcess event1 = new TakeUnsoldItemProcess(!Bukkit.isPrimaryThread(), user, unsoldItem);
             Bukkit.getPluginManager().callEvent(event1);
@@ -245,13 +242,13 @@ public class FileDataBase extends DataBaseCore implements Listener {
                 event.setValid(false);
                 event.setReason(Lang.getMessage("not_item_owner"));
                 return;
-            } else if (!hasUnsoldItem(unsoldItem.getUniqueName())) {
+            } else if (!hasUnsoldItem(unsoldItem.id)) {
                 event.setValid(false);
                 event.setReason(Lang.getMessage("item_not_found"));
                 return;
             }
 
-            removeUnsoldItem(unsoldItem.getUniqueName());
+            removeUnsoldItem(unsoldItem.id);
             event.setValid(true);
             Bukkit.getPluginManager().callEvent(new EventTakeUnsoldItem(!Bukkit.isPrimaryThread(), user, unsoldItem));
         } catch (Exception e) {
@@ -269,7 +266,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             return;
         }
         User user = getUser(event.getUser().getUuid());
-        SellItem sellItem = getSellItem(event.getSellItem().getUniqueName());
+        SellItem sellItem = getSellItem(event.getSellItem().id);
 
         if (sellItem == null) {
             event.setValid(false);
@@ -291,7 +288,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
             return;
         }
         try {
-            removeSellItem(sellItem.getUniqueName());
+            removeSellItem(sellItem.id);
             if (hasUser(sellItem.getSellerUuid())) {
                 User owner = getUser(sellItem.getSellerUuid());
                 owner.dealSum += sellItem.getPrice();
@@ -316,7 +313,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
                 throw new IllegalStateException("user non-exist: " + event.getUser());
             }
             User buyer = getUser(event.getUser().getUuid());
-            SellItem sellItem = getSellItem(event.getSellItem().getUniqueName());
+            SellItem sellItem = getSellItem(event.getSellItem().id);
 
             if (buyer.getUuid().equals(sellItem.getSellerUuid())) {
                 event.setValid(false);
@@ -324,12 +321,12 @@ public class FileDataBase extends DataBaseCore implements Listener {
                 return;
             }
 
-            if (!hasSellItem(sellItem.getUniqueName())) {
+            if (!hasSellItem(sellItem.id)) {
                 event.setValid(false);
                 event.setReason(Lang.getMessage("item_already_sold_or_removed"));
                 return;
             }
-            SellItem updated = getSellItem(sellItem.getUniqueName());
+            SellItem updated = getSellItem(sellItem.id);
 
             if (updated.getAmount() < event.getCount()) {
                 event.setValid(false);
@@ -344,7 +341,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
                 return;
             }
 
-            removeSellItem(sellItem.getUniqueName());
+            removeSellItem(sellItem.id);
             buyer.dealCount++;
             buyer.dealSum += updated.priceForOne * event.getCount();
             User owner = getUser(updated.sellerUuid);
@@ -367,11 +364,10 @@ public class FileDataBase extends DataBaseCore implements Listener {
                         .tags(updated.tags)
                         .timeListedForSale(updated.timeListedForSale)
                         .removalDate(updated.removalDate)
-                        .uniqueName(Main.getUniqueNameGenerator().getNextCombination())
+                        .id(Main.getUniqueIdGenerator().nextId())
                         .material(updated.material)
                         .amount(newCount)
                         .priceForOne(updated.priceForOne)
-                        .sellFor(updated.sellFor)
                         .itemStack(itemStack)
                         .server(updated.server)
                         .compressed(item.getRight())
@@ -390,7 +386,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
     }
 
     public void load() throws IOException {
-        File home = new File(Main.getInstance().getDataFolder() + "/data");
+    /*    File home = new File(Main.getInstance().getDataFolder() + "/data");
         if (!home.exists()) {
             home.mkdir();
         }
@@ -420,11 +416,11 @@ public class FileDataBase extends DataBaseCore implements Listener {
 
         if (!items.isEmpty() || !users.isEmpty() || !unsoldItems.isEmpty()) {
             load(items, users, unsoldItems);
-        }
+        }*/
     }
 
     public void save() throws IOException {
-        TimeCounter timeCounter = new TimeCounter();
+     /*   TimeCounter timeCounter = new TimeCounter();
         File home = new File(Main.getInstance().getDataFolder() + "/data");
         if (!home.exists()) {
             home.mkdir();
@@ -462,7 +458,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
                 unsoldItems.size(),
                 timeCounter.getTime()
 
-        );
+        );*/
     }
 
     @Override

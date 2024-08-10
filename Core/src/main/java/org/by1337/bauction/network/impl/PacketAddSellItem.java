@@ -21,25 +21,25 @@ public class PacketAddSellItem extends Packet {
 
     @Override
     public void write(ByteBuffer buffer) {
-        try {
+       /* try {
             byte[] arr = sellItem.getBytes();
             buffer.writeVarInt(arr.length);
             buffer.writeBytes(arr);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
+        }*/
 
     }
 
     @Override
     public void read(ByteBuffer buffer) {
-        try {
+       /* try {
             byte[] arr = new byte[buffer.readVarInt()];
             buffer.readBytes(arr);
             sellItem = SellItem.fromBytes(arr);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
+        }*/
     }
 
     public SellItem getSellItem() {

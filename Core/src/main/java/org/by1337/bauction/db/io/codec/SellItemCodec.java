@@ -1,12 +1,9 @@
 package org.by1337.bauction.db.io.codec;
 
 import org.bukkit.Material;
-import org.by1337.bauction.api.util.UniqueName;
 import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.util.id.CUniqueName;
 import org.by1337.blib.io.ByteBuffer;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,11 +20,10 @@ public class SellItemCodec implements Codec<SellItem> {
         Set<String> tags = Set.copyOf(buffer.readStringList());
         long timeListedForSale = buffer.readVarLong();
         long removalDate = buffer.readVarLong();
-        UniqueName uniqueName = new CUniqueName(buffer.readUtf());
+        long id = buffer.readVarLong();
         Material material = Material.values()[buffer.readVarInt()];
         int amount = buffer.readVarInt();
         double priceForOne = price / amount;
-        Set<String> sellFor = Collections.emptySet();
         String server = buffer.readUtf();
         boolean compressed = buffer.readBoolean();
         return new SellItem(
@@ -39,11 +35,10 @@ public class SellItemCodec implements Codec<SellItem> {
                 tags,
                 timeListedForSale,
                 removalDate,
-                uniqueName,
+                id,
                 material,
                 amount,
                 priceForOne,
-                sellFor,
                 null,
                 server,
                 compressed
@@ -60,7 +55,7 @@ public class SellItemCodec implements Codec<SellItem> {
         buffer.writeList(val.getTags(), ByteBuffer::writeUtf);
         buffer.writeVarLong(val.getTimeListedForSale());
         buffer.writeVarLong(val.getRemovalDate());
-        buffer.writeUtf(val.getUniqueName().getKey());
+        buffer.writeVarLong(val.getId());
         buffer.writeVarInt(val.getMaterial().ordinal());
         buffer.writeVarInt(val.getAmount());
         buffer.writeUtf(val.getServer());

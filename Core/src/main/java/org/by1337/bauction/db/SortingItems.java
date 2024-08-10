@@ -1,10 +1,12 @@
 package org.by1337.bauction.db;
 
-import org.by1337.blib.util.NameKey;
 import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.util.auction.Sorting;
+import org.by1337.blib.util.NameKey;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.TreeSet;
 
 public class SortingItems {
 
@@ -19,7 +21,7 @@ public class SortingItems {
         comparator = sorting.getComparator();
         items = new TreeSet<>((o1, o2) -> {
             int res = comparator.compare(o1, o2);
-            if (res == 0) return o1.getUniqueName().getKey().compareTo(o2.getUniqueName().getKey());
+            if (res == 0) return Long.compare(o1.getId(), o2.getId());
             return res;
         });
     }
@@ -39,7 +41,8 @@ public class SortingItems {
     public Collection<SellItem> getItems() {
         return items;
     }
-    public int size(){
+
+    public int size() {
         return items.size();
     }
 

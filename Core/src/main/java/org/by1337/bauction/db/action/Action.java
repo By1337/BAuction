@@ -1,8 +1,5 @@
 package org.by1337.bauction.db.action;
 
-import org.by1337.bauction.util.id.CUniqueName;
-import org.by1337.bauction.api.util.UniqueName;
-
 import javax.annotation.Nullable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,10 +10,10 @@ public class Action {
     @Nullable
     private final UUID owner;
     @Nullable
-    private final UniqueName item;
+    private final long item;
     private final UUID server;
 
-    public Action(ActionType type, @Nullable UUID owner, @Nullable UniqueName item, UUID server) {
+    public Action(ActionType type, @Nullable UUID owner, @Nullable long item, UUID server) {
         this.type = type;
         this.owner = owner;
         this.item = item;
@@ -33,7 +30,7 @@ public class Action {
     }
 
     @Nullable
-    public UniqueName getItem() {
+    public long getItem() {
         return item;
     }
 
@@ -42,12 +39,13 @@ public class Action {
     }
 
     public String toSql(String table) {
-        return String.format("INSERT INTO %s (time, type, owner, server, uuid)" +
-                "VALUES(%s, '%s', '%s', '%s', '%s')", table, System.currentTimeMillis(), type.name(), owner, server, item == null ? "null" : item.getKey());
+       /* return String.format("INSERT INTO %s (time, type, owner, server, uuid)" +
+                "VALUES(%s, '%s', '%s', '%s', '%s')", table, System.currentTimeMillis(), type.name(), owner, server, item);*/
+        return null;
     }
 
     public static Action fromResultSet(ResultSet resultSet) throws SQLException {
-        ActionType type = ActionType.valueOf(resultSet.getString("type"));
+       /* ActionType type = ActionType.valueOf(resultSet.getString("type"));
         String owner = resultSet.getString("owner");
         String uuid = resultSet.getString("uuid");
         return new Action(
@@ -55,7 +53,8 @@ public class Action {
                 "null".equals(owner) ? null : UUID.fromString(owner),
                 "null".equals(uuid) ? null : new CUniqueName(uuid),
                 null
-        );
+        );*/
+        return null;
     }
 
     @Override

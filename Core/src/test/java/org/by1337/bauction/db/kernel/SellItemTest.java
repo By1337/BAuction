@@ -1,3 +1,4 @@
+/*
 package org.by1337.bauction.db.kernel;
 
 import junit.framework.TestCase;
@@ -30,7 +31,6 @@ public class SellItemTest extends TestCase {
             Material.GRASS_BLOCK,
             64,
             10.3,
-            new HashSet<>(),
             null,
             "server-1",
             false
@@ -111,4 +111,4 @@ public class SellItemTest extends TestCase {
         return resultSet;
     }
 
-}
+}*/

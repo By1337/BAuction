@@ -6,29 +6,23 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.ItemHolder;
-import org.by1337.bauction.api.serialize.SerializableToByteArray;
-import org.by1337.bauction.api.util.UniqueName;
 import org.by1337.bauction.db.io.codec.Codec;
 import org.by1337.bauction.db.io.codec.SellItemCodec;
-import org.by1337.bauction.db.kernel.util.InsertBuilder;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.serialize.SerializeUtils;
 import org.by1337.bauction.util.auction.Category;
 import org.by1337.bauction.util.auction.TagUtil;
 import org.by1337.bauction.util.common.NumberUtil;
-import org.by1337.bauction.util.id.CUniqueName;
 import org.by1337.blib.BLib;
 import org.by1337.blib.chat.placeholder.Placeholder;
 import org.by1337.blib.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-public class SellItem extends Placeholder implements SerializableToByteArray, ItemHolder {
+public class SellItem extends Placeholder implements ItemHolder {
     public static final Codec<SellItem> CODEC = new SellItemCodec();
     final String item;
     final String sellerName;
@@ -38,75 +32,32 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
     final Set<String> tags;
     final long timeListedForSale;
     final long removalDate;
-    final UniqueName uniqueName;
+    final long id;
     final Material material;
     final int amount;
     final transient double priceForOne;
-    final Set<String> sellFor;
     @Nullable
     transient ItemStack itemStack;
     final String server;
     final boolean compressed;
 
-    public static CSellItemBuilder builder() {
-        return new CSellItemBuilder();
+    public static SellItemBuilder builder() {
+        return new SellItemBuilder();
     }
-
+    @Deprecated(forRemoval = true)
     public String toSql(String table) {
-        InsertBuilder insertBuilder = new InsertBuilder(table);
-        insertBuilder.add("uuid", uniqueName.getKey());
-        insertBuilder.add("seller_uuid", sellerUuid.toString());
-        insertBuilder.add("item", item);
-        insertBuilder.add("seller_name", sellerName);
-        insertBuilder.add("price", price);
-        insertBuilder.add("sale_by_the_piece", saleByThePiece);
-        insertBuilder.add("tags", listToString(tags));
-        insertBuilder.add("time_listed_for_sale", timeListedForSale);
-        insertBuilder.add("removal_date", removalDate);
-        insertBuilder.add("material", material.name());
-        insertBuilder.add("amount", amount);
-        insertBuilder.add("price_for_one", priceForOne);
-        insertBuilder.add("sell_for", listToString(sellFor));
-        insertBuilder.add("server", server);
-        insertBuilder.add("compressed", compressed);
-        return insertBuilder.build();
+        return null;
     }
 
+    @Deprecated(forRemoval = true)
     public static SellItem fromResultSet(ResultSet resultSet) throws SQLException {
-        return SellItem.builder()
-                .uniqueName(new CUniqueName(resultSet.getString("uuid")))
-                .sellerUuid(UUID.fromString(resultSet.getString("seller_uuid")))
-                .item(resultSet.getString("item"))
-                .sellerName(resultSet.getString("seller_name"))
-                .price(resultSet.getDouble("price"))
-                .saleByThePiece(resultSet.getBoolean("sale_by_the_piece"))
-                .tags(
-                        new HashSet<>(
-                                Arrays.stream(resultSet.getString("tags").split(",")).filter(s -> !s.isEmpty()).toList()
-                        )
-                )
-                .timeListedForSale(resultSet.getLong("time_listed_for_sale"))
-                .removalDate(resultSet.getLong("removal_date"))
-                .material(Material.valueOf(resultSet.getString("material")))
-                .amount(resultSet.getInt("amount"))
-                .priceForOne(resultSet.getDouble("price_for_one"))
-                .sellFor(new HashSet<>(
-                                Arrays.stream(resultSet.getString("sell_for").split(",")).filter(s -> !s.isEmpty()).toList()
-                        )
-                )
-                .server(resultSet.getString("server"))
-                .compressed(resultSet.getBoolean("compressed"))
-                .build();
-    }
-
-    private static String listToString(Collection<? extends CharSequence> collection) {
-        return String.join(",", collection);
+        return null;
     }
 
     public SellItem(String item, String sellerName, UUID sellerUuid,
                     double price, boolean saleByThePiece, Set<String> tags,
-                    long timeListedForSale, long removalDate, UniqueName uniqueName,
-                    Material material, int amount, double priceForOne, Set<String> sellFor,
+                    long timeListedForSale, long removalDate, long id,
+                    Material material, int amount, double priceForOne,
                     @Nullable ItemStack itemStack, String server, boolean compressed) {
         this.server = server;
         this.item = item;
@@ -117,11 +68,10 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
         this.tags = tags;
         this.timeListedForSale = timeListedForSale;
         this.removalDate = removalDate;
-        this.uniqueName = uniqueName;
+        this.id = id;
         this.material = material;
         this.amount = amount;
         this.priceForOne = priceForOne;
-        this.sellFor = sellFor;
         this.itemStack = itemStack;
         this.compressed = compressed;
         init();
@@ -129,7 +79,7 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
 
     public SellItem(String item, String sellerName, UUID sellerUuid,
                     double price, boolean saleByThePiece, Set<String> tags,
-                    long timeListedForSale, long removalDate, UniqueName uniqueName,
+                    long timeListedForSale, long removalDate, long id,
                     Material material, int amount, double priceForOne, @Nullable ItemStack itemStack, boolean compressed) {
         this.item = item;
         this.sellerName = sellerName;
@@ -139,20 +89,19 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
         this.tags = tags;
         this.timeListedForSale = timeListedForSale;
         this.removalDate = removalDate;
-        this.uniqueName = uniqueName;
+        this.id = id;
         this.material = material;
         this.amount = amount;
         this.priceForOne = priceForOne;
         this.itemStack = itemStack;
         this.compressed = compressed;
-        sellFor = new HashSet<>();
         server = Main.getServerId();
         init();
     }
 
     public SellItem(String item, String sellerName, UUID sellerUuid,
                     double price, boolean saleByThePiece, Set<String> tags,
-                    long timeListedForSale, long removalDate, UniqueName uniqueName, Material material,
+                    long timeListedForSale, long removalDate, long id, Material material,
                     int amount, double priceForOne, boolean compressed) {
         this.item = item;
         this.sellerName = sellerName;
@@ -162,12 +111,11 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
         this.tags = tags;
         this.timeListedForSale = timeListedForSale;
         this.removalDate = removalDate;
-        this.uniqueName = uniqueName;
+        this.id = id;
         this.material = material;
         this.amount = amount;
         this.priceForOne = priceForOne;
         this.compressed = compressed;
-        sellFor = new HashSet<>();
         server = Main.getServerId();
         init();
     }
@@ -183,12 +131,11 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
         this.tags = Collections.unmodifiableSet(tags);
         this.timeListedForSale = System.currentTimeMillis();
         this.removalDate = System.currentTimeMillis() + saleDuration;
-        this.uniqueName = Main.getUniqueNameGenerator().getNextCombination();
+        this.id = Main.getUniqueIdGenerator().nextId();
         this.material = material;
         this.amount = amount;
         this.compressed = compressed;
         priceForOne = price / amount;
-        sellFor = new HashSet<>();
         server = Main.getServerId();
         init();
     }
@@ -208,11 +155,10 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
         tags = Collections.unmodifiableSet(TagUtil.getTags(itemStack));
         timeListedForSale = System.currentTimeMillis();
         this.removalDate = System.currentTimeMillis() + saleDuration;
-        this.uniqueName = Main.getUniqueNameGenerator().getNextCombination();
+        this.id = Main.getUniqueIdGenerator().nextId();
         material = itemStack.getType();
         amount = itemStack.getAmount();
         priceForOne = price / amount;
-        sellFor = new HashSet<>();
         server = Main.getServerId();
         init();
     }
@@ -237,11 +183,10 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
         tags = Collections.unmodifiableSet(TagUtil.getTags(itemStack));
         timeListedForSale = System.currentTimeMillis();
         this.removalDate = System.currentTimeMillis() + saleDuration;
-        this.uniqueName = Main.getUniqueNameGenerator().getNextCombination();
+        this.id = Main.getUniqueIdGenerator().nextId();
         material = itemStack.getType();
         amount = itemStack.getAmount();
         priceForOne = price / amount;
-        sellFor = new HashSet<>();
         server = Main.getServerId();
         init();
     }
@@ -251,16 +196,16 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
         registerPlaceholder("{seller_name}", () -> sellerName);
         registerPlaceholder("{price}", () -> NumberUtil.format(price));
         registerPlaceholder("{price_format}", () -> NumberUtil.formatNumberWithThousandsSeparator(price));
-        registerPlaceholder("{sale_by_the_piece}", () -> String.valueOf(saleByThePiece));
+        registerPlaceholder("{sale_by_the_piece}", () -> saleByThePiece);
         registerPlaceholder("{sale_by_the_piece_format}", () -> saleByThePiece ?
                 Lang.getMessage("sale-by-the-piece-format-on") : Lang.getMessage("sale-by-the-piece-format-off"));
         registerPlaceholder("{expires}", () -> Main.getTimeUtil().getFormat(removalDate));
         registerPlaceholder("{price_for_one}", () -> NumberUtil.format(priceForOne));
         registerPlaceholder("{price_for_one_format}", () -> NumberUtil.formatNumberWithThousandsSeparator(priceForOne));
-        registerPlaceholder("{material}", () -> String.valueOf(material));
-        registerPlaceholder("{amount}", () -> String.valueOf(amount));
-        registerPlaceholder("{id}", () -> String.valueOf(uniqueName.getKey()));
-        registerPlaceholder("{sale_time}", () -> String.valueOf(timeListedForSale / 1000));
+        registerPlaceholder("{material}", () -> material);
+        registerPlaceholder("{amount}", () -> amount);
+        registerPlaceholder("{id}", () -> id);
+        registerPlaceholder("{sale_time}", () -> timeListedForSale / 1000);
         registerPlaceholder("{item_name}", () -> getItemStack().getItemMeta() != null && getItemStack().getItemMeta().hasDisplayName() ?
                 getItemStack().getItemMeta().getDisplayName() :
                 Lang.getMessage(getMaterial().name().toLowerCase()));
@@ -270,9 +215,10 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
                         Lang.getMessage("online-seller") : Lang.getMessage("offline-seller")
         );
     }
-@Deprecated(forRemoval = true)
+
+    @Deprecated(forRemoval = true)
     static SellItem parse(SellItem item) {
-       return item;
+        return item;
     }
 
     public ItemStack getItemStack() {
@@ -288,64 +234,14 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
 
     public boolean isValid() {
         return item != null &&
-                sellerName != null &&
-                sellerUuid != null &&
-                tags != null &&
-                uniqueName != null &&
-                material != null &&
-                sellFor != null &&
-                server != null;
+               sellerName != null &&
+               sellerUuid != null &&
+               tags != null &&
+               material != null &&
+               server != null;
     }
 
-    public byte[] getBytes() throws IOException {
-        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-             DataOutputStream data = new DataOutputStream(out)) {
-            data.writeUTF(item);
-            data.writeUTF(sellerName);
-            SerializeUtils.writeUUID(sellerUuid, data);
-            data.writeDouble(price);
-            data.writeBoolean(saleByThePiece);
-            SerializeUtils.writeCollectionToStream(data, tags);
-            data.writeLong(timeListedForSale);
-            data.writeLong(removalDate);
-            data.writeUTF(uniqueName.getKey());
-            data.writeUTF(material.name());
-            data.writeInt(amount);
-            data.writeDouble(priceForOne);
-            SerializeUtils.writeCollectionToStream(data, sellFor);
-            data.writeUTF(server);
-            data.writeBoolean(compressed);
-            data.flush();
-            return out.toByteArray();
-        }
-    }
-
-    public static SellItem fromBytes(byte[] arr) throws IOException {
-        try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
-            String item = in.readUTF();
-            String sellerName = in.readUTF();
-            UUID sellerUuid = SerializeUtils.readUUID(in);
-            double price = in.readDouble();
-            boolean saleByThePiece = in.readBoolean();
-            Set<String> tags = new HashSet<>(SerializeUtils.readCollectionFromStream(in));
-            long timeListedForSale = in.readLong();
-            long removalDate = in.readLong();
-            UniqueName uniqueName = new CUniqueName(
-                    in.readUTF()
-            );
-            Material material = Material.valueOf(in.readUTF());
-            int amount = in.readInt();
-            double priceForOne = in.readDouble();
-            Set<String> sellFor = new HashSet<>(SerializeUtils.readCollectionFromStream(in));
-            String server = in.readUTF();
-            boolean compressed = in.readBoolean();
-            return new SellItem(
-                    item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, null, server, compressed
-            );
-        }
-    }
-
-    public boolean hasAllTags(Category category){
+    public boolean hasAllTags(Category category) {
         return tags.containsAll(category.tags());
     }
 
@@ -381,8 +277,8 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
         return removalDate;
     }
 
-    public UniqueName getUniqueName() {
-        return uniqueName;
+    public long getId() {
+        return id;
     }
 
     public Material getMaterial() {
@@ -397,29 +293,24 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
         return priceForOne;
     }
 
-//    public Set<String> getSellFor() {
-//        return sellFor;
-//    }
-
 
     @Override
     public String toString() {
         return "SellItem{" +
-                "item='" + item + '\'' +
-                ", sellerName='" + sellerName + '\'' +
-                ", sellerUuid=" + sellerUuid +
-                ", price=" + price +
-                ", saleByThePiece=" + saleByThePiece +
-                ", tags=" + tags +
-                ", timeListedForSale=" + timeListedForSale +
-                ", removalDate=" + removalDate +
-                ", uniqueName=" + uniqueName +
-                ", material=" + material +
-                ", amount=" + amount +
-                ", priceForOne=" + priceForOne +
-                ", sellFor=" + sellFor +
-                ", server='" + server + '\'' +
-                '}';
+               "item='" + item + '\'' +
+               ", sellerName='" + sellerName + '\'' +
+               ", sellerUuid=" + sellerUuid +
+               ", price=" + price +
+               ", saleByThePiece=" + saleByThePiece +
+               ", tags=" + tags +
+               ", timeListedForSale=" + timeListedForSale +
+               ", removalDate=" + removalDate +
+               ", id=" + id +
+               ", material=" + material +
+               ", amount=" + amount +
+               ", priceForOne=" + priceForOne +
+               ", server='" + server + '\'' +
+               '}';
     }
 
     public String getServer() {
@@ -442,20 +333,19 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
                 Objects.equals(sellerName, sellItem.sellerName) &&
                 Objects.equals(sellerUuid, sellItem.sellerUuid) &&
                 Objects.equals(tags, sellItem.tags) &&
-                Objects.equals(uniqueName, sellItem.uniqueName) &&
+                id == sellItem.id &&
                 material == sellItem.material &&
-                Objects.equals(sellFor, sellItem.sellFor) &&
                 Objects.equals(server, sellItem.server) &&
                 compressed == sellItem.compressed;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, server, compressed);
+        return Objects.hash(item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, id, material, amount, priceForOne, server, compressed);
     }
 
 
-    public static class CSellItemBuilder {
+    public static class SellItemBuilder {
         private String item;
         private String sellerName;
         private UUID sellerUuid;
@@ -464,7 +354,7 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
         private Set<String> tags;
         private long timeListedForSale;
         private long removalDate;
-        private UniqueName uniqueName;
+        private long id;
         private Material material;
         private int amount;
         private double priceForOne;
@@ -473,91 +363,91 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
         private String server;
         private boolean compressed;
 
-        CSellItemBuilder() {
+        SellItemBuilder() {
         }
 
-        public CSellItemBuilder item(String item) {
+        public SellItemBuilder item(String item) {
             this.item = item;
             return this;
         }
 
-        public CSellItemBuilder sellerName(String sellerName) {
+        public SellItemBuilder sellerName(String sellerName) {
             this.sellerName = sellerName;
             return this;
         }
 
-        public CSellItemBuilder server(String server) {
+        public SellItemBuilder server(String server) {
             this.server = server;
             return this;
         }
 
-        public CSellItemBuilder sellerUuid(UUID sellerUuid) {
+        public SellItemBuilder sellerUuid(UUID sellerUuid) {
             this.sellerUuid = sellerUuid;
             return this;
         }
 
-        public CSellItemBuilder price(double price) {
+        public SellItemBuilder price(double price) {
             this.price = price;
             return this;
         }
 
-        public CSellItemBuilder saleByThePiece(boolean saleByThePiece) {
+        public SellItemBuilder saleByThePiece(boolean saleByThePiece) {
             this.saleByThePiece = saleByThePiece;
             return this;
         }
 
-        public CSellItemBuilder tags(Set<String> tags) {
+        public SellItemBuilder tags(Set<String> tags) {
             this.tags = tags;
             return this;
         }
 
-        public CSellItemBuilder timeListedForSale(long timeListedForSale) {
+        public SellItemBuilder timeListedForSale(long timeListedForSale) {
             this.timeListedForSale = timeListedForSale;
             return this;
         }
 
-        public CSellItemBuilder removalDate(long removalDate) {
+        public SellItemBuilder removalDate(long removalDate) {
             this.removalDate = removalDate;
             return this;
         }
 
-        public CSellItemBuilder uniqueName(UniqueName uniqueName) {
-            this.uniqueName = uniqueName;
+        public SellItemBuilder id(long id) {
+            this.id = id;
             return this;
         }
 
-        public CSellItemBuilder material(Material material) {
+        public SellItemBuilder material(Material material) {
             this.material = material;
             return this;
         }
 
-        public CSellItemBuilder amount(int amount) {
+        public SellItemBuilder amount(int amount) {
             this.amount = amount;
             return this;
         }
 
-        public CSellItemBuilder priceForOne(double priceForOne) {
+        public SellItemBuilder priceForOne(double priceForOne) {
             this.priceForOne = priceForOne;
             return this;
         }
 
-        public CSellItemBuilder sellFor(Set<String> sellFor) {
+        public SellItemBuilder sellFor(Set<String> sellFor) {
             this.sellFor = sellFor;
             return this;
         }
 
-        public CSellItemBuilder itemStack(ItemStack itemStack) {
+        public SellItemBuilder itemStack(ItemStack itemStack) {
             this.itemStack = itemStack;
             return this;
         }
 
-        public CSellItemBuilder compressed(boolean compressed) {
+        public SellItemBuilder compressed(boolean compressed) {
             this.compressed = compressed;
             return this;
         }
 
         public SellItem build() {
-            return new SellItem(this.item, this.sellerName, this.sellerUuid, this.price, this.saleByThePiece, this.tags, this.timeListedForSale, this.removalDate, this.uniqueName, this.material, this.amount, this.priceForOne, this.sellFor, this.itemStack, server, compressed);
+            return new SellItem(this.item, this.sellerName, this.sellerUuid, this.price, this.saleByThePiece, this.tags, this.timeListedForSale, this.removalDate, this.id, this.material, this.amount, this.priceForOne, this.itemStack, server, compressed);
         }
 
     }
