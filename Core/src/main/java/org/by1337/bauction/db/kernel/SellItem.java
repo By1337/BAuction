@@ -1,28 +1,24 @@
 package org.by1337.bauction.db.kernel;
 
-import com.google.common.base.Joiner;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.ItemHolder;
 import org.by1337.bauction.api.serialize.SerializableToByteArray;
+import org.by1337.bauction.api.util.UniqueName;
+import org.by1337.bauction.db.io.codec.Codec;
+import org.by1337.bauction.db.io.codec.SellItemCodec;
 import org.by1337.bauction.db.kernel.util.InsertBuilder;
-
-import org.by1337.bauction.util.auction.Category;
-import org.by1337.blib.BLib;
-import org.by1337.bauction.Main;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.serialize.SerializeUtils;
-import org.by1337.bauction.util.id.CUniqueName;
-import org.by1337.bauction.util.common.NumberUtil;
+import org.by1337.bauction.util.auction.Category;
 import org.by1337.bauction.util.auction.TagUtil;
-import org.by1337.bauction.api.util.UniqueName;
+import org.by1337.bauction.util.common.NumberUtil;
+import org.by1337.bauction.util.id.CUniqueName;
+import org.by1337.blib.BLib;
 import org.by1337.blib.chat.placeholder.Placeholder;
-import org.by1337.blib.nbt.NBT;
-import org.by1337.blib.nbt.NBTToStringStyle;
-import org.by1337.blib.nbt.impl.ListNBT;
-import org.by1337.blib.nbt.impl.StringNBT;
 import org.by1337.blib.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +29,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class SellItem extends Placeholder implements SerializableToByteArray, ItemHolder {
+    public static final Codec<SellItem> CODEC = new SellItemCodec();
     final String item;
     final String sellerName;
     final UUID sellerUuid;
@@ -44,7 +41,7 @@ public class SellItem extends Placeholder implements SerializableToByteArray, It
     final UniqueName uniqueName;
     final Material material;
     final int amount;
-    final double priceForOne;
+    final transient double priceForOne;
     final Set<String> sellFor;
     @Nullable
     transient ItemStack itemStack;

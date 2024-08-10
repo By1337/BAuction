@@ -2,17 +2,11 @@ package org.by1337.bauction.datafix.db;
 
 import org.bukkit.Material;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.api.util.UniqueName;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.UnsoldItem;
+import org.by1337.bauction.api.serialize.SerializableToByteArray;
 import org.by1337.bauction.serialize.FileUtil;
 import org.by1337.bauction.serialize.SerializeUtils;
-import org.by1337.bauction.util.id.CUniqueName;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,7 +26,7 @@ public class DBUpdate110 {
             home.mkdir();
         }
         File fItems = new File(home + "/unsoldItems.bauc");
-        List<UnsoldItem> items;
+        List<UnsoldItem_> items;
 
         if (fItems.exists()) {
             items = FileUtil.read(fItems, DBUpdate110::fromBytesUnsoldItem);
@@ -52,7 +46,7 @@ public class DBUpdate110 {
             home.mkdir();
         }
         File fItems = new File(home + "/items.bauc");
-        List<SellItem> items;
+        List<SellItem_> items;
 
         if (fItems.exists()) {
             items = FileUtil.read(fItems, DBUpdate110::fromBytesSellItem);
@@ -66,24 +60,22 @@ public class DBUpdate110 {
         Main.getMessage().logger("sell items updated!");
     }
 
-    private static UnsoldItem fromBytesUnsoldItem(byte[] arr) throws IOException {
+    private static UnsoldItem_ fromBytesUnsoldItem(byte[] arr) throws IOException {
         try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
 
             String item = in.readUTF();
             long expired = in.readLong();
             UUID sellerUuid = SerializeUtils.readUUID(in);
-            UniqueName uniqueName = new CUniqueName(
-                    in.readUTF()
-            );
+            String uniqueName = in.readUTF();
             long deleteVia = in.readLong();
 
-            return new UnsoldItem(
+            return new UnsoldItem_(
                     item, expired, sellerUuid, uniqueName, deleteVia, false
             );
         }
     }
 
-    private static SellItem fromBytesSellItem(byte[] arr) throws IOException {
+    private static SellItem_ fromBytesSellItem(byte[] arr) throws IOException {
         try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
             String item = in.readUTF();
             String sellerName = in.readUTF();
@@ -93,18 +85,109 @@ public class DBUpdate110 {
             Set<String> tags = new HashSet<>(SerializeUtils.readCollectionFromStream(in));
             long timeListedForSale = in.readLong();
             long removalDate = in.readLong();
-            UniqueName uniqueName = new CUniqueName(
-                    in.readUTF()
-            );
+            String uniqueName = in.readUTF();
             Material material = Material.valueOf(in.readUTF());
             int amount = in.readInt();
             double priceForOne = in.readDouble();
             Set<String> sellFor = new HashSet<>(SerializeUtils.readCollectionFromStream(in));
             String server = in.readUTF();
 
-            return new SellItem(
-                    item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, null, server, false
+            return new SellItem_(
+                    item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, uniqueName, material, amount, priceForOne, sellFor, server, false
             );
         }
     }
+
+    private static class SellItem_ implements SerializableToByteArray {
+        final String item;
+        final String sellerName;
+        final UUID sellerUuid;
+        final double price;
+        final boolean saleByThePiece;
+        final Set<String> tags;
+        final long timeListedForSale;
+        final long removalDate;
+        final String uniqueName;
+        final Material material;
+        final int amount;
+        final double priceForOne;
+        final Set<String> sellFor;
+        final String server;
+        final boolean compressed;
+
+        public SellItem_(String item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, String uniqueName, Material material, int amount, double priceForOne, Set<String> sellFor, String server, boolean compressed) {
+            this.item = item;
+            this.sellerName = sellerName;
+            this.sellerUuid = sellerUuid;
+            this.price = price;
+            this.saleByThePiece = saleByThePiece;
+            this.tags = tags;
+            this.timeListedForSale = timeListedForSale;
+            this.removalDate = removalDate;
+            this.uniqueName = uniqueName;
+            this.material = material;
+            this.amount = amount;
+            this.priceForOne = priceForOne;
+            this.sellFor = sellFor;
+            this.server = server;
+            this.compressed = compressed;
+        }
+
+        public byte[] getBytes() throws IOException {
+            try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+                 DataOutputStream data = new DataOutputStream(out)) {
+                data.writeUTF(item);
+                data.writeUTF(sellerName);
+                SerializeUtils.writeUUID(sellerUuid, data);
+                data.writeDouble(price);
+                data.writeBoolean(saleByThePiece);
+                SerializeUtils.writeCollectionToStream(data, tags);
+                data.writeLong(timeListedForSale);
+                data.writeLong(removalDate);
+                data.writeUTF(uniqueName);
+                data.writeUTF(material.name());
+                data.writeInt(amount);
+                data.writeDouble(priceForOne);
+                SerializeUtils.writeCollectionToStream(data, sellFor);
+                data.writeUTF(server);
+                data.writeBoolean(compressed);
+                data.flush();
+                return out.toByteArray();
+            }
+        }
+    }
+
+    private static class UnsoldItem_ implements SerializableToByteArray {
+        final String item;
+        final long expired;
+        final UUID sellerUuid;
+        final String uniqueName;
+        final long deleteVia;
+        final boolean compressed;
+
+        public UnsoldItem_(String item, long expired, UUID sellerUuid, String uniqueName, long deleteVia, boolean compressed) {
+            this.item = item;
+            this.expired = expired;
+            this.sellerUuid = sellerUuid;
+            this.uniqueName = uniqueName;
+            this.deleteVia = deleteVia;
+            this.compressed = compressed;
+        }
+
+        @Override
+        public byte[] getBytes() throws IOException {
+            try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+                 DataOutputStream data = new DataOutputStream(out)) {
+                data.writeUTF(item);
+                data.writeLong(expired);
+                SerializeUtils.writeUUID(sellerUuid, data);
+                data.writeUTF(uniqueName);
+                data.writeLong(deleteVia);
+                data.writeBoolean(compressed);
+                data.flush();
+                return out.toByteArray();
+            }
+        }
+    }
+
 }

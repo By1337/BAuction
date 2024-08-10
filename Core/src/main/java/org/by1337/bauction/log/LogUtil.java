@@ -1,4 +1,4 @@
-package org.by1337.bauction.logg;
+package org.by1337.bauction.log;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
