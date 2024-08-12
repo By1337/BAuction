@@ -24,26 +24,27 @@ import java.util.*;
 
 public class SellItem extends Placeholder implements ItemHolder {
     public static final Codec<SellItem> CODEC = new SellItemCodec();
-    final String item;
-    final String sellerName;
-    final UUID sellerUuid;
-    final double price;
-    final boolean saleByThePiece;
-    final Set<String> tags;
-    final long timeListedForSale;
-    final long removalDate;
-    final long id;
-    final Material material;
-    final int amount;
-    final transient double priceForOne;
+    public final String item;
+    public final String sellerName;
+    public final UUID sellerUuid;
+    public final double price;
+    public final boolean saleByThePiece;
+    public final Set<String> tags;
+    public final long timeListedForSale;
+    public final long removalDate;
+    public final long id;
+    public final Material material;
+    public final int amount;
+    public final transient double priceForOne;
     @Nullable
-    transient ItemStack itemStack;
-    final String server;
-    final boolean compressed;
+    public transient ItemStack itemStack;
+    public final String server;
+    public final boolean compressed;
 
     public static SellItemBuilder builder() {
         return new SellItemBuilder();
     }
+
     @Deprecated(forRemoval = true)
     public String toSql(String table) {
         return null;

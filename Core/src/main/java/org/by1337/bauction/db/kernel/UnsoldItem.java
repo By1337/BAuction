@@ -15,14 +15,14 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class UnsoldItem extends Placeholder implements ItemHolder {
-    final String item;
-    final long expired;
-    final UUID sellerUuid;
-    final long id;
-    final long deleteVia;
+    public final String item;
+    public final long expired;
+    public final UUID sellerUuid;
+    public final long id;
+    public final long deleteVia;
     @Nullable
     private transient ItemStack itemStack;
-    final boolean compressed;
+    public final boolean compressed;
 
 
     @Deprecated(forRemoval = true)
@@ -90,7 +90,6 @@ public class UnsoldItem extends Placeholder implements ItemHolder {
         return item != null &&
                sellerUuid != null;
     }
-
 
 
     public String getItem() {

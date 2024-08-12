@@ -1,6 +1,7 @@
 package org.by1337.bmenu.menu;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -8,6 +9,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.action.BuyItemCountProcess;
 import org.by1337.bauction.action.BuyItemProcess;
@@ -104,12 +106,11 @@ public abstract class Menu extends AsyncClickListener {
         for (MenuItem menuItem : list) {
             for (int slot : menuItem.getSlots()) {
                 ItemStack item = menuItem.getItemStack();
-                inventory.setItem(slot, item);
                 matrix.put(slot, menuItem);
             }
-
         }
     }
+
 
     protected abstract boolean runCommand(String[] cmd) throws CommandException;
 
@@ -153,7 +154,7 @@ public abstract class Menu extends AsyncClickListener {
     }
 
 
-    @Nullable
+/*    @Nullable
     protected MenuItem findItemInSlot(int slot) {
         var item = findItemInSlot(slot, customItems);
         return item == null ? findItemInSlot(slot, currentItems) : item;
@@ -167,7 +168,7 @@ public abstract class Menu extends AsyncClickListener {
             }
         }
         return null;
-    }
+    }*/
 
     public Inventory getInventory() {
         return inventory;
