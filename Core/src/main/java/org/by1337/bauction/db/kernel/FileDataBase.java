@@ -20,6 +20,9 @@ import org.by1337.bauction.util.auction.Sorting;
 import org.by1337.bauction.util.common.NumberUtil;
 import org.by1337.blib.BLib;
 import org.by1337.blib.chat.placeholder.MultiPlaceholder;
+import org.by1337.blib.nbt.CompressedNBT;
+import org.by1337.blib.nbt.NBT;
+import org.by1337.blib.nbt.impl.CompoundTag;
 import org.by1337.blib.util.NameKey;
 import org.by1337.blib.util.Pair;
 
@@ -120,7 +123,7 @@ public class FileDataBase extends DataBaseCore implements Listener {
     @Override
     protected void expiredItem(SellItem item) {
         removeSellItem(item.id);
-        UnsoldItem unsoldItem = new UnsoldItem(item.getItem(), item.getSellerUuid(), item.getRemovalDate(), item.getRemovalDate() + removeTime, item.isCompressed());
+        UnsoldItem unsoldItem = new UnsoldItem(item.getItem(), item.getSellerUuid(), item.getRemovalDate(), item.getRemovalDate() + removeTime);
         addUnsoldItem(unsoldItem);
         Player player = Bukkit.getPlayer(item.getSellerUuid());
         if (player != null){
@@ -150,12 +153,12 @@ public class FileDataBase extends DataBaseCore implements Listener {
                 return;
             }
 
-            if (sellItem.getItem().getBytes().length > Main.getCfg().getItemMaxSize()) {
+            if (CompoundTag.getSizeInBytes(sellItem.item) > Main.getCfg().getItemMaxSize()) {
                 event.setValid(false);
                 event.setReason(Lang.getMessage("item-size-limit"));
                 return;
-            } else if (sellItem.isCompressed()) {
-                int size = BLib.getApi().getItemStackSerialize().decompress(sellItem.getItem()).getBytes().length;
+            } else if (sellItem.item instanceof CompressedNBT compressedNBT) {
+                int size = CompoundTag.getSizeInBytes(compressedNBT.decompress());
                 if (size > Main.getCfg().getMaximumUncompressedItemSize()) {
                     event.setValid(false);
                     event.setReason(Lang.getMessage("item-size-limit"));
@@ -353,10 +356,10 @@ public class FileDataBase extends DataBaseCore implements Listener {
             ItemStack itemStack = updated.getItemStack();
             itemStack.setAmount(newCount);
 
-            Pair<String, Boolean> item = SellItem.serializeItemStack(itemStack);
+            NBT item = SellItem.serializeItemStack(itemStack);
             if (newCount != 0) {
                 SellItem newItem = SellItem.builder()
-                        .item(item.getLeft())
+                        .item(item)
                         .sellerName(updated.sellerName)
                         .sellerUuid(updated.sellerUuid)
                         .price(updated.priceForOne * newCount)
@@ -370,7 +373,6 @@ public class FileDataBase extends DataBaseCore implements Listener {
                         .priceForOne(updated.priceForOne)
                         .itemStack(itemStack)
                         .server(updated.server)
-                        .compressed(item.getRight())
                         .build();
 
                 addSellItem(newItem);

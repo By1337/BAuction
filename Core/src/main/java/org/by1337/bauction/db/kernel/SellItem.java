@@ -14,7 +14,10 @@ import org.by1337.bauction.util.auction.TagUtil;
 import org.by1337.bauction.util.common.NumberUtil;
 import org.by1337.blib.BLib;
 import org.by1337.blib.chat.placeholder.Placeholder;
-import org.by1337.blib.util.Pair;
+import org.by1337.blib.nbt.CompressedNBT;
+import org.by1337.blib.nbt.NBT;
+import org.by1337.blib.nbt.impl.ByteArrNBT;
+import org.by1337.blib.nbt.impl.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +27,7 @@ import java.util.*;
 
 public class SellItem extends Placeholder implements ItemHolder {
     public static final Codec<SellItem> CODEC = new SellItemCodec();
-    public final String item;
+    public final NBT item;
     public final String sellerName;
     public final UUID sellerUuid;
     public final double price;
@@ -39,7 +42,6 @@ public class SellItem extends Placeholder implements ItemHolder {
     @Nullable
     public transient ItemStack itemStack;
     public final String server;
-    public final boolean compressed;
 
     public static SellItemBuilder builder() {
         return new SellItemBuilder();
@@ -55,11 +57,11 @@ public class SellItem extends Placeholder implements ItemHolder {
         return null;
     }
 
-    public SellItem(String item, String sellerName, UUID sellerUuid,
+    public SellItem(NBT item, String sellerName, UUID sellerUuid,
                     double price, boolean saleByThePiece, Set<String> tags,
                     long timeListedForSale, long removalDate, long id,
                     Material material, int amount, double priceForOne,
-                    @Nullable ItemStack itemStack, String server, boolean compressed) {
+                    @Nullable ItemStack itemStack, String server) {
         this.server = server;
         this.item = item;
         this.sellerName = sellerName;
@@ -74,14 +76,13 @@ public class SellItem extends Placeholder implements ItemHolder {
         this.amount = amount;
         this.priceForOne = priceForOne;
         this.itemStack = itemStack;
-        this.compressed = compressed;
         init();
     }
 
-    public SellItem(String item, String sellerName, UUID sellerUuid,
+    public SellItem(NBT item, String sellerName, UUID sellerUuid,
                     double price, boolean saleByThePiece, Set<String> tags,
                     long timeListedForSale, long removalDate, long id,
-                    Material material, int amount, double priceForOne, @Nullable ItemStack itemStack, boolean compressed) {
+                    Material material, int amount, double priceForOne, @Nullable ItemStack itemStack) {
         this.item = item;
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
@@ -95,15 +96,14 @@ public class SellItem extends Placeholder implements ItemHolder {
         this.amount = amount;
         this.priceForOne = priceForOne;
         this.itemStack = itemStack;
-        this.compressed = compressed;
         server = Main.getServerId();
         init();
     }
 
-    public SellItem(String item, String sellerName, UUID sellerUuid,
+    public SellItem(NBT item, String sellerName, UUID sellerUuid,
                     double price, boolean saleByThePiece, Set<String> tags,
                     long timeListedForSale, long removalDate, long id, Material material,
-                    int amount, double priceForOne, boolean compressed) {
+                    int amount, double priceForOne) {
         this.item = item;
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
@@ -116,14 +116,13 @@ public class SellItem extends Placeholder implements ItemHolder {
         this.material = material;
         this.amount = amount;
         this.priceForOne = priceForOne;
-        this.compressed = compressed;
         server = Main.getServerId();
         init();
     }
 
-    public SellItem(@NotNull String item, @NotNull String sellerName, @NotNull UUID sellerUuid,
+    public SellItem(@NotNull NBT item, @NotNull String sellerName, @NotNull UUID sellerUuid,
                     double price, boolean saleByThePiece, @NotNull Set<String> tags, long saleDuration,
-                    @NotNull Material material, int amount, boolean compressed) {
+                    @NotNull Material material, int amount) {
         this.item = item;
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
@@ -135,7 +134,6 @@ public class SellItem extends Placeholder implements ItemHolder {
         this.id = Main.getUniqueIdGenerator().nextId();
         this.material = material;
         this.amount = amount;
-        this.compressed = compressed;
         priceForOne = price / amount;
         server = Main.getServerId();
         init();
@@ -146,9 +144,7 @@ public class SellItem extends Placeholder implements ItemHolder {
     }
 
     public SellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
-        var pair = serializeItemStack(itemStack);
-        item = pair.getLeft();
-        compressed = pair.getRight();
+        item = serializeItemStack(itemStack);
         sellerName = seller.getName();
         sellerUuid = seller.getUniqueId();
         this.price = price;
@@ -164,19 +160,17 @@ public class SellItem extends Placeholder implements ItemHolder {
         init();
     }
 
-    public static Pair<String, Boolean> serializeItemStack(ItemStack itemStack) {
-        var temp = BLib.getApi().getItemStackSerialize().serialize(itemStack);
-        if (temp.getBytes().length > Main.getCfg().getCompressIfMoreThan()) {
-            return Pair.of(BLib.getApi().getItemStackSerialize().serializeAndCompress(itemStack), true);
+    public static NBT serializeItemStack(ItemStack itemStack) {
+        CompoundTag tag = BLib.getApi().getParseCompoundTag().copy(itemStack);
+        if (tag.getSizeInBytes() > Main.getCfg().getCompressIfMoreThan()) {
+            return tag.getAsCompressedNBT();
         } else {
-            return Pair.of(temp, false);
+            return tag;
         }
     }
 
     public SellItem(String sellerName, UUID sellerUuid, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
-        var pair = serializeItemStack(itemStack);
-        item = pair.getLeft();
-        compressed = pair.getRight();
+        item = serializeItemStack(itemStack);
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
         this.price = price;
@@ -224,10 +218,11 @@ public class SellItem extends Placeholder implements ItemHolder {
 
     public ItemStack getItemStack() {
         if (itemStack == null) {
-            if (compressed) {
-                itemStack = BLib.getApi().getItemStackSerialize().decompressAndDeserialize(item);
+            if (item instanceof ByteArrNBT arrNBT) {
+                CompoundTag tag = (CompoundTag) new CompressedNBT(arrNBT.getValue()).decompress();
+                itemStack = BLib.getApi().getParseCompoundTag().create(tag);
             } else {
-                itemStack = BLib.getApi().getItemStackSerialize().deserialize(item);
+                itemStack = BLib.getApi().getParseCompoundTag().create((CompoundTag) item);
             }
         }
         return itemStack.clone();
@@ -246,7 +241,7 @@ public class SellItem extends Placeholder implements ItemHolder {
         return tags.containsAll(category.tags());
     }
 
-    public String getItem() {
+    public NBT getItem() {
         return item;
     }
 
@@ -336,18 +331,17 @@ public class SellItem extends Placeholder implements ItemHolder {
                 Objects.equals(tags, sellItem.tags) &&
                 id == sellItem.id &&
                 material == sellItem.material &&
-                Objects.equals(server, sellItem.server) &&
-                compressed == sellItem.compressed;
+                Objects.equals(server, sellItem.server);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, id, material, amount, priceForOne, server, compressed);
+        return Objects.hash(item, sellerName, sellerUuid, price, saleByThePiece, tags, timeListedForSale, removalDate, id, material, amount, priceForOne, server);
     }
 
 
     public static class SellItemBuilder {
-        private String item;
+        private NBT item;
         private String sellerName;
         private UUID sellerUuid;
         private double price;
@@ -359,15 +353,13 @@ public class SellItem extends Placeholder implements ItemHolder {
         private Material material;
         private int amount;
         private double priceForOne;
-        private Set<String> sellFor;
         private ItemStack itemStack;
         private String server;
-        private boolean compressed;
 
         SellItemBuilder() {
         }
 
-        public SellItemBuilder item(String item) {
+        public SellItemBuilder item(NBT item) {
             this.item = item;
             return this;
         }
@@ -432,28 +424,14 @@ public class SellItem extends Placeholder implements ItemHolder {
             return this;
         }
 
-        public SellItemBuilder sellFor(Set<String> sellFor) {
-            this.sellFor = sellFor;
-            return this;
-        }
-
         public SellItemBuilder itemStack(ItemStack itemStack) {
             this.itemStack = itemStack;
             return this;
         }
 
-        public SellItemBuilder compressed(boolean compressed) {
-            this.compressed = compressed;
-            return this;
-        }
-
         public SellItem build() {
-            return new SellItem(this.item, this.sellerName, this.sellerUuid, this.price, this.saleByThePiece, this.tags, this.timeListedForSale, this.removalDate, this.id, this.material, this.amount, this.priceForOne, this.itemStack, server, compressed);
+            return new SellItem(this.item, this.sellerName, this.sellerUuid, this.price, this.saleByThePiece, this.tags, this.timeListedForSale, this.removalDate, this.id, this.material, this.amount, this.priceForOne, this.itemStack, server);
         }
 
-    }
-
-    public boolean isCompressed() {
-        return compressed;
     }
 }

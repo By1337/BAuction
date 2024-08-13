@@ -6,6 +6,10 @@ import org.by1337.bauction.api.auc.ItemHolder;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.blib.BLib;
 import org.by1337.blib.chat.placeholder.Placeholder;
+import org.by1337.blib.nbt.CompressedNBT;
+import org.by1337.blib.nbt.NBT;
+import org.by1337.blib.nbt.impl.ByteArrNBT;
+import org.by1337.blib.nbt.impl.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,14 +19,13 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class UnsoldItem extends Placeholder implements ItemHolder {
-    public final String item;
+    public final NBT item;
     public final long expired;
     public final UUID sellerUuid;
     public final long id;
     public final long deleteVia;
     @Nullable
     private transient ItemStack itemStack;
-    public final boolean compressed;
 
 
     @Deprecated(forRemoval = true)
@@ -35,33 +38,30 @@ public class UnsoldItem extends Placeholder implements ItemHolder {
         return null;
     }
 
-    public UnsoldItem(String item, long expired, UUID sellerUuid, long id, long deleteVia, boolean compressed) {
+    public UnsoldItem(NBT item, long expired, UUID sellerUuid, long id, long deleteVia) {
         this.item = item;
         this.expired = expired;
         this.sellerUuid = sellerUuid;
         this.id = id;
         this.deleteVia = deleteVia;
-        this.compressed = compressed;
         init();
     }
 
-    public UnsoldItem(String item, long expired, UUID sellerUuid, long id, long deleteVia, @Nullable ItemStack itemStack, boolean compressed) {
+    public UnsoldItem(NBT item, long expired, UUID sellerUuid, long id, long deleteVia, @Nullable ItemStack itemStack) {
         this.item = item;
         this.expired = expired;
         this.sellerUuid = sellerUuid;
         this.id = id;
         this.deleteVia = deleteVia;
         this.itemStack = itemStack;
-        this.compressed = compressed;
         init();
     }
 
-    public UnsoldItem(@NotNull String item, @NotNull UUID sellerUuid, long expired, long deleteVia, boolean compressed) {
+    public UnsoldItem(@NotNull NBT item, @NotNull UUID sellerUuid, long expired, long deleteVia) {
         this.item = item;
         this.expired = expired;
         this.sellerUuid = sellerUuid;
         this.deleteVia = deleteVia;
-        this.compressed = compressed;
         id = Main.getUniqueIdGenerator().nextId();
         init();
     }
@@ -77,10 +77,11 @@ public class UnsoldItem extends Placeholder implements ItemHolder {
 
     public ItemStack getItemStack() {
         if (itemStack == null) {
-            if (compressed) {
-                itemStack = BLib.getApi().getItemStackSerialize().decompressAndDeserialize(item);
+            if (item instanceof ByteArrNBT arrNBT) {
+                CompoundTag tag = (CompoundTag) new CompressedNBT(arrNBT.getValue()).decompress();
+                itemStack = BLib.getApi().getParseCompoundTag().create(tag);
             } else {
-                itemStack = BLib.getApi().getItemStackSerialize().deserialize(item);
+                itemStack = BLib.getApi().getParseCompoundTag().create((CompoundTag) item);
             }
         }
         return itemStack.clone();
@@ -92,7 +93,7 @@ public class UnsoldItem extends Placeholder implements ItemHolder {
     }
 
 
-    public String getItem() {
+    public NBT getItem() {
         return item;
     }
 
@@ -117,12 +118,12 @@ public class UnsoldItem extends Placeholder implements ItemHolder {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UnsoldItem that = (UnsoldItem) o;
-        return expired == that.expired && id == that.id && deleteVia == that.deleteVia && compressed == that.compressed && Objects.equals(item, that.item) && Objects.equals(sellerUuid, that.sellerUuid);
+        return expired == that.expired && id == that.id && deleteVia == that.deleteVia  && Objects.equals(item, that.item) && Objects.equals(sellerUuid, that.sellerUuid);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(item, expired, sellerUuid, id, deleteVia, compressed);
+        return Objects.hash(item, expired, sellerUuid, id, deleteVia);
     }
 
     @Override

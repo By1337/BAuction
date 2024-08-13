@@ -106,6 +106,7 @@ public abstract class Menu extends AsyncClickListener {
         for (MenuItem menuItem : list) {
             for (int slot : menuItem.getSlots()) {
                 ItemStack item = menuItem.getItemStack();
+                inventory.setItem(slot, item);
                 matrix.put(slot, menuItem);
             }
         }
