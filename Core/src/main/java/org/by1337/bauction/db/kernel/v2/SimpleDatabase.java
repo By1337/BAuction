@@ -40,25 +40,24 @@ public abstract class SimpleDatabase {
     private final Map<UUID, User> users = new HashMap<>();
     private final TreeSet<SellItem> sortedSellItems;
     private final TreeSet<UnsoldItem> sortedUnsoldItems;
-    private final ThreadFactory ioThreadFactory;
+
     private final Map<NameKey, Category> categoryMap;
-    private final Map<NameKey, Sorting> sortingMap;
+    //private final Map<NameKey, Sorting> sortingMap;
     private final Indexed indexed;
 
     public SimpleDatabase(Map<NameKey, Category> categoryMap, Map<NameKey, Sorting> sortingMap) {
         this.categoryMap = categoryMap;
-        this.sortingMap = sortingMap;
+      //  this.sortingMap = sortingMap;
         sortedSellItems = new TreeSet<>(SELL_ITEM_COMPARATOR);
         sortedUnsoldItems = new TreeSet<>(UNSOLD_ITEM_COMPARATOR);
         indexed = new Indexed();
-        ioThreadFactory = ThreadCreator.createWithName("bauc IO #d");
     }
 
     public boolean hasSellItem(long id) {
         return readLock(() -> indexed.sellItemsMap.containsKey(id));
     }
 
-    protected void addSellItem(@NotNull SellItem sellItem) {
+    public void addSellItem(@NotNull SellItem sellItem) {
         if (hasSellItem(sellItem.id)) {
             throw new IllegalStateException("SellItem with id '" + sellItem.id + "' already exists in the database!");
         }
@@ -69,14 +68,14 @@ public abstract class SimpleDatabase {
     }
 
     @Nullable
-    protected SellItem getSellItem(long id) {
+    public SellItem getSellItem(long id) {
         return readLock(() -> indexed.sellItemsMap.get(id));
     }
 
-    protected void removeSellItem(long id) {
+    public void removeSellItem(long id) {
         SellItem item = getSellItem(id);
         if (item == null) {
-            throw new IllegalStateException("Has no SellItem with id: " + id);
+            throw new NoSuchElementException("Has no SellItem with id: " + id);
         }
         writeLock(() -> {
             sortedSellItems.remove(item);
@@ -93,10 +92,10 @@ public abstract class SimpleDatabase {
         return readLock(() -> indexed.unsoldItemsMap.get(id));
     }
 
-    protected void removeUnsoldItem(long id) {
+    public void removeUnsoldItem(long id) {
         UnsoldItem item = getUnsoldItem(id);
         if (item == null) {
-            throw new IllegalStateException("Has no UnsoldItem with id: " + id);
+            throw new NoSuchElementException("Has no UnsoldItem with id: " + id);
         }
         writeLock(() -> {
             sortedUnsoldItems.remove(item);
@@ -104,7 +103,7 @@ public abstract class SimpleDatabase {
         });
     }
 
-    protected void addUnsoldItem(@NotNull UnsoldItem unsoldItem) {
+    public void addUnsoldItem(@NotNull UnsoldItem unsoldItem) {
         if (hasUnsoldItem(unsoldItem.id)) {
             throw new IllegalStateException("UnsoldItem with id '" + unsoldItem.id + "' already exists in the database!");
         }
@@ -187,7 +186,7 @@ public abstract class SimpleDatabase {
         });
     }
 
-    public int sellItemsCountByUser(@NotNull UUID uuid) {
+    public int getSellItemsCountByUser(@NotNull UUID uuid) {
         return readLock(() -> {
             Pair<TreeSet<SellItem>, TreeSet<UnsoldItem>> pair = indexed.itemsByOwner.get(uuid);
             if (pair == null) return 0;
@@ -195,7 +194,7 @@ public abstract class SimpleDatabase {
         });
     }
 
-    public int unsoldItemsCountByUser(@NotNull UUID uuid) {
+    public int getUnsoldItemsCountByUser(@NotNull UUID uuid) {
         return readLock(() -> {
             Pair<TreeSet<SellItem>, TreeSet<UnsoldItem>> pair = indexed.itemsByOwner.get(uuid);
             if (pair == null) return 0;

@@ -12,21 +12,12 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class User extends Placeholder implements SerializableToByteArray {
-    final String nickName;
-    final UUID uuid;
+    public final String nickName;
+    public final UUID uuid;
     int dealCount;
     double dealSum;
     private transient int externalSlots = 0;
     private transient long externalSellTime = 0L;
-    private transient int lastHash;
-
-    public boolean hasChanges() {
-        return Objects.hash(dealCount, dealSum) != lastHash;
-    }
-
-    public void updateHash() {
-        lastHash = Objects.hash(dealCount, dealSum);
-    }
 
 
     public User(String nickName, UUID uuid, int dealCount, double dealSum) {
@@ -37,13 +28,17 @@ public class User extends Placeholder implements SerializableToByteArray {
         init();
     }
 
+    public int getMaxItems() {
+        return Integer.MAX_VALUE; // todo limits
+    }
 
     public User(@NotNull String nickName, @NotNull UUID uuid) {
         this.nickName = nickName;
         this.uuid = uuid;
         init();
     }
-    private void init(){
+
+    private void init() {
         registerPlaceholder("{user_uuid}", () -> String.valueOf(uuid));
         registerPlaceholder("{deal_sum}", () -> String.valueOf(dealSum));
         registerPlaceholder("{nick_name}", () -> String.valueOf(nickName));
@@ -55,28 +50,6 @@ public class User extends Placeholder implements SerializableToByteArray {
         registerPlaceholder("{external_sell_time}", () -> String.valueOf(Main.getTimeUtil().getFormat(externalSellTime, false)));
     }
 
-    public String toSql(String table) {
-        return String.format(
-                "INSERT INTO %s (uuid, name, deal_count, deal_sum) VALUES ('%s', '%s', %s, %s)", table,
-                uuid, nickName, dealCount, dealSum
-        );
-    }
-
-    public String toSqlUpdate(String table) {
-        return String.format(
-                "UPDATE %s SET name = '%s', deal_count = %s, deal_sum = %s WHERE uuid = '%s'", table,
-                nickName, dealCount, dealSum, uuid
-        );
-    }
-
-    public static User fromResultSet(ResultSet resultSet) throws SQLException {
-        String nickName = resultSet.getString("name");
-        UUID uuid = UUID.fromString(resultSet.getString("uuid"));
-        int dealCount = resultSet.getInt("deal_count");
-        double dealSum = resultSet.getDouble("deal_sum");
-
-        return new User(nickName, uuid, dealCount, dealSum);
-    }
 
     public boolean isValid() {
         return nickName != null && uuid != null;
@@ -93,13 +66,13 @@ public class User extends Placeholder implements SerializableToByteArray {
     @Override
     public String toString() {
         return "User{" +
-                "nickName='" + nickName + '\'' +
-                ", uuid=" + uuid +
-                ", externalSlots=" + externalSlots +
-                ", externalSellTime=" + externalSellTime +
-                ", dealCount=" + dealCount +
-                ", dealSum=" + dealSum +
-                '}';
+               "nickName='" + nickName + '\'' +
+               ", uuid=" + uuid +
+               ", externalSlots=" + externalSlots +
+               ", externalSellTime=" + externalSellTime +
+               ", dealCount=" + dealCount +
+               ", dealSum=" + dealSum +
+               '}';
     }
 
     @Override
