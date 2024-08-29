@@ -3,6 +3,8 @@ package org.by1337.bauction.db.kernel;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.ItemHolder;
+import org.by1337.bauction.db.io.codec.Codec;
+import org.by1337.bauction.db.io.codec.UnsoldItemCodec;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.blib.BLib;
 import org.by1337.blib.chat.placeholder.Placeholder;
@@ -19,6 +21,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class UnsoldItem extends Placeholder implements ItemHolder {
+    public static final Codec<UnsoldItem> CODEC = new UnsoldItemCodec();
     public final NBT item;
     public final long expired;
     public final UUID sellerUuid;
@@ -118,7 +121,7 @@ public class UnsoldItem extends Placeholder implements ItemHolder {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UnsoldItem that = (UnsoldItem) o;
-        return expired == that.expired && id == that.id && deleteVia == that.deleteVia  && Objects.equals(item, that.item) && Objects.equals(sellerUuid, that.sellerUuid);
+        return expired == that.expired && id == that.id && deleteVia == that.deleteVia && Objects.equals(item, that.item) && Objects.equals(sellerUuid, that.sellerUuid);
     }
 
     @Override

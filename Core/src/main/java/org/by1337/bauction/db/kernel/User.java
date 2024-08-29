@@ -2,6 +2,8 @@ package org.by1337.bauction.db.kernel;
 
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.serialize.SerializableToByteArray;
+import org.by1337.bauction.db.io.codec.Codec;
+import org.by1337.bauction.db.io.codec.UserCodec;
 import org.by1337.bauction.serialize.SerializeUtils;
 import org.by1337.blib.chat.placeholder.Placeholder;
 import org.jetbrains.annotations.NotNull;
@@ -12,6 +14,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class User extends Placeholder implements SerializableToByteArray {
+    public static final Codec<User> CODEC = new UserCodec();
     public final String nickName;
     public final UUID uuid;
     public int dealCount;
