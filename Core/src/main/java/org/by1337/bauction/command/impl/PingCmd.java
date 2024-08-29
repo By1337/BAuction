@@ -1,20 +1,9 @@
 package org.by1337.bauction.command.impl;
 
 import org.bukkit.command.CommandSender;
-import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.MysqlDb;
-import org.by1337.bauction.network.PacketConnection;
-import org.by1337.bauction.network.PacketType;
-import org.by1337.bauction.network.WaitNotifyCallBack;
-import org.by1337.bauction.network.impl.PacketPingRequest;
-import org.by1337.bauction.network.impl.PacketPingResponse;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.argument.ArgumentMap;
-import org.by1337.blib.command.argument.ArgumentSetList;
 import org.by1337.blib.command.requires.RequiresPermission;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 // todo ping cmd
 public class PingCmd extends Command<CommandSender> {

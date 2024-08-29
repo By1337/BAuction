@@ -2,7 +2,6 @@ package org.by1337.bauction.command.impl;
 
 import org.bukkit.command.CommandSender;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.MysqlDb;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
