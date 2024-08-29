@@ -4,6 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.by1337.blib.Api;
 import org.by1337.blib.BLib;
 import org.by1337.blib.block.replacer.PooledBlockReplacer;
@@ -15,6 +16,7 @@ import org.by1337.blib.factory.PacketFactory;
 import org.by1337.blib.inventory.FakeTitleFactory;
 import org.by1337.blib.inventory.ItemStackSerialize;
 import org.by1337.blib.nbt.ParseCompoundTag;
+import org.by1337.blib.nbt.impl.CompoundTag;
 import org.by1337.blib.network.clientbound.entity.*;
 import org.by1337.blib.text.ComponentToANSI;
 import org.by1337.blib.text.LegacyConvertor;
@@ -28,17 +30,20 @@ import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
 public class BLibApi implements Api {
     private static boolean isSet;
 
-    public static void setApi(){
-        if (!isSet){
+    public static void setApi() {
+        if (!isSet) {
             BLib.setApi(new BLibApi());
             isSet = true;
         }
     }
+
     @Override
     public @NotNull PacketEntityFactory getPacketEntityFactory() {
         return new PacketEntityFactory() {
@@ -175,7 +180,27 @@ public class BLibApi implements Api {
 
     @Override
     public @NotNull ParseCompoundTag getParseCompoundTag() {
-        return Mockito.mock(ParseCompoundTag.class);
+        return new ParseCompoundTag() {
+            @Override
+            public @NotNull CompoundTag copy(@NotNull ItemStack itemStack) {
+                return new CompoundTag();
+            }
+
+            @Override
+            public @NotNull ItemStack create(@NotNull CompoundTag compoundTag) {
+                return new ItemStack(Material.DIRT);
+            }
+
+            @Override
+            public CompletableFuture<CompoundTag> readOfflinePlayerData(@NotNull UUID player) {
+                return CompletableFuture.completedFuture(new CompoundTag());
+            }
+
+            @Override
+            public @NotNull CompoundTag pdcToCompoundTag(@NotNull PersistentDataContainer persistentDataContainer) {
+                return new CompoundTag();
+            }
+        };
     }
 
     @Override

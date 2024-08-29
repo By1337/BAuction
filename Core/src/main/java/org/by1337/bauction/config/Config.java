@@ -29,9 +29,10 @@ public class Config {
     private String playerItemsViewMenu;
     private String lang;
 
-    public Config( ) {
+    public Config() {
         reload();
     }
+
 
     public void reload() {
         loadConfigs();

@@ -21,7 +21,7 @@ public class UpdateManager {
     private final static int CURRENT_VERSION = 12;
 
     public static void checkUpdate() {
-        Plugin plugin = Main.getInstance();
+        if (Main.RUNNING_IN_IDE) return;
 
         YamlConfig config = ConfigUtil.load("config.yml");
 

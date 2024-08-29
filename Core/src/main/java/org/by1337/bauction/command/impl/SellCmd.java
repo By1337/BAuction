@@ -7,7 +7,7 @@ import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.command.argument.ArgumentFullOrCount;
-import org.by1337.bauction.db.event.SellItemEvent;
+import org.by1337.bauction.db.v2.AddSellItemEvent;
 import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
 import org.by1337.bauction.lang.Lang;
@@ -20,7 +20,7 @@ import org.by1337.blib.command.requires.RequiresPermission;
 
 import java.util.List;
 
-public class SellCmd  extends Command<CommandSender> {
+public class SellCmd extends Command<CommandSender> {
     public SellCmd(String command) {
         super(command);
         requires(new RequiresPermission<>("bauc.sell"));
@@ -56,12 +56,16 @@ public class SellCmd  extends Command<CommandSender> {
             throw new CommandException(Lang.getMessage("cannot_trade_air"));
         }
 
-        int cashback = 0;
+        final int cashback;
         if (amount != -1) {
             if (itemStack.getAmount() > amount) {
                 cashback = itemStack.getAmount() - amount;
                 itemStack.setAmount(amount);
+            } else {
+                cashback = 0;
             }
+        } else {
+            cashback = 0;
         }
 
         if (saleByThePiece) saleByThePiece = Main.getCfg().isAllowBuyCount();
@@ -75,15 +79,17 @@ public class SellCmd  extends Command<CommandSender> {
             }
         }
 
-        SellItemEvent event = new SellItemEvent(user, sellItem);
-        Main.getStorage().validateAndAddItem(event);
-        if (event.isValid()) {
-            player.getInventory().getItemInMainHand().setAmount(cashback);
-            //Main.getMessage().sendMsg(player, sellItem.replace(Lang.getMessage("successful_single_listing")));
-            Event event1 = new Event(player, EventType.SELL_ITEM, new BiPlaceholder(sellItem, user));
-            Main.getEventManager().onEvent(event1);
-        } else {
-            Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
-        }
+        AddSellItemEvent event = new AddSellItemEvent(sellItem, user);
+        Main.getStorage().onEvent(event).whenComplete((e, t) -> {
+            if (event.isValid()) {
+                player.getInventory().getItemInMainHand().setAmount(cashback);
+                //Main.getMessage().sendMsg(player, sellItem.replace(Lang.getMessage("successful_single_listing")));
+                Event event1 = new Event(player, EventType.SELL_ITEM, new BiPlaceholder(sellItem, user));
+                Main.getEventManager().onEvent(event1);
+            } else {
+                Main.getMessage().sendMsg(player, event.getReason());
+            }
+        });
+
     }
 }

@@ -9,17 +9,17 @@ import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.argument.ArgumentMap;
 import org.by1337.blib.command.requires.RequiresPermission;
 
-
+// todo clear
 public class ClearCmd extends Command<CommandSender> {
     public ClearCmd(String command) {
         super(command);
         requires(new RequiresPermission<>("bauc.admin.debug.clear"));
-        requires(s -> !(Main.getStorage() instanceof MysqlDb));
+        //requires(s -> !(Main.getStorage() instanceof MysqlDb));
         executor(this::execute);
     }
 
     private void execute(CommandSender sender, ArgumentMap<String, Object> args) throws CommandException {
-        Main.getStorage().clear();
+     //   Main.getStorage().clear();
         Main.getMessage().sendMsg(sender, Lang.getMessage("auc-cleared"));
     }
 }

@@ -38,6 +38,11 @@ public class Metrics {
      *     href="https://bstats.org/what-is-my-plugin-id">What is my plugin id?</a>
      */
     public Metrics(JavaPlugin plugin, int serviceId) {
+        if (Main.RUNNING_IN_IDE){
+            this.plugin = null;
+            metricsBase = null;
+            return;
+        }
         this.plugin = plugin;
         // Get the config file
         File bStatsFolder = new File(plugin.getDataFolder().getParentFile(), "bStats");

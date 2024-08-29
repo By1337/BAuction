@@ -14,8 +14,9 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 
 public class PluginEnablePipeline {
-    private final List<Pair<String, ThrowableRunnable>> enableHandlers = new ArrayList<>();
+    //private final List<Pair<String, ThrowableRunnable>> enableHandlers = new ArrayList<>();
     private final List<Pair<@Nullable Predicate<PluginEnablePipeline>, Pair<String, ThrowableRunnable>>> disableHandlers = new ArrayList<>();
+    private final List<Pair<@Nullable Predicate<PluginEnablePipeline>, Pair<String, ThrowableRunnable>>> enableHandlers = new ArrayList<>();
     private final Set<String> enabled = new HashSet<>();
     private final Plugin plugin;
 
@@ -43,11 +44,14 @@ public class PluginEnablePipeline {
     }
 
     public void onEnable() {
-        for (Pair<String, ThrowableRunnable> pair : enableHandlers) {
+        for (Pair<Predicate<PluginEnablePipeline>, Pair<String, ThrowableRunnable>> pair : enableHandlers) {
             try {
-                Main.debug("enable %s", pair.getLeft());
-                pair.getRight().run();
-                enabled.add(pair.getLeft());
+                if (pair.getLeft() == null || pair.getLeft().test(this)) {
+                    Main.debug("enable %s", pair.getRight().getLeft());
+                    pair.getRight().getRight().run();
+                    enabled.add(pair.getRight().getLeft());
+                }
+
             } catch (Throwable e) {
                 plugin.getLogger().log(Level.SEVERE, "An error occurred while enabling on the handler: " + pair.getLeft(), e);
                 Bukkit.getPluginManager().disablePlugin(plugin);
@@ -65,8 +69,12 @@ public class PluginEnablePipeline {
         return this;
     }
 
+    public PluginEnablePipeline enable(String name, Predicate<PluginEnablePipeline> filter, ThrowableRunnable run) {
+        enableHandlers.add(Pair.of(filter, Pair.of(name, run)));
+        return this;
+    }
     public PluginEnablePipeline enable(String name, ThrowableRunnable run) {
-        enableHandlers.add(Pair.of(name, run));
+        enableHandlers.add(Pair.of(null, Pair.of(name, run)));
         return this;
     }
 

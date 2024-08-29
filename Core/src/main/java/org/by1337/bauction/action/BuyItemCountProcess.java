@@ -7,8 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.db.kernel.User;
-import org.by1337.bauction.db.event.BuyItemCountEvent;
-import org.by1337.bauction.db.kernel.MysqlDb;
+import org.by1337.bauction.db.v2.BuyCountItemEvent;
 import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
 import org.by1337.bauction.lang.Lang;
@@ -33,7 +32,7 @@ public class BuyItemCountProcess extends Placeholder {
 
 
         if (buyingItem != null) {
-            registerPlaceholders((SellItem) buyingItem);
+            registerPlaceholders( buyingItem);
             registerPlaceholder("{price}", () -> NumberUtil.format(buyingItem.getPriceForOne() * count));
         }
         registerPlaceholder("{amount}", () -> count);
@@ -51,37 +50,39 @@ public class BuyItemCountProcess extends Placeholder {
             menu.reopen();
             return;
         }
-        BuyItemCountEvent event = new BuyItemCountEvent(buyer, buyingItem, count);
-        Main.getStorage().validateAndRemoveItem(event);
+        BuyCountItemEvent event = new BuyCountItemEvent(buyer, buyingItem, count);
 
-        OfflinePlayer seller = Bukkit.getOfflinePlayer(buyingItem.getSellerUuid());
-
-        if (event.isValid()) {
-            Main.getEcon().withdrawPlayer(player, price);
-            if (!buyingItem.getServer().equals(Main.getServerId()) && Main.getStorage() instanceof MysqlDb mysqlDb) {
-                mysqlDb.getMoneyGiver().give(price, buyingItem.getSellerUuid(), buyingItem.getServer());
-            } else {
-                Main.getEcon().depositPlayer(seller, price);
-            }
-            if (seller.isOnline()) {
-                //Main.getMessage().sendMsg(seller.getPlayer(), replace(Lang.getMessage("item_sold_to_buyer")));
-                Event event1 = new Event(seller.getPlayer(), EventType.BUY_ITEM_COUNT_SELLER, new MultiPlaceholder(this, buyer, buyingItem));
-                Main.getEventManager().onEvent(event1);
-            } else if (Main.getStorage() instanceof MysqlDb mysqlDb) {
+        Main.getStorage().onEvent(event).whenComplete((e, t) -> {
+            OfflinePlayer seller = Bukkit.getOfflinePlayer(buyingItem.getSellerUuid());
+            if (e.isValid()) {
+                Main.getEcon().withdrawPlayer(player, price);
+                if (/*!buyingItem.getServer().equals(Main.getServerId()) && Main.getStorage() instanceof MysqlDb mysqlDb*/ false) { // todo multi server econ
+                    //mysqlDb.getMoneyGiver().give(price, buyingItem.getSellerUuid(), buyingItem.getServer());
+                } else {
+                    Main.getEcon().depositPlayer(seller, price);
+                }
+                if (seller.isOnline()) {
+                    //Main.getMessage().sendMsg(seller.getPlayer(), replace(Lang.getMessage("item_sold_to_buyer")));
+                    Event event1 = new Event(seller.getPlayer(), EventType.BUY_ITEM_COUNT_SELLER, new MultiPlaceholder(this, buyer, buyingItem));
+                    Main.getEventManager().onEvent(event1);
+                } else if (/*Main.getStorage() instanceof MysqlDb mysqlDb*/ false) { // todo multi server events
 //                mysqlDb.getPacketConnection().saveSend(new PacketSendMessage(
 //                        replace(Lang.getMessage("item_sold_to_buyer")), buyingItem.getSellerUuid() // todo
 //                ));
-            }
+                }
 
-            //Main.getMessage().sendMsg(player, replace(Lang.getMessage("successful_purchase")));
-            ItemStack itemStack = buyingItem.getItemStack();
-            itemStack.setAmount(count);
-            PlayerUtil.giveItems(player, itemStack);
-            Event event1 = new Event(player, EventType.BUY_ITEM_COUNT, new MultiPlaceholder(this, buyer, buyingItem));
-            Main.getEventManager().onEvent(event1);
-        } else {
-            Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
-        }
+                //Main.getMessage().sendMsg(player, replace(Lang.getMessage("successful_purchase")));
+                ItemStack itemStack = buyingItem.getItemStack();
+                itemStack.setAmount(count);
+                PlayerUtil.giveItems(player, itemStack);
+                Event event1 = new Event(player, EventType.BUY_ITEM_COUNT, new MultiPlaceholder(this, buyer, buyingItem));
+                Main.getEventManager().onEvent(event1);
+            } else {
+                Main.getMessage().sendMsg(player, event.getReason());
+            }
+        });
+
+
     }
 
 }

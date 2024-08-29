@@ -4,7 +4,7 @@ import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.UnsoldItem;
 import org.by1337.bauction.db.kernel.User;
-import org.by1337.bauction.db.event.TakeUnsoldItemEvent;
+import org.by1337.bauction.db.v2.TakeUnsoldItemEvent;
 import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
 import org.by1337.bauction.lang.Lang;
@@ -47,28 +47,28 @@ public class TakeUnsoldItemProcess extends Placeholder {
             Player player = menu.getViewer();
 
             TakeUnsoldItemEvent event = new TakeUnsoldItemEvent(taker, takingItem);
-            Main.getStorage().validateAndRemoveItem(event);
-
-            if (event.isValid()) {
-                // Main.getMessage().sendMsg(player, takingItem.replace(Lang.getMessage("successful_item_retrieval")));
-                PlayerUtil.giveItems(player, takingItem.getItemStack());
-                Event event1 = new Event(player, EventType.TAKE_UNSOLD_ITEM, new BiPlaceholder(taker, takingItem));
-                Main.getEventManager().onEvent(event1);
-            } else {
-                Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
-            }
+            Main.getStorage().onEvent(event).thenAccept(e -> {
+                if (e.isValid()) {
+                    PlayerUtil.giveItems(player, takingItem.getItemStack());
+                    Event event1 = new Event(player, EventType.TAKE_UNSOLD_ITEM, new BiPlaceholder(taker, takingItem));
+                    Main.getEventManager().onEvent(event1);
+                } else {
+                    Main.getMessage().sendMsg(player, event.getReason());
+                }
+                menu.refresh();
+            });
         } else {
             Main.getMessage().sendMsg(menu.getViewer(), replace(Lang.getMessage("something_went_wrong")));
+            menu.refresh();
         }
-        menu.refresh();
     }
 
     @Override
     public String toString() {
         return "TakeUnsoldItemProcess{" +
-                "menu=" + menu +
-                ", taker=" + taker +
-                ", takingItem=" + takingItem +
-                '}';
+               "menu=" + menu +
+               ", taker=" + taker +
+               ", takingItem=" + takingItem +
+               '}';
     }
 }

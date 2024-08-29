@@ -1,6 +1,7 @@
 package org.by1337.bauction.assets;
 
 import org.bukkit.plugin.Plugin;
+import org.by1337.bauction.Main;
 import org.by1337.blib.nbt.NBTParser;
 import org.by1337.blib.nbt.NBTToString;
 import org.by1337.blib.nbt.NBTToStringStyle;
@@ -39,6 +40,11 @@ public class AssetsManager {
         private Map<String, String> translationTabCompleterStyle;
 
         public ItemNames() throws IOException {
+            if (Main.RUNNING_IN_IDE){
+                translation = new HashMap<>();
+                translationTabCompleterStyle = new HashMap<>();
+                return;
+            }
             if (!locale.contains("_")){
                 plugin.getLogger().log(Level.SEVERE, "Invalid locale syntax! Example: ru_ru, en_us. locale=" + locale);
                 throw new IllegalArgumentException("Invalid locale syntax! Example: ru_ru, en_us. locale=" + locale);

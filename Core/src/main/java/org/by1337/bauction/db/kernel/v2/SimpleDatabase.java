@@ -7,7 +7,6 @@ import org.by1337.bauction.db.kernel.UnsoldItem;
 import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.util.auction.Category;
 import org.by1337.bauction.util.auction.Sorting;
-import org.by1337.bauction.util.threading.ThreadCreator;
 import org.by1337.blib.util.NameKey;
 import org.by1337.blib.util.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +14,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -42,15 +40,28 @@ public abstract class SimpleDatabase {
     private final TreeSet<UnsoldItem> sortedUnsoldItems;
 
     private final Map<NameKey, Category> categoryMap;
-    //private final Map<NameKey, Sorting> sortingMap;
+    private final Map<NameKey, Sorting> sortingMap;
     private final Indexed indexed;
 
     public SimpleDatabase(Map<NameKey, Category> categoryMap, Map<NameKey, Sorting> sortingMap) {
         this.categoryMap = categoryMap;
-      //  this.sortingMap = sortingMap;
+        this.sortingMap = sortingMap;
         sortedSellItems = new TreeSet<>(SELL_ITEM_COMPARATOR);
         sortedUnsoldItems = new TreeSet<>(UNSOLD_ITEM_COMPARATOR);
         indexed = new Indexed();
+    }
+
+    public int getSellItemsSize() {
+        return readLock(sortedSellItems::size);
+    }
+
+    @Nullable
+    public SellItem getFirstSellItem() {
+        return readLock(() -> sortedSellItems.isEmpty() ? null : sortedSellItems.first());
+    }
+
+    public boolean hasUser(UUID uuid) {
+        return readLock(() -> users.containsKey(uuid));
     }
 
     public boolean hasSellItem(long id) {
@@ -118,11 +129,11 @@ public abstract class SimpleDatabase {
         return readLock(() -> users.get(uuid));
     }
 
-    public User getOrCreate(Player player) {
-        return getOrCreate(player.getName(), player.getUniqueId());
+    public User getUserOrCreate(Player player) {
+        return getUserOrCreate(player.getName(), player.getUniqueId());
     }
 
-    public User getOrCreate(String name, UUID uuid) {
+    public User getUserOrCreate(String name, UUID uuid) {
         User user = getUser(uuid);
         if (user != null) return user;
         user = new User(name, uuid);
@@ -208,6 +219,18 @@ public abstract class SimpleDatabase {
         private final Map<Long, UnsoldItem> unsoldItemsMap = new HashMap<>();
         private final Map<UUID, Pair<TreeSet<SellItem>, TreeSet<UnsoldItem>>> itemsByOwner = new HashMap<>();
         private final Map<NameKey, Map<NameKey, SortingItems>> sortedItems = new HashMap<>();
+
+        public Indexed() {
+            writeLock(() -> {
+                for (Category category : categoryMap.values()) {
+                    Map<NameKey, SortingItems> map = new HashMap<>();
+                    for (Sorting sorting : sortingMap.values()) {
+                        map.put(sorting.nameKey(), new SortingItems(sorting));
+                    }
+                    sortedItems.put(category.nameKey(), map);
+                }
+            });
+        }
 
         private void addUnsoldItem(@NotNull UnsoldItem unsoldItem) {
             isWriteLock();

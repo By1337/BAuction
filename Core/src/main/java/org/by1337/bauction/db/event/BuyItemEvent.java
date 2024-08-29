@@ -5,7 +5,7 @@ import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.db.kernel.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
+@Deprecated(forRemoval = true)
 public class BuyItemEvent implements Validatable {
 
     private boolean valid;

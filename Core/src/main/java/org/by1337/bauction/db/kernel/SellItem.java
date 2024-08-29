@@ -359,6 +359,24 @@ public class SellItem extends Placeholder implements ItemHolder {
         SellItemBuilder() {
         }
 
+        public SellItemBuilder copy(SellItem sellItem) {
+            item = sellItem.item;
+            sellerName = sellItem.sellerName;
+            sellerUuid = sellItem.sellerUuid;
+            price = sellItem.price;
+            saleByThePiece = sellItem.saleByThePiece;
+            tags = sellItem.tags;
+            timeListedForSale = sellItem.timeListedForSale;
+            removalDate = sellItem.removalDate;
+            id = sellItem.id;
+            material = sellItem.material;
+            amount = sellItem.amount;
+            priceForOne = sellItem.priceForOne;
+            itemStack = sellItem.itemStack;
+            server = sellItem.server;
+            return this;
+        }
+
         public SellItemBuilder item(NBT item) {
             this.item = item;
             return this;

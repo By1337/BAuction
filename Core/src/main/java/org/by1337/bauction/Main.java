@@ -7,7 +7,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.java.JavaPluginLoader;
 import org.by1337.bauction.assets.AssetsManager;
 import org.by1337.bauction.boost.Boost;
 import org.by1337.bauction.command.impl.*;
@@ -16,7 +18,7 @@ import org.by1337.bauction.config.adapter.AdapterBoost;
 import org.by1337.bauction.config.adapter.AdapterCategory;
 import org.by1337.bauction.config.adapter.AdapterSortingType;
 import org.by1337.bauction.datafix.UpdateManager;
-import org.by1337.bauction.db.kernel.FileDataBase;
+import org.by1337.bauction.db.kernel.v2.LocalDatabase;
 import org.by1337.bauction.event.EventManager;
 import org.by1337.bauction.hook.econ.EconomyHook;
 import org.by1337.bauction.hook.econ.impl.BVaultHook;
@@ -37,8 +39,6 @@ import org.by1337.bauction.util.config.ConfigUtil;
 import org.by1337.bauction.util.config.DbCfg;
 import org.by1337.bauction.util.id.UniqueIdGenerator;
 import org.by1337.bauction.util.plugin.PluginEnablePipeline;
-import org.by1337.bauction.util.threading.ThreadCreator;
-import org.by1337.bauction.util.time.TimeCounter;
 import org.by1337.bauction.util.time.TimeUtil;
 import org.by1337.blib.chat.util.Message;
 import org.by1337.blib.command.Command;
@@ -52,33 +52,41 @@ import org.by1337.bmenu.menu.MenuLoader;
 import org.by1337.bmenu.menu.MenuProviderRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 public final class Main extends JavaPlugin {
-    public static final boolean IS_RELEASE = true;
-    private static Message message;
+    public static boolean RUNNING_IN_IDE = false;
+    public static final boolean IS_RELEASE = false;
+    public static boolean DEBUG_MODE = true;
+    private static final String DEBUG_LANG = "en";
+    private Message message;
     private static Main instance;
-    private static Config cfg;
-    private static FileDataBase storage;
+    private Config cfg;
+    private LocalDatabase storage;
     private Command<CommandSender> command;
-    private static EconomyHook econ;
-    private static TrieManager trieManager;
-    private static TimeUtil timeUtil;
+    private EconomyHook econ;
+    private TrieManager trieManager;
+    private TimeUtil timeUtil;
     private PlaceholderHook placeholderHook;
-    private static UniqueIdGenerator uniqueIdGenerator;
-    private static DbCfg dbCfg;
-    private static Set<String> blackList = new HashSet<>();
-    private static EventManager eventManager;
+    private UniqueIdGenerator uniqueIdGenerator;
+    private DbCfg dbCfg;
+    private Set<String> blackList = new HashSet<>();
+    private EventManager eventManager;
     private FileLogger fileLogger;
     private MenuLoader menuLoader;
     private PluginEnablePipeline enablePipeline;
     private Metrics metrics;
     private PluginLogger pluginLogger;
-    private static boolean DEBUG_MODE = false;
     private AssetsManager assetsManager;
+
+    @VisibleForTesting
+    protected Main(JavaPluginLoader loader, PluginDescriptionFile description, File dataFolder, File file) {
+        super(loader, description, dataFolder, file);
+    }
 
     @Override
     public void onLoad() {
@@ -116,7 +124,7 @@ public final class Main extends JavaPlugin {
         enablePipeline.enable("enable BMenuApi", BMenuApi::enable);
         enablePipeline.enable("load MenuLoader", () -> {
             menuLoader = new MenuLoader(this, new File(getDataFolder(), "menu"),
-                   DEBUG_MODE ? MenuLoader.ResourceLeakDetectorMode.PANIC : MenuLoader.ResourceLeakDetectorMode.DEFAULT
+                    DEBUG_MODE || RUNNING_IN_IDE ? MenuLoader.ResourceLeakDetectorMode.PANIC : MenuLoader.ResourceLeakDetectorMode.DEFAULT
             );
             menuLoader.load();
         });
@@ -176,7 +184,7 @@ public final class Main extends JavaPlugin {
 //        enablePipeline.enable("load metrics", () -> {
 //            metrics = new Metrics(this, 20300);
 //        });
-        enablePipeline.enable("load PAPI hook", () -> {
+        enablePipeline.enable("load PAPI hook", p -> !RUNNING_IN_IDE, () -> {
             placeholderHook = new PlaceholderHook();
             placeholderHook.register();
         });
@@ -200,14 +208,14 @@ public final class Main extends JavaPlugin {
         });
         enablePipeline.disable("disable BMenuApi", p -> p.isEnabled("enable BMenuApi"), BMenuApi::disable);
         enablePipeline.disable("disable db", p -> p.isEnabled("load db"), () -> {
-            try {
-                storage.save();
-                storage.close();
-            } catch (IOException e) {
-                message.error("failed to save db", e);
-            } finally {
-                storage = null;
-            }
+//            try { // todo save db
+//                storage.save();
+//                storage.close();
+//            } catch (IOException e) {
+//                message.error("failed to save db", e);
+//            } finally {
+//                storage = null;
+//            }
         });
         enablePipeline.disable("unregisterAdapters", p -> p.isEnabled("registerAdapters"), () -> {
             AdapterRegistry.unregisterPrimitiveAdapter(Sorting.SortingType.class);
@@ -233,7 +241,7 @@ public final class Main extends JavaPlugin {
 
     public static void debug(String s, Object... objects) {
         if (DEBUG_MODE) {
-            message.log("[DEBUG] " + s, objects);
+            instance.message.log("[DEBUG] " + s, objects);
         } else {
             instance.pluginLogger.log(String.format("[DEBUG] " + s, objects));
         }
@@ -261,19 +269,23 @@ public final class Main extends JavaPlugin {
 //                getCommand("bauc").setExecutor(this::onCommand0);
 //            }).start();
         } else {
-            ThreadCreator.createThreadWithName("bauc File Db loader", () -> {
-                TimeCounter timeCounter = new TimeCounter();
-                storage = new FileDataBase(cfg.getCategoryMap(), cfg.getSortingMap());
-                try {
-                    storage.load();
-                } catch (IOException e) {
-                    message.error("failed to load db!", e);
-                    instance.getServer().getPluginManager().disablePlugin(instance);
-                }
-                message.log(Lang.getMessage("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
-                getCommand("bauc").setTabCompleter(this::onTabComplete0);
-                getCommand("bauc").setExecutor(this::onCommand0);
-            }).start();
+            storage = new LocalDatabase(cfg.getCategoryMap(), cfg.getSortingMap());
+            message.log(Lang.getMessage("successful_loading"), -1, -1);
+            getCommand("bauc").setTabCompleter(this::onTabComplete0);
+            getCommand("bauc").setExecutor(this::onCommand0);
+//            ThreadCreator.createThreadWithName("bauc File Db loader", () -> {
+//                TimeCounter timeCounter = new TimeCounter();
+//                storage = new FileDataBase(cfg.getCategoryMap(), cfg.getSortingMap());
+//                try {
+//                    storage.load();
+//                } catch (IOException e) {
+//                    message.error("failed to load db!", e);
+//                    instance.getServer().getPluginManager().disablePlugin(instance);
+//                }
+//                message.log(Lang.getMessage("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
+//                getCommand("bauc").setTabCompleter(this::onTabComplete0);
+//                getCommand("bauc").setExecutor(this::onCommand0);
+//            }).start();
         }
     }
 
@@ -295,11 +307,11 @@ public final class Main extends JavaPlugin {
     }
 
     public static UniqueIdGenerator getUniqueIdGenerator() {
-        return uniqueIdGenerator;
+        return instance.uniqueIdGenerator;
     }
 
     public static Message getMessage() {
-        return message;
+        return instance.message;
     }
 
     public static Plugin getInstance() {
@@ -307,19 +319,19 @@ public final class Main extends JavaPlugin {
     }
 
     public static Config getCfg() {
-        return cfg;
+        return instance.cfg;
     }
 
-    public static FileDataBase getStorage() {
-        return storage;
+    public static LocalDatabase getStorage() {
+        return instance.storage;
     }
 
     public static EconomyHook getEcon() {
-        return econ;
+        return instance.econ;
     }
 
     public static TimeUtil getTimeUtil() {
-        return timeUtil;
+        return instance.timeUtil;
     }
 
     private void initCommand() {
@@ -332,8 +344,8 @@ public final class Main extends JavaPlugin {
                                 .requires(new RequiresPermission<>("bauc.admin.debug"))
                                 .addSubCommand(new PushCmd("push"))
                                 .addSubCommand(new RunCmd("run"))
-                                .addSubCommand(new PingCmd("ping"))
-                                .addSubCommand(new ClearCmd("clear"))
+                                // .addSubCommand(new PingCmd("ping")) // todo
+                                //  .addSubCommand(new ClearCmd("clear")) // todo
                                 .addSubCommand(new StressCmd("stress"))
                         )
                         .addSubCommand(new AddTagCmd("addTag"))
@@ -377,8 +389,8 @@ public final class Main extends JavaPlugin {
             if (args[0].equals("search") && sender.hasPermission("bauc.search")) {
                 String last = args[args.length - 1].toLowerCase();
                 if (last.isEmpty()) {
-                    if (args.length > 2){
-                        if (Arrays.stream(args).noneMatch(s -> s.equals(Lang.getMessage("search-type")))){
+                    if (args.length > 2) {
+                        if (Arrays.stream(args).noneMatch(s -> s.equals(Lang.getMessage("search-type")))) {
                             return Collections.singletonList(Lang.getMessage("search-type"));
                         }
                     }
@@ -406,12 +418,17 @@ public final class Main extends JavaPlugin {
         return f;
     }
 
+    @Override
+    public @Nullable InputStream getResource(@NotNull String filename) {
+        return RUNNING_IN_IDE ? super.getResource(DEBUG_LANG + "/" + filename) : super.getResource(filename);
+    }
+
     public static String getServerId() {
-        return dbCfg == null ? "unknown" : dbCfg.getServerId();
+        return instance.dbCfg == null ? "unknown" : instance.dbCfg.getServerId();
     }
 
     public static Set<String> getBlackList() {
-        return blackList;
+        return instance.blackList;
     }
 
     public Command<CommandSender> getCommand() {
@@ -419,7 +436,7 @@ public final class Main extends JavaPlugin {
     }
 
     public static TrieManager getTrieManager() {
-        return trieManager;
+        return instance.trieManager;
     }
 
     public PlaceholderHook getPlaceholderHook() {
@@ -427,6 +444,11 @@ public final class Main extends JavaPlugin {
     }
 
     public static EventManager getEventManager() {
-        return eventManager;
+        return instance.eventManager;
+    }
+
+    @VisibleForTesting
+    static void setInstance(Main instance) {
+        Main.instance = instance;
     }
 }

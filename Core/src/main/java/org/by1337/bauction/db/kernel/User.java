@@ -14,8 +14,8 @@ import java.util.*;
 public class User extends Placeholder implements SerializableToByteArray {
     public final String nickName;
     public final UUID uuid;
-    int dealCount;
-    double dealSum;
+    public int dealCount;
+    public double dealSum;
     private transient int externalSlots = 0;
     private transient long externalSellTime = 0L;
 
@@ -43,8 +43,8 @@ public class User extends Placeholder implements SerializableToByteArray {
         registerPlaceholder("{deal_sum}", () -> String.valueOf(dealSum));
         registerPlaceholder("{nick_name}", () -> String.valueOf(nickName));
         registerPlaceholder("{deal_count}", () -> String.valueOf(dealCount));
-        registerPlaceholder("{selling_item_count}", () -> String.valueOf(Main.getStorage().sellItemsCountByUser(uuid)));
-        registerPlaceholder("{not_sold_item_count}", () -> String.valueOf(Main.getStorage().unsoldItemsCountByUser(uuid)));
+        registerPlaceholder("{selling_item_count}", () -> String.valueOf(Main.getStorage().getSellItemsCountByUser(uuid)));
+        registerPlaceholder("{not_sold_item_count}", () -> String.valueOf(Main.getStorage().getUnsoldItemsCountByUser(uuid)));
         registerPlaceholder("{external_slots}", () -> String.valueOf(externalSlots));
         registerPlaceholder("{slots_count}", () -> String.valueOf(Main.getCfg().getMaxSlots() + externalSlots));
         registerPlaceholder("{external_sell_time}", () -> String.valueOf(Main.getTimeUtil().getFormat(externalSellTime, false)));

@@ -68,7 +68,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
                                         .addSubPlaceholder(new Placeholder("count")
                                                 .executor(player -> {
                                                     if (player == null) return "player is null!";
-                                                    return String.valueOf(Main.getStorage().sellItemsCountByUser(player.getUniqueId()));
+                                                    return String.valueOf(Main.getStorage().getSellItemsCountByUser(player.getUniqueId()));
                                                 })//selling_item_count
                                         )
                                 )
@@ -79,7 +79,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
                                                 .addSubPlaceholder(new Placeholder("count")
                                                         .executor(player -> {
                                                             if (player == null) return "player is null!";
-                                                            return String.valueOf(Main.getStorage().unsoldItemsCountByUser(player.getUniqueId()));
+                                                            return String.valueOf(Main.getStorage().getUnsoldItemsCountByUser(player.getUniqueId()));
                                                         })//not_sold_item_count
                                                 )
                                         )
@@ -112,5 +112,4 @@ public class PlaceholderHook extends PlaceholderExpansion {
                 )
         ;
     }
-
 }

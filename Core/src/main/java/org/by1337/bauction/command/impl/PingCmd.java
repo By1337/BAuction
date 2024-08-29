@@ -16,20 +16,20 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-
+// todo ping cmd
 public class PingCmd extends Command<CommandSender> {
     public PingCmd(String command) {
         super(command);
         requires(new RequiresPermission<>("bauc.admin.debug.ping"));
         requires(new RequiresPermission<>("bauc.admin.ping"));
-        requires((sender -> Main.getStorage() instanceof MysqlDb));
-        argument(new ArgumentSetList<>("server", () -> ((MysqlDb) Main.getStorage()).getPacketConnection().getServerList()));
+      //  requires((sender -> Main.getStorage() instanceof MysqlDb));
+       // argument(new ArgumentSetList<>("server", () -> ((MysqlDb) Main.getStorage()).getPacketConnection().getServerList()));
 
         executor(this::execute);
     }
 
     private void execute(CommandSender sender, ArgumentMap<String, Object> args) {
-        new Thread(() -> {
+       /* new Thread(() -> {
             String server = (String) args.getOrDefault("server", "any");
             PacketConnection connection = ((MysqlDb) Main.getStorage()).getPacketConnection();
             if (!connection.hasConnection()) {
@@ -73,6 +73,6 @@ public class PingCmd extends Command<CommandSender> {
             }
             connection.unregisterCallBack(PacketType.PING_RESPONSE, callBack);
             Main.getMessage().sendMsg(sender, "&7finish. Lost %s", lost);
-        }).start();
+        }).start();*/
     }
 }

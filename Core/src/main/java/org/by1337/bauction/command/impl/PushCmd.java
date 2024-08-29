@@ -6,7 +6,7 @@ import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.db.kernel.User;
-import org.by1337.bauction.db.event.SellItemEvent;
+import org.by1337.bauction.db.v2.AddSellItemEvent;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.util.common.NumberUtil;
 import org.by1337.bauction.util.time.TimeCounter;
@@ -20,6 +20,7 @@ import org.by1337.blib.command.requires.RequiresPermission;
 
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class PushCmd extends Command<CommandSender> {
@@ -47,14 +48,18 @@ public class PushCmd extends Command<CommandSender> {
         Random random = new Random();
         User user = Main.getStorage().getUserOrCreate(player);
         long time = NumberUtil.getTime(((String) args.getOrDefault("time", "2d")));
+        AtomicBoolean seenFailedToSell = new AtomicBoolean(false);
         for (int i = 0; i < amount; i++) {
             SellItem sellItem = new SellItem(player, itemStack, price + random.nextInt(price / 2), time);
-            SellItemEvent event = new SellItemEvent(user, sellItem);
-            Main.getStorage().validateAndAddItem(event);
-            if (!event.isValid()) {
-                Main.getMessage().sendMsg(player, String.valueOf(event.getReason()));
-                break;
-            }
+            AddSellItemEvent event = new AddSellItemEvent(sellItem, user);
+
+            Main.getStorage().onEvent(event).whenComplete((e, t) -> {
+                if (!e.isValid()){
+                    if (seenFailedToSell.get()) return;
+                    Main.getMessage().sendMsg(player, event.getReason());
+                    seenFailedToSell.set(true);
+                }
+            });
         }
         Main.getMessage().sendMsg(player, Lang.getMessage("successful_listing"), amount, timeCounter.getTime());
 
