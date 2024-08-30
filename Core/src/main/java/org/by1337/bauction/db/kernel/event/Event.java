@@ -1,4 +1,4 @@
-package org.by1337.bauction.db.v2;
+package org.by1337.bauction.db.kernel.event;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;

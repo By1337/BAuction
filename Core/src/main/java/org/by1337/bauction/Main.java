@@ -18,7 +18,8 @@ import org.by1337.bauction.config.adapter.AdapterBoost;
 import org.by1337.bauction.config.adapter.AdapterCategory;
 import org.by1337.bauction.config.adapter.AdapterSortingType;
 import org.by1337.bauction.datafix.UpdateManager;
-import org.by1337.bauction.db.kernel.v2.LocalDatabase;
+import org.by1337.bauction.db.kernel.MemoryDatabase;
+import org.by1337.bauction.db.kernel.module.ExpiredItemsRemover;
 import org.by1337.bauction.event.EventManager;
 import org.by1337.bauction.hook.econ.EconomyHook;
 import org.by1337.bauction.hook.econ.impl.BVaultHook;
@@ -55,6 +56,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
@@ -66,7 +68,7 @@ public final class Main extends JavaPlugin {
     private Message message;
     private static Main instance;
     private Config cfg;
-    private LocalDatabase storage;
+    private MemoryDatabase storage;
     private Command<CommandSender> command;
     private EconomyHook econ;
     private TrieManager trieManager;
@@ -208,14 +210,14 @@ public final class Main extends JavaPlugin {
         });
         enablePipeline.disable("disable BMenuApi", p -> p.isEnabled("enable BMenuApi"), BMenuApi::disable);
         enablePipeline.disable("disable db", p -> p.isEnabled("load db"), () -> {
-//            try { // todo save db
-//                storage.save();
-//                storage.close();
-//            } catch (IOException e) {
-//                message.error("failed to save db", e);
-//            } finally {
-//                storage = null;
-//            }
+            try {
+                //  storage.save(); // todo save db
+                storage.close();
+            } catch (Throwable t) {
+                message.error("failed to save db", t);
+            } finally {
+                storage = null;
+            }
         });
         enablePipeline.disable("unregisterAdapters", p -> p.isEnabled("registerAdapters"), () -> {
             AdapterRegistry.unregisterPrimitiveAdapter(Sorting.SortingType.class);
@@ -269,7 +271,11 @@ public final class Main extends JavaPlugin {
 //                getCommand("bauc").setExecutor(this::onCommand0);
 //            }).start();
         } else {
-            storage = new LocalDatabase(cfg.getCategoryMap(), cfg.getSortingMap());
+            storage = new MemoryDatabase(cfg.getCategoryMap(), cfg.getSortingMap(),
+                    List.of(
+                            new ExpiredItemsRemover()
+                    )
+            );
             message.log(Lang.getMessage("successful_loading"), -1, -1);
             getCommand("bauc").setTabCompleter(this::onTabComplete0);
             getCommand("bauc").setExecutor(this::onCommand0);
@@ -322,7 +328,7 @@ public final class Main extends JavaPlugin {
         return instance.cfg;
     }
 
-    public static LocalDatabase getStorage() {
+    public static MemoryDatabase getStorage() {
         return instance.storage;
     }
 

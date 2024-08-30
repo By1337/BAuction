@@ -308,6 +308,19 @@ public class SellItem extends Placeholder implements ItemHolder {
                ", server='" + server + '\'' +
                '}';
     }
+    public String compactToString(){
+        return "SellItem{" +
+               "sellerName='" + sellerName + '\'' +
+               ", sellerUuid=" + sellerUuid +
+               ", price=" + price +
+               ", saleByThePiece=" + saleByThePiece +
+               ", tags=" + tags +
+               ", removalDate=" + removalDate +
+               ", id=" + id +
+               ", material=" + material +
+               ", server='" + server + '\'' +
+               '}';
+    }
 
     public String getServer() {
         return server;

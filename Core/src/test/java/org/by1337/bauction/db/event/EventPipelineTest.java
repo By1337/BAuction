@@ -1,13 +1,12 @@
-package org.by1337.bauction.db.v2;
+package org.by1337.bauction.db.event;
 
 import junit.framework.TestCase;
-import org.junit.Test;
-import org.junit.jupiter.api.BeforeEach;
+import org.by1337.bauction.db.kernel.event.EventPipeline;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class EventPipelineTest extends TestCase {
-    private EventPipeline<EventPipelineTest.Event> pipeline;
+    private EventPipeline<Event> pipeline;
 
     public void setUp() {
         pipeline = new EventPipeline<>();

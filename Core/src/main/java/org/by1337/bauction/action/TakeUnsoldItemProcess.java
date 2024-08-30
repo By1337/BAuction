@@ -4,7 +4,7 @@ import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.UnsoldItem;
 import org.by1337.bauction.db.kernel.User;
-import org.by1337.bauction.db.v2.TakeUnsoldItemEvent;
+import org.by1337.bauction.db.kernel.event.TakeUnsoldItemEvent;
 import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
 import org.by1337.bauction.lang.Lang;

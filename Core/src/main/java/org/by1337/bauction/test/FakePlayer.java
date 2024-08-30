@@ -8,25 +8,25 @@ import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.db.kernel.User;
-import org.by1337.bauction.db.kernel.v2.LocalDatabase;
-import org.by1337.bauction.db.v2.AddSellItemEvent;
-import org.by1337.bauction.db.v2.BuyItemEvent;
+import org.by1337.bauction.db.kernel.MemoryDatabase;
+import org.by1337.bauction.db.kernel.event.AddSellItemEvent;
+import org.by1337.bauction.db.kernel.event.BuyItemEvent;
 
 import java.util.Random;
 import java.util.UUID;
 
 public class FakePlayer {
     private final Random random = new Random();
-    private final LocalDatabase storage;
+    private final MemoryDatabase storage;
     private UUID uuid;
     private String nickName;
     private int ahLimit;
 
-    public FakePlayer(LocalDatabase storage) {
+    public FakePlayer(MemoryDatabase storage) {
         this(storage, Integer.MAX_VALUE);
     }
 
-    public FakePlayer(LocalDatabase core, int ahLimit) {
+    public FakePlayer(MemoryDatabase core, int ahLimit) {
         this.ahLimit = ahLimit;
         this.storage = core;
         nickName = UUID.randomUUID().toString().substring(30);

@@ -1,4 +1,4 @@
-package org.by1337.bauction.db.kernel.v2;
+package org.by1337.bauction.db.kernel;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.db.SortingItems;
@@ -60,6 +60,11 @@ public abstract class SimpleDatabase {
         return readLock(() -> sortedSellItems.isEmpty() ? null : sortedSellItems.first());
     }
 
+    @Nullable
+    public UnsoldItem getFirstUnsoldItem() {
+        return readLock(() -> sortedUnsoldItems.isEmpty() ? null : sortedUnsoldItems.first());
+    }
+
     public boolean hasUser(UUID uuid) {
         return readLock(() -> users.containsKey(uuid));
     }
@@ -83,7 +88,7 @@ public abstract class SimpleDatabase {
         return readLock(() -> indexed.sellItemsMap.get(id));
     }
 
-    public void removeSellItem(long id) {
+    protected void removeSellItem(long id) {
         SellItem item = getSellItem(id);
         if (item == null) {
             throw new NoSuchElementException("Has no SellItem with id: " + id);
@@ -103,7 +108,7 @@ public abstract class SimpleDatabase {
         return readLock(() -> indexed.unsoldItemsMap.get(id));
     }
 
-    public void removeUnsoldItem(long id) {
+    protected void removeUnsoldItem(long id) {
         UnsoldItem item = getUnsoldItem(id);
         if (item == null) {
             throw new NoSuchElementException("Has no UnsoldItem with id: " + id);

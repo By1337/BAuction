@@ -6,7 +6,7 @@ import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.db.kernel.User;
-import org.by1337.bauction.db.v2.AddSellItemEvent;
+import org.by1337.bauction.db.kernel.event.AddSellItemEvent;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.util.common.NumberUtil;
 import org.by1337.bauction.util.time.TimeCounter;

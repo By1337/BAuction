@@ -14,6 +14,7 @@ import org.by1337.bauction.action.BuyItemProcess;
 import org.by1337.bauction.action.TakeItemProcess;
 import org.by1337.bauction.action.TakeUnsoldItemProcess;
 import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.event.RemoveSellItemEvent;
 import org.by1337.bauction.menu.SelectCountMenu;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
@@ -29,6 +30,7 @@ import org.by1337.bmenu.BMenuApi;
 import org.by1337.bmenu.menu.requirement.Requirements;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 
 public abstract class Menu extends AsyncClickListener {
@@ -386,23 +388,29 @@ public abstract class Menu extends AsyncClickListener {
 
         commands.addSubCommand(new Command<Menu>("[REMOVE_SELL_ITEM]")
                 .argument(new ArgumentString<>("id"))
-                .executor((v, args) -> {
+                .executor((menu, args) -> {
                             SellItem sellItem;
                             if (args.containsKey("id")) {
                                 long id = Long.parseLong(((String) args.get("id")));
                                 sellItem = Main.getStorage().getSellItem(id);
                                 if (sellItem == null) {
                                     Main.getMessage().error("Unknown sell item %s!", args.get("id"));
+                                    menu.refresh();
                                     return;
                                 }
-                            } else if (v.lastClickedItem != null && v.lastClickedItem.getData() instanceof SellItem s) {
+                            } else if (menu.lastClickedItem != null && menu.lastClickedItem.getData() instanceof SellItem s) {
                                 sellItem = s;
                             } else {
-                                Main.getMessage().error("[REMOVE_SELL_ITEM] The command does not specify an id which means that I will expect the item clicked by the player to be a SellItem! Last click %s", v.lastClickedItem);
+                                Main.getMessage().error("[REMOVE_SELL_ITEM] The command does not specify an id which means that I will expect the item clicked by the player to be a SellItem! Last click %s", menu.lastClickedItem);
                                 return;
                             }
-                            Main.getStorage().removeSellItem(sellItem.getId());
-                            v.refresh();
+                            WeakReference<Menu> menuWeakReference = new WeakReference<>(menu);
+                            Main.getStorage().onEvent(new RemoveSellItemEvent(sellItem)).thenAccept(event -> {
+                                Menu menuFromWeakReference = menuWeakReference.get();
+                                if (menuFromWeakReference != null) {
+                                    menuFromWeakReference.refresh();
+                                }
+                            });
                         }
                 )
         );

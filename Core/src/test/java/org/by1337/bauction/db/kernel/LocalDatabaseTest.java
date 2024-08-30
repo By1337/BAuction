@@ -1,13 +1,10 @@
-package org.by1337.bauction.db.kernel.v2;
+package org.by1337.bauction.db.kernel;
 
 import org.bukkit.Material;
-import org.by1337.bauction.BLibApi;
+import org.by1337.bauction.test.util.BLibApi;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.PluginBootstrap;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.UnsoldItem;
-import org.by1337.bauction.db.kernel.User;
-import org.by1337.bauction.db.v2.*;
+import org.by1337.bauction.db.kernel.event.*;
 import org.by1337.blib.nbt.impl.CompoundTag;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +17,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 class LocalDatabaseTest {
-    private LocalDatabase database;
+    private MemoryDatabase database;
     private User seller;
     private User buyer;
     private Main plugin;

@@ -5,7 +5,7 @@ import org.by1337.bauction.Main;
 import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.db.kernel.User;
 
-import org.by1337.bauction.db.v2.TakeItemEvent;
+import org.by1337.bauction.db.kernel.event.TakeItemEvent;
 import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
 import org.by1337.bauction.lang.Lang;

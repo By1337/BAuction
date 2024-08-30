@@ -1,22 +1,17 @@
-package org.by1337.bauction.db.v2;
+package org.by1337.bauction.db.kernel.event;
 
 import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.db.kernel.User;
 
-public class BuyItemEvent extends Event{
+public class BuyItemEvent extends SellItemEvent{
     private final User buyer;
-    private final SellItem item;
 
     public BuyItemEvent(User buyer, SellItem item) {
+        super(item);
         this.buyer = buyer;
-        this.item = item;
     }
 
     public User getBuyer() {
         return buyer;
-    }
-
-    public SellItem getItem() {
-        return item;
     }
 }

@@ -1,4 +1,4 @@
-package org.by1337.bauction;
+package org.by1337.bauction.test.util;
 
 import org.bukkit.Material;
 import org.bukkit.command.defaults.BukkitCommand;

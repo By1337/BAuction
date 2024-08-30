@@ -1,4 +1,4 @@
-package org.by1337.bauction.db.v2;
+package org.by1337.bauction.db.kernel.event;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,7 +20,7 @@ public class EventPipeline<T> {
         }
     }
 
-    public <E extends T> EventPipeline<T> addLast(String name, Class<E> type, Consumer<E> consumer) {
+    public <E extends T> EventPipeline<T> addLast(String name, Class<E> type, Consumer<? super E> consumer) {
         if (names.contains(name))
             throw new IllegalStateException("Handler with the name '" + name + "' already exists!");
         names.add(name);
@@ -28,7 +28,7 @@ public class EventPipeline<T> {
         return this;
     }
 
-    public <E extends T> EventPipeline<T> addFirst(String name, Class<E> type, Consumer<E> consumer) {
+    public <E extends T> EventPipeline<T> addFirst(String name, Class<E> type, Consumer<? super E> consumer) {
         if (names.contains(name))
             throw new IllegalStateException("Handler with the name '" + name + "' already exists!");
         names.add(name);
@@ -36,7 +36,7 @@ public class EventPipeline<T> {
         return this;
     }
 
-    public <E extends T> EventPipeline<T> addBefore(String baseName, String name, Class<E> type, Consumer<E> consumer) {
+    public <E extends T> EventPipeline<T> addBefore(String baseName, String name, Class<E> type, Consumer<? super E> consumer) {
         if (names.contains(name))
             throw new IllegalStateException("Handler with the name '" + name + "' already exists!");
         names.add(name);
@@ -47,7 +47,7 @@ public class EventPipeline<T> {
         return this;
     }
 
-    public <E extends T> EventPipeline<T> addAfter(String baseName, String name, Class<E> type, Consumer<E> consumer) {
+    public <E extends T> EventPipeline<T> addAfter(String baseName, String name, Class<E> type, Consumer<? super E> consumer) {
         if (names.contains(name))
             throw new IllegalStateException("Handler with the name '" + name + "' already exists!");
         names.add(name);
@@ -79,9 +79,9 @@ public class EventPipeline<T> {
     private static class PipelineHandler<T> {
         private final String name;
         private final Class<T> type;
-        private final Consumer<T> consumer;
+        private final Consumer<? super T> consumer;
 
-        public PipelineHandler(String name, Class<T> type, Consumer<T> consumer) {
+        public PipelineHandler(String name, Class<T> type, Consumer<? super T> consumer) {
             this.name = name;
             this.type = type;
             this.consumer = consumer;
