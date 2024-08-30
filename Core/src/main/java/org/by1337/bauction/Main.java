@@ -90,6 +90,9 @@ public final class Main extends JavaPlugin {
         super(loader, description, dataFolder, file);
     }
 
+    public Main() {
+    }
+
     @Override
     public void onLoad() {
         instance = this;

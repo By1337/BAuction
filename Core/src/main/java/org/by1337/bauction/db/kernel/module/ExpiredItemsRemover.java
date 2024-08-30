@@ -17,8 +17,9 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class ExpiredItemsRemover implements DatabaseModule, Closeable {
+    private static final long FOUR_TICKS = 200;
     private static final long TEN_SECONDS = 10 * 1000;
-    private static final long THIRTY_SECONDS = 30 * 1000;
+    private static final long THIRTY_SECONDS = TEN_SECONDS * 3;
     private MemoryDatabase database;
     private final ScheduledExecutorService scheduler;
     private final boolean removeUnsoldItems;
@@ -75,7 +76,7 @@ public class ExpiredItemsRemover implements DatabaseModule, Closeable {
                         );
                     }
                 });
-                return TEN_SECONDS;
+                return FOUR_TICKS;
             } else {
                 return remove;
             }
@@ -89,7 +90,7 @@ public class ExpiredItemsRemover implements DatabaseModule, Closeable {
             long remove = unsoldItem.deleteVia;
             if (remove <= 0) {
                 database.onEvent(new RemoveUnsoldItemEvent(unsoldItem));
-                return TEN_SECONDS;
+                return FOUR_TICKS;
             } else {
                 return remove;
             }
