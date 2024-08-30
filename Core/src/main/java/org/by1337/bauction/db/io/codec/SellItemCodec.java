@@ -11,6 +11,7 @@ import java.util.UUID;
 
 public class SellItemCodec implements Codec<SellItem> {
     public static int CURRENT_VERSION = 200;
+    public static final int MAGIC_NUMBER = 0xB13A0F1;
 
     @Override
     public SellItem read(ByteBuffer buffer, int version) {
@@ -62,5 +63,15 @@ public class SellItemCodec implements Codec<SellItem> {
         buffer.writeVarInt(val.getMaterial().ordinal());
         buffer.writeVarInt(val.getAmount());
         buffer.writeUtf(val.getServer());
+    }
+
+    @Override
+    public int getVersion() {
+        return CURRENT_VERSION;
+    }
+
+    @Override
+    public int getMagicNumber() {
+        return MAGIC_NUMBER;
     }
 }

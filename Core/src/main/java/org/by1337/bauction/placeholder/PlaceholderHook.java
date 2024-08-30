@@ -38,7 +38,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
 
         if (params.startsWith("ah_size_")) {
             String s = params.substring("ah_size_".length());
-            if (s.equals("any")) return String.valueOf(Main.getStorage().getSellItemsSize());
+            if (s.equals("any")) return String.valueOf(Main.getStorage().getSellItemsCount());
             NameKey category = new NameKey(s);
             return String.valueOf(Main.getStorage().getCountItemsByCategory(category));
         } else {

@@ -57,7 +57,7 @@ public class StressCmd extends Command<CommandSender> {
                             count * (20 / cd),
                             l,
                             count * repeat,
-                            Main.getStorage().getSellItemsSize()
+                            Main.getStorage().getSellItemsCount()
                     );
                     Main.getMessage().logger(s);
                     Main.getMessage().sendMsg(sender, s);

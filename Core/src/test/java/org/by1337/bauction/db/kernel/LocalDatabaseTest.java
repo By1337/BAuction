@@ -53,7 +53,7 @@ class LocalDatabaseTest {
         assertTrue(event.isValid());
 
         assertEquals(sellItem, database.getFirstSellItem());
-        assertEquals(1, database.getSellItemsSize());
+        assertEquals(1, database.getSellItemsCount());
     }
 
     void buyItemTest() {
@@ -63,7 +63,7 @@ class LocalDatabaseTest {
 
         assertTrue(event.isValid());
 
-        assertEquals(0, database.getSellItemsSize());
+        assertEquals(0, database.getSellItemsCount());
     }
 
     void buyItemCountTest() {
@@ -86,7 +86,7 @@ class LocalDatabaseTest {
 
         assertTrue(event.isValid());
 
-        assertEquals(0, database.getSellItemsSize());
+        assertEquals(0, database.getSellItemsCount());
     }
     void addAndTakeUnsoldItemTest() {
         UnsoldItem unsoldItem = createUnsoldItem();
@@ -96,7 +96,7 @@ class LocalDatabaseTest {
 
         assertTrue(event.isValid());
 
-        assertEquals(0, database.getUnsoldItemsSize());
+        assertEquals(0, database.getUnsoldItemsCount());
     }
 
     private SellItem createSellItem() {

@@ -238,7 +238,7 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
         }
     }
 
-    protected void load() {
+    public void load() {
 
     }
 

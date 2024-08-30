@@ -2,9 +2,6 @@ package org.by1337.bauction.db.kernel;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.db.SortingItems;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.UnsoldItem;
-import org.by1337.bauction.db.kernel.User;
 import org.by1337.bauction.util.auction.Category;
 import org.by1337.bauction.util.auction.Sorting;
 import org.by1337.blib.util.NameKey;
@@ -51,7 +48,7 @@ public abstract class SimpleDatabase {
         indexed = new Indexed();
     }
 
-    public int getSellItemsSize() {
+    public int getSellItemsCount() {
         return readLock(sortedSellItems::size);
     }
 
@@ -73,7 +70,7 @@ public abstract class SimpleDatabase {
         return readLock(() -> indexed.sellItemsMap.containsKey(id));
     }
 
-    public void addSellItem(@NotNull SellItem sellItem) {
+    protected void addSellItem(@NotNull SellItem sellItem) {
         if (hasSellItem(sellItem.id)) {
             throw new IllegalStateException("SellItem with id '" + sellItem.id + "' already exists in the database!");
         }
@@ -119,7 +116,7 @@ public abstract class SimpleDatabase {
         });
     }
 
-    public void addUnsoldItem(@NotNull UnsoldItem unsoldItem) {
+    protected void addUnsoldItem(@NotNull UnsoldItem unsoldItem) {
         if (hasUnsoldItem(unsoldItem.id)) {
             throw new IllegalStateException("UnsoldItem with id '" + unsoldItem.id + "' already exists in the database!");
         }
@@ -147,12 +144,22 @@ public abstract class SimpleDatabase {
         return user;
     }
 
-    public int getUnsoldItemsSize() {
+    protected void setUser(User user) {
+        writeLock(() -> users.put(user.uuid, user));
+    }
+
+    public int getUnsoldItemsCount() {
         return readLock(sortedUnsoldItems::size);
+    }
+    public int getUsersCount() {
+        return readLock(users::size);
     }
 
     public void forEachUnsoldItems(Consumer<UnsoldItem> action) {
         readLock(() -> sortedUnsoldItems.forEach(action));
+    }
+    public void forEachUsers(Consumer<User> action) {
+        readLock(() -> users.values().forEach(action));
     }
 
     public void forEachSellItemsBy(Consumer<SellItem> action, NameKey category, NameKey sorting) {

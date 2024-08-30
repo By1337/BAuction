@@ -39,7 +39,7 @@ public class ChunkedFileReaderWriter<T> implements AutoCloseable {
         version = buffer.getInt();
 
         if (magic != magicNumber) {
-            throw new IOException("Invalid magic number: " + magic);
+            throw new IOException("Invalid magic number: " + Integer.toHexString(magic));
         }
     }
 
@@ -90,10 +90,6 @@ public class ChunkedFileReaderWriter<T> implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
-        try {
-            fileChannel.close();
-        } finally {
-            randomAccessFile.close();
-        }
+        randomAccessFile.close();
     }
 }

@@ -34,7 +34,7 @@ public class FakePlayer {
     }
 
     public void randomAction() {
-        if (storage.getSellItemsSize() >= ahLimit) {
+        if (storage.getSellItemsCount() >= ahLimit) {
             buyItem();
             return;
         }
@@ -46,7 +46,7 @@ public class FakePlayer {
     }
 
     private void buyItem() {
-        if (storage.getSellItemsSize() == 0) return;
+        if (storage.getSellItemsCount() == 0) return;
 
         SellItem item = storage.getFirstSellItem();
 

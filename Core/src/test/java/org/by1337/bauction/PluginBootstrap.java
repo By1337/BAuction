@@ -40,6 +40,7 @@ public class PluginBootstrap {
         initServer();
         Main.RUNNING_IN_IDE = true;
         Main.DEBUG_MODE = true;
+        System.setProperty("bauction.db.memory", "true");
 
         dataFolder = com.google.common.io.Files.createTempDir();
 
@@ -123,6 +124,7 @@ public class PluginBootstrap {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            System.clearProperty("bauction.db.memory");
         }
     }
 

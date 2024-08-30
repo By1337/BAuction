@@ -18,6 +18,7 @@ import org.by1337.bauction.config.adapter.AdapterBoost;
 import org.by1337.bauction.config.adapter.AdapterCategory;
 import org.by1337.bauction.config.adapter.AdapterSortingType;
 import org.by1337.bauction.datafix.UpdateManager;
+import org.by1337.bauction.db.kernel.FileDatabase;
 import org.by1337.bauction.db.kernel.MemoryDatabase;
 import org.by1337.bauction.db.kernel.module.ExpiredItemsRemover;
 import org.by1337.bauction.event.EventManager;
@@ -40,6 +41,7 @@ import org.by1337.bauction.util.config.ConfigUtil;
 import org.by1337.bauction.util.config.DbCfg;
 import org.by1337.bauction.util.id.UniqueIdGenerator;
 import org.by1337.bauction.util.plugin.PluginEnablePipeline;
+import org.by1337.bauction.util.time.TimeCounter;
 import org.by1337.bauction.util.time.TimeUtil;
 import org.by1337.blib.chat.util.Message;
 import org.by1337.blib.command.Command;
@@ -165,7 +167,7 @@ public final class Main extends JavaPlugin {
             }
         });
         enablePipeline.enable("load event manager", () -> {
-            eventManager = new EventManager(new YamlContext(YamlConfiguration.loadConfiguration(saveIfNotExist("listener.yml"))));
+            eventManager = new EventManager(ConfigUtil.load("listener.yml"));
         });
         enablePipeline.enable("load time util", () -> {
             timeUtil = new TimeUtil();
@@ -214,7 +216,6 @@ public final class Main extends JavaPlugin {
         enablePipeline.disable("disable BMenuApi", p -> p.isEnabled("enable BMenuApi"), BMenuApi::disable);
         enablePipeline.disable("disable db", p -> p.isEnabled("load db"), () -> {
             try {
-                //  storage.save(); // todo save db
                 storage.close();
             } catch (Throwable t) {
                 message.error("failed to save db", t);
@@ -257,44 +258,31 @@ public final class Main extends JavaPlugin {
             throw new IllegalStateException("data base already loaded!");
         }
 
-        if (dbCfg.getDbType() == DbCfg.DbType.MYSQL && false) {
-//            ThreadCreator.createThreadWithName("bauc Mysql Db loader", () -> {
-//                TimeCounter timeCounter = new TimeCounter();
-//
-//                try {
-//                    storage = new MysqlDb(cfg.getCategoryMap(), cfg.getSortingMap(), dbCfg);
-//                    storage.load();
-//                } catch (IOException | SQLException e) {
-//                    message.error("failed to load db!", e);
-//                    instance.getServer().getPluginManager().disablePlugin(instance);
-//                }
-//                message.log(Lang.getMessage("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
-//
-//                getCommand("bauc").setTabCompleter(this::onTabComplete0);
-//                getCommand("bauc").setExecutor(this::onCommand0);
-//            }).start();
-        } else {
+        if ("true".equals(System.getProperty("bauction.db.memory"))) {
+            debug("using memory database");
             storage = new MemoryDatabase(cfg.getCategoryMap(), cfg.getSortingMap(),
                     List.of(
                             new ExpiredItemsRemover()
                     )
             );
-            message.log(Lang.getMessage("successful_loading"), -1, -1);
+            storage.load();
+            message.log(Lang.getMessage("successful_loading"), 0, 0);
             getCommand("bauc").setTabCompleter(this::onTabComplete0);
             getCommand("bauc").setExecutor(this::onCommand0);
-//            ThreadCreator.createThreadWithName("bauc File Db loader", () -> {
-//                TimeCounter timeCounter = new TimeCounter();
-//                storage = new FileDataBase(cfg.getCategoryMap(), cfg.getSortingMap());
-//                try {
-//                    storage.load();
-//                } catch (IOException e) {
-//                    message.error("failed to load db!", e);
-//                    instance.getServer().getPluginManager().disablePlugin(instance);
-//                }
-//                message.log(Lang.getMessage("successful_loading"), storage.getSellItemsSize(), timeCounter.getTime());
-//                getCommand("bauc").setTabCompleter(this::onTabComplete0);
-//                getCommand("bauc").setExecutor(this::onCommand0);
-//            }).start();
+        } else if (dbCfg.getDbType() == DbCfg.DbType.MYSQL && false) {
+
+        } else {
+            TimeCounter timeCounter = new TimeCounter();
+
+            storage = new FileDatabase(cfg.getCategoryMap(), cfg.getSortingMap(),
+                    List.of(
+                            new ExpiredItemsRemover()
+                    )
+            );
+            storage.load();
+            message.log(Lang.getMessage("successful_loading"), storage.getSellItemsCount(), timeCounter.getTime());
+            getCommand("bauc").setTabCompleter(this::onTabComplete0);
+            getCommand("bauc").setExecutor(this::onCommand0);
         }
     }
 
@@ -412,19 +400,6 @@ public final class Main extends JavaPlugin {
             message.error("An error occurred while executing getTabCompleter. Input '%s'", t, Joiner.on(" ").join(args));
         }
         return Collections.emptyList();
-    }
-
-    @CanIgnoreReturnValue
-    public File saveIfNotExist(String path) {
-        path = path.replace('\\', '/');
-        if (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-        var f = new File(getDataFolder(), path);
-        if (!f.exists()) {
-            saveResource(path, false);
-        }
-        return f;
     }
 
     @Override

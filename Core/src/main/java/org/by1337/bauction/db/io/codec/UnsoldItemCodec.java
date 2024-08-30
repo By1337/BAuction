@@ -9,6 +9,7 @@ import java.util.UUID;
 
 public class UnsoldItemCodec implements Codec<UnsoldItem> {
     public static int CURRENT_VERSION = 200;
+    public static final int MAGIC_NUMBER = 0xB13A0F2;
 
     @Override
     public UnsoldItem read(ByteBuffer buffer, int version) {
@@ -31,5 +32,14 @@ public class UnsoldItemCodec implements Codec<UnsoldItem> {
         buffer.writeUUID(val.sellerUuid);
         buffer.writeVarLong(val.id);
         buffer.writeVarLong(val.deleteVia);
+    }
+    @Override
+    public int getVersion() {
+        return CURRENT_VERSION;
+    }
+
+    @Override
+    public int getMagicNumber() {
+        return MAGIC_NUMBER;
     }
 }
