@@ -60,6 +60,9 @@ import org.jetbrains.annotations.VisibleForTesting;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 public final class Main extends JavaPlugin {
@@ -142,16 +145,15 @@ public final class Main extends JavaPlugin {
         enablePipeline.enable("registerAdapters", this::registerAdapters);
 
         enablePipeline.enable("load UniqueNameGenerator", () -> {
-            uniqueIdGenerator = new UniqueIdGenerator(0); // todo load last pos
-//            var cfg = ConfigUtil.load("dbCfg.yml");
-//            int seed = cfg.getAsInteger("name-generator.last-seed");
-//            uniqueIdGenerator = new UniqueNameGenerator(++seed);
-//            cfg.set("name-generator.last-seed", seed);
-//            cfg.save();
+            File file = new File(getDataFolder(), "uidLastPos");
+            if (!file.exists()) {
+                uniqueIdGenerator = new UniqueIdGenerator(0);
+            } else {
+                String data = Files.readString(file.toPath());
+                uniqueIdGenerator = new UniqueIdGenerator(Long.parseLong(data));
+            }
         });
-        enablePipeline.disable("disable UniqueNameGenerator", p -> p.isEnabled("load UniqueNameGenerator"), () -> {
-            // todo save last pos
-        });
+
         enablePipeline.enable("load cfg", () -> {
             cfg = new Config();
         });
@@ -222,6 +224,10 @@ public final class Main extends JavaPlugin {
             } finally {
                 storage = null;
             }
+        });
+        enablePipeline.disable("disable UniqueNameGenerator", p -> p.isEnabled("load UniqueNameGenerator"), () -> {
+            File file = new File(getDataFolder(), "uidLastPos");
+            Files.writeString(file.toPath(), String.valueOf(uniqueIdGenerator.getPos()), StandardCharsets.UTF_8);
         });
         enablePipeline.disable("unregisterAdapters", p -> p.isEnabled("registerAdapters"), () -> {
             AdapterRegistry.unregisterPrimitiveAdapter(Sorting.SortingType.class);
