@@ -1,4 +1,4 @@
-package org.by1337.bauction.log;
+package org.by1337.bauction.logg;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
@@ -10,7 +10,7 @@ import java.util.Calendar;
 import java.util.logging.Formatter;
 import java.util.logging.LogRecord;
 
-public class LogUtil {
+public class LoggUtil {
     public static File renameIfExist(File file, File logFolder) {
         if (file.exists()) {
             String fileName = getDateFormat(Calendar.getInstance());

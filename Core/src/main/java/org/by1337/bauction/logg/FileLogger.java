@@ -1,4 +1,4 @@
-package org.by1337.bauction.log;
+package org.by1337.bauction.logg;
 
 import com.google.common.base.Joiner;
 import org.bukkit.Bukkit;
@@ -64,17 +64,17 @@ public class FileLogger implements Listener {
     }
 
     private void iniHandlers() throws IOException {
-        File logFile = LogUtil.renameIfExist(new File(logFolder, "latest.log"), logFolder);
+        File logFile = LoggUtil.renameIfExist(new File(logFolder, "latest.log"), logFolder);
         logHandler = new FileHandler(logFile.getPath());
 
-        logHandler.setFormatter(LogUtil.getFormatter());
+        logHandler.setFormatter(LoggUtil.getFormatter());
         logHandler.setLevel(Level.ALL);
         logHandler.setEncoding(StandardCharsets.UTF_8.name());
     }
 
     public void close() {
         logHandler.close();
-        LogUtil.renameIfExist(new File(logFolder, "latest.log"), logFolder);
+        LoggUtil.renameIfExist(new File(logFolder, "latest.log"), logFolder);
     }
 
 }

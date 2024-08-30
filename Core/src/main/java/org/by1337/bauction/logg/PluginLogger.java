@@ -1,4 +1,4 @@
-package org.by1337.bauction.log;
+package org.by1337.bauction.logg;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +31,7 @@ public class PluginLogger {
     }
 
     private void iniHandlers() throws IOException {
-        File logFile = LogUtil.renameIfExist(new File(logFolder, "latest.log"), logFolder);
+        File logFile = LoggUtil.renameIfExist(new File(logFolder, "latest.log"), logFolder);
         logHandler = new FileHandler(logFile.getPath());
 
         logHandler.setFormatter(new CustomFormatter());
@@ -41,7 +41,7 @@ public class PluginLogger {
 
     public void close() {
         logHandler.close();
-        LogUtil.renameIfExist(new File(logFolder, "latest.log"), logFolder);
+        LoggUtil.renameIfExist(new File(logFolder, "latest.log"), logFolder);
         logger.removeHandler(logHandler);
     }
 
@@ -56,7 +56,7 @@ public class PluginLogger {
             String level = record.getLevel().getLocalizedName();
             String message = formatMessage(record);
             if (record.getThrown() != null) {
-                message = LogUtil.writeStackTrace(record.getThrown(), new StringBuilder(message).append("\n")).toString();
+                message = LoggUtil.writeStackTrace(record.getThrown(), new StringBuilder(message).append("\n")).toString();
             }
             return String.format(FORMAT, date, threadName, level, message);
         }
