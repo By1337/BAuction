@@ -10,6 +10,7 @@ import org.by1337.bauction.db.kernel.event.AddSellItemEvent;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.util.common.NumberUtil;
 import org.by1337.bauction.util.time.TimeCounter;
+import org.by1337.bauction.util.time.TimeParser;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.argument.ArgumentInteger;
@@ -28,7 +29,7 @@ public class PushCmd extends Command<CommandSender> {
         super(command);
         requires(new RequiresPermission<>("bauc.admin.debug.push"));
         argument(new ArgumentIntegerAllowedMath<>("price", List.of(Lang.getMessage("price_tag"))));
-        argument(new ArgumentInteger<>("amount", List.of(Lang.getMessage("quantity_tag"))));
+        argument(new ArgumentIntegerAllowedMath<>("amount", List.of(Lang.getMessage("quantity_tag"))));
         argument(new ArgumentString<>("time", List.of(Lang.getMessage("sale_time_tag"))));
 
         executor(this::execute);
@@ -47,19 +48,15 @@ public class PushCmd extends Command<CommandSender> {
         TimeCounter timeCounter = new TimeCounter();
         Random random = new Random();
         User user = Main.getStorage().getUserOrCreate(player);
-        long time = NumberUtil.getTime(((String) args.getOrDefault("time", "2d")));
-        AtomicBoolean seenFailedToSell = new AtomicBoolean(false);
+        long time = TimeParser.parse(((String) args.getOrDefault("time", "2d")));
         for (int i = 0; i < amount; i++) {
             SellItem sellItem = new SellItem(player, itemStack, price + random.nextInt(price / 2), time);
             AddSellItemEvent event = new AddSellItemEvent(sellItem, user);
 
-            Main.getStorage().onEvent(event).whenComplete((e, t) -> {
-                if (!e.isValid()){
-                    if (seenFailedToSell.get()) return;
-                    Main.getMessage().sendMsg(player, event.getReason());
-                    seenFailedToSell.set(true);
-                }
-            });
+            if (!Main.getStorage().onEvent(event).join().isValid()) {
+                Main.getMessage().sendMsg(player, event.getReason());
+                return;
+            }
         }
         Main.getMessage().sendMsg(player, Lang.getMessage("successful_listing"), amount, timeCounter.getTime());
 
