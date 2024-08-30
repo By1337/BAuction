@@ -201,7 +201,7 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
     private void takeItemEventHandler(TakeItemEvent event) {
         SellItem sellItem = event.getSellItem();
         User user = event.getUser();
-        if (sellItem.sellerUuid != user.uuid) {
+        if (!sellItem.sellerUuid.equals(user.uuid)) {
             event.setValid(false);
             event.setReason(Component.text("You do not own this item!")); // todo lang file
             return;
