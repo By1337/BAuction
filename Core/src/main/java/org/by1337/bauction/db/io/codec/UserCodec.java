@@ -2,11 +2,13 @@ package org.by1337.bauction.db.io.codec;
 
 import org.by1337.bauction.db.kernel.User;
 import org.by1337.blib.io.ByteBuffer;
+import org.by1337.blib.nbt.NbtType;
+import org.by1337.blib.nbt.impl.CompoundTag;
 
 import java.util.UUID;
 
 public class UserCodec implements Codec<User> {
-    public static int CURRENT_VERSION = 200;
+    public static int CURRENT_VERSION = 201;
     public static final int MAGIC_NUMBER = 0xB13A0F3;
 
     @Override
@@ -17,8 +19,8 @@ public class UserCodec implements Codec<User> {
         UUID uuid = buffer.readUUID();
         int dealCount = buffer.readVarInt();
         double dealSum = buffer.readDouble();
-
-        return new User(nickName, uuid, dealCount, dealSum);
+        CompoundTag extra = (CompoundTag) NbtType.COMPOUND.read(buffer);
+        return new User(nickName, uuid, dealCount, dealSum, extra);
     }
 
     @Override
@@ -27,6 +29,7 @@ public class UserCodec implements Codec<User> {
         buffer.writeUUID(val.uuid);
         buffer.writeVarInt(val.dealCount);
         buffer.writeDouble(val.dealSum);
+        val.extra.write(buffer);
     }
     @Override
     public int getVersion() {

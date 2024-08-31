@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 import org.by1337.bauction.db.SortingItems;
 import org.by1337.bauction.util.auction.Category;
 import org.by1337.bauction.util.auction.Sorting;
+import org.by1337.blib.nbt.impl.CompoundTag;
 import org.by1337.blib.util.NameKey;
 import org.by1337.blib.util.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -138,7 +139,7 @@ public abstract class SimpleDatabase {
     public User getUserOrCreate(String name, UUID uuid) {
         User user = getUser(uuid);
         if (user != null) return user;
-        user = new User(name, uuid);
+        user = new User(name, uuid, new CompoundTag());
         User finalUser = user;
         writeLock(() -> users.put(uuid, finalUser));
         return user;

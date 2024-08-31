@@ -42,6 +42,7 @@ public class SellItem extends Placeholder implements ItemHolder {
     @Nullable
     public transient ItemStack itemStack;
     public final String server;
+    public final CompoundTag extra;
 
     public static SellItemBuilder builder() {
         return new SellItemBuilder();
@@ -61,14 +62,17 @@ public class SellItem extends Placeholder implements ItemHolder {
                     double price, boolean saleByThePiece, Set<String> tags,
                     long timeListedForSale, long removalDate, long id,
                     Material material, int amount, double priceForOne,
-                    @Nullable ItemStack itemStack, String server) {
+                    @Nullable ItemStack itemStack, String server,
+                    CompoundTag extra
+    ) {
+        this.extra = extra;
         this.server = server;
         this.item = item;
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
         this.price = price;
         this.saleByThePiece = saleByThePiece;
-        this.tags = tags;
+        this.tags = Collections.unmodifiableSet(tags);
         this.timeListedForSale = timeListedForSale;
         this.removalDate = removalDate;
         this.id = id;
@@ -83,60 +87,68 @@ public class SellItem extends Placeholder implements ItemHolder {
                     double price, boolean saleByThePiece, Set<String> tags,
                     long timeListedForSale, long removalDate, long id,
                     Material material, int amount, double priceForOne, @Nullable ItemStack itemStack) {
-        this.item = item;
-        this.sellerName = sellerName;
-        this.sellerUuid = sellerUuid;
-        this.price = price;
-        this.saleByThePiece = saleByThePiece;
-        this.tags = tags;
-        this.timeListedForSale = timeListedForSale;
-        this.removalDate = removalDate;
-        this.id = id;
-        this.material = material;
-        this.amount = amount;
-        this.priceForOne = priceForOne;
-        this.itemStack = itemStack;
-        server = Main.getServerId();
-        init();
+        this(
+                item,
+                sellerName,
+                sellerUuid,
+                price,
+                saleByThePiece,
+                tags,
+                timeListedForSale,
+                removalDate,
+                id,
+                material,
+                amount,
+                priceForOne,
+                itemStack,
+                Main.getServerId(),
+                new CompoundTag()
+        );
     }
 
     public SellItem(NBT item, String sellerName, UUID sellerUuid,
                     double price, boolean saleByThePiece, Set<String> tags,
                     long timeListedForSale, long removalDate, long id, Material material,
                     int amount, double priceForOne) {
-        this.item = item;
-        this.sellerName = sellerName;
-        this.sellerUuid = sellerUuid;
-        this.price = price;
-        this.saleByThePiece = saleByThePiece;
-        this.tags = tags;
-        this.timeListedForSale = timeListedForSale;
-        this.removalDate = removalDate;
-        this.id = id;
-        this.material = material;
-        this.amount = amount;
-        this.priceForOne = priceForOne;
-        server = Main.getServerId();
-        init();
+        this(
+                item,
+                sellerName,
+                sellerUuid,
+                price,
+                saleByThePiece,
+                tags,
+                timeListedForSale,
+                removalDate,
+                id,
+                material,
+                amount,
+                priceForOne,
+                null,
+                Main.getServerId(),
+                new CompoundTag()
+        );
     }
 
     public SellItem(@NotNull NBT item, @NotNull String sellerName, @NotNull UUID sellerUuid,
                     double price, boolean saleByThePiece, @NotNull Set<String> tags, long saleDuration,
                     @NotNull Material material, int amount) {
-        this.item = item;
-        this.sellerName = sellerName;
-        this.sellerUuid = sellerUuid;
-        this.price = price;
-        this.saleByThePiece = saleByThePiece;
-        this.tags = Collections.unmodifiableSet(tags);
-        this.timeListedForSale = System.currentTimeMillis();
-        this.removalDate = System.currentTimeMillis() + saleDuration;
-        this.id = Main.getUniqueIdGenerator().nextId();
-        this.material = material;
-        this.amount = amount;
-        priceForOne = price / amount;
-        server = Main.getServerId();
-        init();
+        this(
+                item,
+                sellerName,
+                sellerUuid,
+                price,
+                saleByThePiece,
+                tags,
+                System.currentTimeMillis(),
+                System.currentTimeMillis() + saleDuration,
+                Main.getUniqueIdGenerator().nextId(),
+                material,
+                amount,
+                price / amount,
+                null,
+                Main.getServerId(),
+                new CompoundTag()
+        );
     }
 
     public SellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration) {
@@ -144,20 +156,23 @@ public class SellItem extends Placeholder implements ItemHolder {
     }
 
     public SellItem(@NotNull Player seller, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
-        item = serializeItemStack(itemStack);
-        sellerName = seller.getName();
-        sellerUuid = seller.getUniqueId();
-        this.price = price;
-        this.saleByThePiece = saleByThePiece;
-        tags = Collections.unmodifiableSet(TagUtil.getTags(itemStack));
-        timeListedForSale = System.currentTimeMillis();
-        this.removalDate = System.currentTimeMillis() + saleDuration;
-        this.id = Main.getUniqueIdGenerator().nextId();
-        material = itemStack.getType();
-        amount = itemStack.getAmount();
-        priceForOne = price / amount;
-        server = Main.getServerId();
-        init();
+        this(
+                serializeItemStack(itemStack),
+                seller.getName(),
+                seller.getUniqueId(),
+                price,
+                saleByThePiece,
+                TagUtil.getTags(itemStack),
+                System.currentTimeMillis(),
+                System.currentTimeMillis() + saleDuration,
+                Main.getUniqueIdGenerator().nextId(),
+                itemStack.getType(),
+                itemStack.getAmount(),
+                price / itemStack.getAmount(),
+                itemStack,
+                Main.getServerId(),
+                new CompoundTag()
+        );
     }
 
     public static NBT serializeItemStack(ItemStack itemStack) {
@@ -170,20 +185,23 @@ public class SellItem extends Placeholder implements ItemHolder {
     }
 
     public SellItem(String sellerName, UUID sellerUuid, @NotNull ItemStack itemStack, double price, long saleDuration, boolean saleByThePiece) {
-        item = serializeItemStack(itemStack);
-        this.sellerName = sellerName;
-        this.sellerUuid = sellerUuid;
-        this.price = price;
-        this.saleByThePiece = saleByThePiece;
-        tags = Collections.unmodifiableSet(TagUtil.getTags(itemStack));
-        timeListedForSale = System.currentTimeMillis();
-        this.removalDate = System.currentTimeMillis() + saleDuration;
-        this.id = Main.getUniqueIdGenerator().nextId();
-        material = itemStack.getType();
-        amount = itemStack.getAmount();
-        priceForOne = price / amount;
-        server = Main.getServerId();
-        init();
+        this(
+                serializeItemStack(itemStack),
+                sellerName,
+                sellerUuid,
+                price,
+                saleByThePiece,
+                TagUtil.getTags(itemStack),
+                System.currentTimeMillis(),
+                System.currentTimeMillis() + saleDuration,
+                Main.getUniqueIdGenerator().nextId(),
+                itemStack.getType(),
+                itemStack.getAmount(),
+                price / itemStack.getAmount(),
+                itemStack,
+                Main.getServerId(),
+                new CompoundTag()
+        );
     }
 
     private void init() {
@@ -308,7 +326,8 @@ public class SellItem extends Placeholder implements ItemHolder {
                ", server='" + server + '\'' +
                '}';
     }
-    public String compactToString(){
+
+    public String compactToString() {
         return "SellItem{" +
                "sellerName='" + sellerName + '\'' +
                ", sellerUuid=" + sellerUuid +
@@ -368,6 +387,7 @@ public class SellItem extends Placeholder implements ItemHolder {
         private double priceForOne;
         private ItemStack itemStack;
         private String server;
+        private CompoundTag extra = new CompoundTag();
 
         SellItemBuilder() {
         }
@@ -387,6 +407,7 @@ public class SellItem extends Placeholder implements ItemHolder {
             priceForOne = sellItem.priceForOne;
             itemStack = sellItem.itemStack;
             server = sellItem.server;
+            extra = sellItem.extra;
             return this;
         }
 
@@ -460,8 +481,13 @@ public class SellItem extends Placeholder implements ItemHolder {
             return this;
         }
 
+        public SellItemBuilder setExtra(CompoundTag extra) {
+            this.extra = extra;
+            return this;
+        }
+
         public SellItem build() {
-            return new SellItem(this.item, this.sellerName, this.sellerUuid, this.price, this.saleByThePiece, this.tags, this.timeListedForSale, this.removalDate, this.id, this.material, this.amount, this.priceForOne, this.itemStack, server);
+            return new SellItem(this.item, this.sellerName, this.sellerUuid, this.price, this.saleByThePiece, this.tags, this.timeListedForSale, this.removalDate, this.id, this.material, this.amount, this.priceForOne, this.itemStack, server, extra);
         }
 
     }

@@ -4,11 +4,12 @@ import org.by1337.bauction.db.kernel.UnsoldItem;
 import org.by1337.blib.io.ByteBuffer;
 import org.by1337.blib.nbt.NBT;
 import org.by1337.blib.nbt.NbtType;
+import org.by1337.blib.nbt.impl.CompoundTag;
 
 import java.util.UUID;
 
 public class UnsoldItemCodec implements Codec<UnsoldItem> {
-    public static int CURRENT_VERSION = 200;
+    public static int CURRENT_VERSION = 201;
     public static final int MAGIC_NUMBER = 0xB13A0F2;
 
     @Override
@@ -21,7 +22,8 @@ public class UnsoldItemCodec implements Codec<UnsoldItem> {
         UUID sellerUuid = buffer.readUUID();
         long id = buffer.readVarLong();
         long deleteVia = buffer.readVarLong();
-        return new UnsoldItem(item, expired, sellerUuid, id, deleteVia);
+        CompoundTag extra = (CompoundTag) NbtType.COMPOUND.read(buffer);
+        return new UnsoldItem(item, expired, sellerUuid, id, deleteVia, extra);
     }
 
     @Override
@@ -32,6 +34,7 @@ public class UnsoldItemCodec implements Codec<UnsoldItem> {
         buffer.writeUUID(val.sellerUuid);
         buffer.writeVarLong(val.id);
         buffer.writeVarLong(val.deleteVia);
+        val.extra.write(buffer);
     }
     @Override
     public int getVersion() {

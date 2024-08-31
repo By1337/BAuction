@@ -36,20 +36,22 @@ public class CodecTest {
                 64,
                 1.5625,
                 null,
-                "server"
+                "server",
+                new CompoundTag()
         );
         user = new User(
                 "nick",
                 UUID.randomUUID(),
                 99,
-                123D
-        );
+                123D,
+                new CompoundTag());
         unsoldItem = new UnsoldItem(
                 new CompoundTag(),
                 Long.MAX_VALUE,
                 UUID.randomUUID(),
                 0,
-                Long.MAX_VALUE
+                Long.MAX_VALUE,
+                new CompoundTag()
         );
 
     }

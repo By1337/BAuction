@@ -6,11 +6,10 @@ import org.by1337.bauction.db.io.codec.Codec;
 import org.by1337.bauction.db.io.codec.UserCodec;
 import org.by1337.bauction.serialize.SerializeUtils;
 import org.by1337.blib.chat.placeholder.Placeholder;
+import org.by1337.blib.nbt.impl.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 
 public class User extends Placeholder implements SerializableToByteArray {
@@ -21,13 +20,15 @@ public class User extends Placeholder implements SerializableToByteArray {
     public double dealSum;
     private transient int externalSlots = 0;
     private transient long externalSellTime = 0L;
+    public final CompoundTag extra;
 
 
-    public User(String nickName, UUID uuid, int dealCount, double dealSum) {
+    public User(String nickName, UUID uuid, int dealCount, double dealSum, CompoundTag extra) {
         this.nickName = nickName;
         this.uuid = uuid;
         this.dealCount = dealCount;
         this.dealSum = dealSum;
+        this.extra = extra;
         init();
     }
 
@@ -35,9 +36,10 @@ public class User extends Placeholder implements SerializableToByteArray {
         return Integer.MAX_VALUE; // todo limits
     }
 
-    public User(@NotNull String nickName, @NotNull UUID uuid) {
+    public User(@NotNull String nickName, @NotNull UUID uuid, CompoundTag extra) {
         this.nickName = nickName;
         this.uuid = uuid;
+        this.extra = extra;
         init();
     }
 
@@ -88,19 +90,6 @@ public class User extends Placeholder implements SerializableToByteArray {
             data.writeDouble(dealSum);
             data.flush();
             return out.toByteArray();
-        }
-    }
-
-    public static User fromBytes(byte[] arr) throws IOException {
-        try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(arr))) {
-            String nickName = in.readUTF();
-            UUID uuid = SerializeUtils.readUUID(in);
-            int dealCount = in.readInt();
-            double dealSum = in.readDouble();
-
-            return new User(
-                    nickName, uuid, dealCount, dealSum
-            );
         }
     }
 

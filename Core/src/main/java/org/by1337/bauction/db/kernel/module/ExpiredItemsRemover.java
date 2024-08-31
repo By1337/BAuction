@@ -8,6 +8,7 @@ import org.by1337.bauction.db.kernel.UnsoldItem;
 import org.by1337.bauction.db.kernel.event.*;
 import org.by1337.bauction.util.threading.ThreadCreator;
 import org.by1337.bauction.util.time.TimeParser;
+import org.by1337.blib.nbt.impl.CompoundTag;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -65,7 +66,8 @@ public class ExpiredItemsRemover implements DatabaseModule, Closeable {
                                         System.currentTimeMillis(),
                                         event.getSellItem().sellerUuid,
                                         Main.getUniqueIdGenerator().nextId(),
-                                        System.currentTimeMillis() + removeTime
+                                        System.currentTimeMillis() + removeTime,
+                                        new CompoundTag()
                                 ))
                         );
                     } else {

@@ -114,7 +114,8 @@ class LocalDatabaseTest {
                 64,
                 10,
                 null,
-                "server"
+                "server",
+                new CompoundTag()
         );
     }
     private UnsoldItem createUnsoldItem(){
@@ -123,7 +124,8 @@ class LocalDatabaseTest {
                 Long.MAX_VALUE,
                 seller.uuid,
                 Main.getUniqueIdGenerator().nextId(),
-                Long.MAX_VALUE
+                Long.MAX_VALUE,
+                new CompoundTag()
         );
     }
 

@@ -29,42 +29,35 @@ public class UnsoldItem extends Placeholder implements ItemHolder {
     public final long deleteVia;
     @Nullable
     private transient ItemStack itemStack;
+    public final CompoundTag extra;
 
-
-    @Deprecated(forRemoval = true)
-    public String toSql(String table) {
-        return null;
-    }
-
-    @Deprecated(forRemoval = true)
-    public static UnsoldItem fromResultSet(ResultSet resultSet) throws SQLException {
-        return null;
-    }
-
-    public UnsoldItem(NBT item, long expired, UUID sellerUuid, long id, long deleteVia) {
+    public UnsoldItem(NBT item, long expired, UUID sellerUuid, long id, long deleteVia, CompoundTag extra) {
         this.item = item;
         this.expired = expired;
         this.sellerUuid = sellerUuid;
         this.id = id;
         this.deleteVia = deleteVia;
+        this.extra = extra;
         init();
     }
 
-    public UnsoldItem(NBT item, long expired, UUID sellerUuid, long id, long deleteVia, @Nullable ItemStack itemStack) {
+    public UnsoldItem(NBT item, long expired, UUID sellerUuid, long id, long deleteVia, @Nullable ItemStack itemStack, CompoundTag extra) {
         this.item = item;
         this.expired = expired;
         this.sellerUuid = sellerUuid;
         this.id = id;
         this.deleteVia = deleteVia;
         this.itemStack = itemStack;
+        this.extra = extra;
         init();
     }
 
-    public UnsoldItem(@NotNull NBT item, @NotNull UUID sellerUuid, long expired, long deleteVia) {
+    public UnsoldItem(@NotNull NBT item, @NotNull UUID sellerUuid, long expired, long deleteVia, CompoundTag extra) {
         this.item = item;
         this.expired = expired;
         this.sellerUuid = sellerUuid;
         this.deleteVia = deleteVia;
+        this.extra = extra;
         id = Main.getUniqueIdGenerator().nextId();
         init();
     }
