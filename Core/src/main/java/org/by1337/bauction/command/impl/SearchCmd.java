@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.HomeMenu;
+import org.by1337.bauction.search.TrieManager;
 import org.by1337.bauction.util.auction.Category;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
@@ -19,10 +20,12 @@ public class SearchCmd extends Command<CommandSender> {
 
     private final MenuLoader menuLoader;
     private final String homeMenuId;
-    public SearchCmd(String command, MenuLoader menuLoader, String homeMenuId) {
+    private final TrieManager trieManager;
+    public SearchCmd(String command, MenuLoader menuLoader, String homeMenuId, TrieManager trieManager) {
         super(command);
         this.menuLoader = menuLoader;
         this.homeMenuId = homeMenuId;
+        this.trieManager = trieManager;
         requires(new RequiresPermission<>("bauc.search"));
         requires(sender -> sender instanceof Player);
         argument(new ArgumentStrings<>("tags"));
@@ -40,7 +43,7 @@ public class SearchCmd extends Command<CommandSender> {
                 soft = false;
                 continue;
             }
-            tags.addAll(Main.getTrieManager().getTrie().getAllWithPrefix(rawTag));
+            tags.addAll(trieManager.getTrie().getAllWithPrefix(rawTag));
         }
         Category custom = Main.getCfg().getSorting().getAs("special.search", Category.class);
         custom.setSoft(soft);

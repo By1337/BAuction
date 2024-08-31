@@ -19,10 +19,13 @@ import org.by1337.blib.command.argument.ArgumentMap;
 import org.by1337.blib.command.requires.RequiresPermission;
 
 import java.util.List;
+import java.util.Set;
 
 public class SellCmd extends Command<CommandSender> {
-    public SellCmd(String command) {
+    private final Set<String> blackList;
+    public SellCmd(String command, Set<String> blackList) {
         super(command);
+        this.blackList = blackList;
         requires(new RequiresPermission<>("bauc.sell"));
         requires(sender -> sender instanceof Player);
         argument(new ArgumentIntegerAllowedMath<>("price", List.of(Lang.getMessage("price_tag")),
@@ -73,7 +76,7 @@ public class SellCmd extends Command<CommandSender> {
         SellItem sellItem = new SellItem(player, itemStack, price, Main.getCfg().getDefaultSellTime() + user.getExternalSellTime(), saleByThePiece);
 
         for (String tag : sellItem.getTags()) {
-            if (Main.getBlackList().contains(tag)) {
+            if (blackList.contains(tag)) {
                 Main.getMessage().sendMsg(player, sellItem.replace(Lang.getMessage("item-in-black-list")));
                 return;
             }

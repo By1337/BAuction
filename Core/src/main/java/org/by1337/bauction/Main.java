@@ -354,8 +354,8 @@ public final class Main extends JavaPlugin {
                                 .addSubCommand(new ParseNbtCmd("nbt"))
                         )
                 )
-                .addSubCommand(new SellCmd("sell"))
-                .addSubCommand(new SearchCmd("search", menuLoader, cfg.getHomeMenu()))
+                .addSubCommand(new SellCmd("sell", blackList))
+                .addSubCommand(new SearchCmd("search", menuLoader, cfg.getHomeMenu(), trieManager))
                 .addSubCommand(new ViewCommand("view", menuLoader, cfg.getPlayerItemsViewMenu()))
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))
@@ -412,16 +412,8 @@ public final class Main extends JavaPlugin {
         return instance.dbCfg == null ? "unknown" : instance.dbCfg.getServerId();
     }
 
-    public static Set<String> getBlackList() {
-        return instance.blackList;
-    }
-
     public Command<CommandSender> getCommand() {
         return command;
-    }
-
-    public static TrieManager getTrieManager() {
-        return instance.trieManager;
     }
 
     public PlaceholderHook getPlaceholderHook() {

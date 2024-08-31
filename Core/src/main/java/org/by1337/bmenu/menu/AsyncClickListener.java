@@ -58,7 +58,7 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
         Bukkit.getPluginManager().registerEvents(this, BMenuApi.getInstance());
 
         if (async) {
-            executor = Executors.newSingleThreadExecutor(BMenuApi.getThreadFactory());
+            executor = BMenuApi.getExecutor();
             runManager = executor::execute;
         } else {
             runManager = Runnable::run;
@@ -164,7 +164,7 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
     protected void reRegister() {
         Bukkit.getPluginManager().registerEvents(this, BMenuApi.getInstance());
         if (async) {
-            executor = Executors.newSingleThreadExecutor(BMenuApi.getThreadFactory());
+            executor = BMenuApi.getExecutor();
             runManager = executor::execute;
         } else {
             runManager = Runnable::run;
