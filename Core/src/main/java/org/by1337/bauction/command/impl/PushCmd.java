@@ -48,6 +48,7 @@ public class PushCmd extends Command<CommandSender> {
         TimeCounter timeCounter = new TimeCounter();
         Random random = new Random();
         User user = Main.getStorage().getUserOrCreate(player);
+        user.updateBoosts();
         long time = TimeParser.parse(((String) args.getOrDefault("time", "2d")));
         for (int i = 0; i < amount; i++) {
             SellItem sellItem = new SellItem(player, itemStack, price + random.nextInt(price / 2), time);

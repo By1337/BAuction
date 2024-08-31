@@ -73,6 +73,7 @@ public class SellCmd extends Command<CommandSender> {
 
         if (saleByThePiece) saleByThePiece = Main.getCfg().isAllowBuyCount();
         User user = Main.getStorage().getUserOrCreate(player);
+        user.updateBoosts();
         SellItem sellItem = new SellItem(player, itemStack, price, Main.getCfg().getDefaultSellTime() + user.getExternalSellTime(), saleByThePiece);
 
         for (String tag : sellItem.getTags()) {

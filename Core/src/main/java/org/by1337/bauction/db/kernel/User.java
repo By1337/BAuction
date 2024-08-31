@@ -32,8 +32,18 @@ public class User extends Placeholder implements SerializableToByteArray {
         init();
     }
 
+    private transient long lastUpdate;
+
+    public void updateBoosts() {
+        if (System.currentTimeMillis() - lastUpdate < 5_000) {
+            Main.getCfg().getBoostManager().userUpdate(this);
+            lastUpdate = System.currentTimeMillis();
+        }
+    }
+
     public int getMaxItems() {
-        return Integer.MAX_VALUE; // todo limits
+        updateBoosts();
+        return Main.getCfg().getMaxSlots() + externalSlots;
     }
 
     public User(@NotNull String nickName, @NotNull UUID uuid, CompoundTag extra) {
