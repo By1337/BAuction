@@ -2,7 +2,6 @@ package org.by1337.bmenu;
 
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.plugin.Plugin;
-import org.by1337.bauction.db.kernel.event.EventPipeline;
 import org.by1337.bauction.util.threading.ThreadCreator;
 import org.by1337.blib.chat.util.Message;
 import org.by1337.blib.configuration.adapter.AdapterRegistry;
@@ -15,7 +14,6 @@ import org.by1337.bmenu.menu.requirement.Requirement;
 import org.by1337.bmenu.menu.requirement.Requirements;
 
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 

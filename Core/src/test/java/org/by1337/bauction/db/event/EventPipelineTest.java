@@ -1,7 +1,7 @@
 package org.by1337.bauction.db.event;
 
 import junit.framework.TestCase;
-import org.by1337.bauction.db.kernel.event.EventPipeline;
+import org.by1337.bauction.common.db.event.EventPipeline;
 
 import static org.junit.jupiter.api.Assertions.*;
 

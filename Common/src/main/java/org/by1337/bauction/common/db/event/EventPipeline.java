@@ -1,4 +1,6 @@
-package org.by1337.bauction.db.kernel.event;
+package org.by1337.bauction.common.db.event;
+
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -19,7 +21,7 @@ public class EventPipeline<T> {
             }
         }
     }
-
+    @CanIgnoreReturnValue
     public <E extends T> EventPipeline<T> addLast(String name, Class<E> type, Consumer<? super E> consumer) {
         if (names.contains(name))
             throw new IllegalStateException("Handler with the name '" + name + "' already exists!");
@@ -27,7 +29,7 @@ public class EventPipeline<T> {
         handlers.add(new PipelineHandler<>(name, type, consumer));
         return this;
     }
-
+    @CanIgnoreReturnValue
     public <E extends T> EventPipeline<T> addFirst(String name, Class<E> type, Consumer<? super E> consumer) {
         if (names.contains(name))
             throw new IllegalStateException("Handler with the name '" + name + "' already exists!");
@@ -35,7 +37,7 @@ public class EventPipeline<T> {
         handlers.add(0, new PipelineHandler<>(name, type, consumer));
         return this;
     }
-
+    @CanIgnoreReturnValue
     public <E extends T> EventPipeline<T> addBefore(String baseName, String name, Class<E> type, Consumer<? super E> consumer) {
         if (names.contains(name))
             throw new IllegalStateException("Handler with the name '" + name + "' already exists!");
@@ -46,7 +48,7 @@ public class EventPipeline<T> {
         }
         return this;
     }
-
+    @CanIgnoreReturnValue
     public <E extends T> EventPipeline<T> addAfter(String baseName, String name, Class<E> type, Consumer<? super E> consumer) {
         if (names.contains(name))
             throw new IllegalStateException("Handler with the name '" + name + "' already exists!");
@@ -76,15 +78,6 @@ public class EventPipeline<T> {
         return -1;
     }
 
-    private static class PipelineHandler<T> {
-        private final String name;
-        private final Class<T> type;
-        private final Consumer<? super T> consumer;
-
-        public PipelineHandler(String name, Class<T> type, Consumer<? super T> consumer) {
-            this.name = name;
-            this.type = type;
-            this.consumer = consumer;
-        }
+    private record PipelineHandler<T>(String name, Class<T> type, Consumer<? super T> consumer) {
     }
 }

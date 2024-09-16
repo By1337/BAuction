@@ -140,6 +140,36 @@
             <version>1.16.5-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.by1337.bauction.common</groupId>
+            <artifactId>Common</artifactId>
+            <version>${parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.by1337.btcp.client</groupId>
+            <artifactId>Client</artifactId>
+            <version>1.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.111.Final</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>33.2.1-jre</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.by1337.blib.nbt</groupId>
+            <artifactId>BLib-Nbt</artifactId>
+            <version>1.2</version>
+            <scope>provided</scope>
+        </dependency>
         <!--libs-->
         <dependency>
             <groupId>org.by1337.bvault.api</groupId>

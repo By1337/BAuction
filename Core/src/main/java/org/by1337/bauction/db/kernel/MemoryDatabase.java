@@ -1,8 +1,9 @@
 package org.by1337.bauction.db.kernel;
 
-import net.kyori.adventure.text.Component;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.common.db.event.Event;
+import org.by1337.bauction.common.db.event.EventPipeline;
 import org.by1337.bauction.db.kernel.event.*;
 import org.by1337.bauction.util.auction.Category;
 import org.by1337.bauction.util.auction.Sorting;
@@ -63,7 +64,7 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
                 LOGGER.error("An error occurred during pipeline execution!", t);
                 if (event.isValid()) {
                     event.setValid(false);
-                    event.setReason(Component.text("An internal error occurred")); // todo lang file
+                    event.setReason("<red>An internal error occurred"); // todo lang file
                 }
             }
             return event;
@@ -76,7 +77,7 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
             addUnsoldItem(unsoldItem);
         } catch (Throwable t) {
             event.setValid(false);
-            event.setReason(Component.text("An internal error occurred")); // todo lang file
+            event.setReason("<red>An internal error occurred"); // todo lang file
             LOGGER.error("An error occurred while trying to add UnsoldItem item", t);
         }
     }
@@ -86,7 +87,7 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
         User user = event.getTaker();
         if (!user.uuid.equals(unsoldItem.sellerUuid)) {
             event.setValid(false);
-            event.setReason(Component.text("You can't take someone else's item!")); // todo lang file
+            event.setReason("You can't take someone else's item!"); // todo lang file
             return;
         }
         removeUnsoldItemHandler(event);
@@ -99,17 +100,17 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
         @Nullable User itemOwner = getUser(sellItem.sellerUuid);
         if (user.uuid.equals(sellItem.sellerUuid)) {
             event.setValid(false);
-            event.setReason(Component.text("You can't buy your item!")); // todo lang file
+            event.setReason("You can't buy your item!"); // todo lang file
             return;
         }
         if (sellItem.amount < count) {
             event.setValid(false);
-            event.setReason(Component.text("You are trying to buy more items than are available for sale. Available: " + sellItem.amount + ".")); // todo lang file
+            event.setReason("You are trying to buy more items than are available for sale. Available: " + sellItem.amount + "."); // todo lang file
             return;
         }
         if (!sellItem.saleByThePiece) {
             event.setValid(false);
-            event.setReason(Component.text("This item is not sold by the piece!")); // todo lang file
+            event.setReason("This item is not sold by the piece!"); // todo lang file
             return;
         }
         try {
@@ -133,11 +134,11 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
 
         } catch (NoSuchElementException e) {
             event.setValid(false);
-            event.setReason(Component.text("This item no longer exists")); // todo lang file
+            event.setReason("This item no longer exists"); // todo lang file
             return;
         } catch (Throwable t) {
             event.setValid(false);
-            event.setReason(Component.text("An internal error occurred")); // todo lang file
+            event.setReason("<red>An internal error occurred"); // todo lang file
             LOGGER.error("An error occurred while trying to update SellItem item", t);
             return;
         }
@@ -156,7 +157,7 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
         @Nullable User itemOwner = getUser(sellItem.sellerUuid);
         if (user.uuid.equals(sellItem.sellerUuid)) {
             event.setValid(false);
-            event.setReason(Component.text("You can't buy your item!")); // todo lang file
+            event.setReason("You can't buy your item!"); // todo lang file
             return;
         }
         removeSellItemHandler(event);
@@ -176,10 +177,10 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
             removeUnsoldItem(unsoldItem.id);
         } catch (NoSuchElementException e) {
             event.setValid(false);
-            event.setReason(Component.text("This item no longer exists")); // todo lang file
+            event.setReason("This item no longer exists"); // todo lang file
         } catch (Throwable t) {
             event.setValid(false);
-            event.setReason(Component.text("An internal error occurred")); // todo lang file
+            event.setReason("<red>An internal error occurred"); // todo lang file
             LOGGER.error("An error occurred while trying to delete UnsoldItem item", t);
         }
     }
@@ -190,10 +191,10 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
             removeSellItem(sellItem.id);
         } catch (NoSuchElementException e) {
             event.setValid(false);
-            event.setReason(Component.text("This item no longer exists")); // todo lang file
+            event.setReason("This item no longer exists"); // todo lang file
         } catch (Throwable t) {
             event.setValid(false);
-            event.setReason(Component.text("An internal error occurred")); // todo lang file
+            event.setReason("<red>An internal error occurred"); // todo lang file
             LOGGER.error("An error occurred while trying to delete SellItem item", t);
         }
     }
@@ -203,7 +204,7 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
         User user = event.getUser();
         if (!sellItem.sellerUuid.equals(user.uuid)) {
             event.setValid(false);
-            event.setReason(Component.text("You do not own this item!")); // todo lang file
+            event.setReason("You do not own this item!"); // todo lang file
             return;
         }
         removeSellItemHandler(event);
@@ -214,18 +215,18 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
         User user = event.getUser();
         if (getSellItemsCountByUser(user.getUuid()) >= user.getMaxItems()) {
             event.setValid(false);
-            event.setReason(Component.text("items count limit!")); // todo lang file
+            event.setReason("items count limit!"); // todo lang file
             return;
         }
         if (CompoundTag.getSizeInBytes(sellItem.item) > Main.getCfg().getItemMaxSize()) {
             event.setValid(false);
-            event.setReason(Component.text("item too large")); // todo lang file
+            event.setReason("item too large"); // todo lang file
             return;
         } else if (sellItem.item instanceof ByteArrNBT arrNBT) {
             int size = CompoundTag.getSizeInBytes(new CompressedNBT(arrNBT.getValue()).decompress());
             if (size > Main.getCfg().getMaximumUncompressedItemSize()) {
                 event.setValid(false);
-                event.setReason(Component.text("item too large")); // todo lang file
+                event.setReason("item too large"); // todo lang file
                 return;
             }
         }
@@ -233,7 +234,7 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
             addSellItem(sellItem);
         } catch (Throwable t) {
             event.setValid(false);
-            event.setReason(Component.text("An internal error occurred")); // todo lang file
+            event.setReason("<red>An internal error occurred"); // todo lang file
             LOGGER.error("An error occurred while trying to add a new SellItem to the database", t);
         }
     }

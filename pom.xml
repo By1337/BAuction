@@ -8,6 +8,7 @@
     <name>BAuction-parent</name>
     <modules>
         <module>Core</module>
+        <module>Common</module>
     </modules>
     <build>
         <defaultGoal>clean install</defaultGoal>

@@ -48,16 +48,6 @@ public class SellItem extends Placeholder implements ItemHolder {
         return new SellItemBuilder();
     }
 
-    @Deprecated(forRemoval = true)
-    public String toSql(String table) {
-        return null;
-    }
-
-    @Deprecated(forRemoval = true)
-    public static SellItem fromResultSet(ResultSet resultSet) throws SQLException {
-        return null;
-    }
-
     public SellItem(NBT item, String sellerName, UUID sellerUuid,
                     double price, boolean saleByThePiece, Set<String> tags,
                     long timeListedForSale, long removalDate, long id,

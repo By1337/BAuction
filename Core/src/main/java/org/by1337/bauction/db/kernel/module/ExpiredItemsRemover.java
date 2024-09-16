@@ -1,6 +1,8 @@
 package org.by1337.bauction.db.kernel.module;
 
 import org.by1337.bauction.Main;
+import org.by1337.bauction.common.db.event.Event;
+import org.by1337.bauction.common.db.event.EventPipeline;
 import org.by1337.bauction.db.kernel.DatabaseModule;
 import org.by1337.bauction.db.kernel.MemoryDatabase;
 import org.by1337.bauction.db.kernel.SellItem;

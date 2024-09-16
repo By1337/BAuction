@@ -1,7 +1,7 @@
 package org.by1337.bauction.db.kernel;
 
-import org.by1337.bauction.db.kernel.event.Event;
-import org.by1337.bauction.db.kernel.event.EventPipeline;
+import org.by1337.bauction.common.db.event.Event;
+import org.by1337.bauction.common.db.event.EventPipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
