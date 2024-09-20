@@ -4,19 +4,22 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.common.db.type.SellItem;
+import org.by1337.bauction.db.kernel.PluginSellItem;
+import org.by1337.bauction.db.kernel.PluginUser;
 import org.by1337.bauction.command.argument.ArgumentFullOrCount;
 import org.by1337.bauction.db.kernel.event.AddSellItemEvent;
 import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
 import org.by1337.bauction.lang.Lang;
+import org.by1337.bauction.util.auction.TagUtil;
 import org.by1337.blib.chat.placeholder.BiPlaceholder;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.argument.ArgumentIntegerAllowedMath;
 import org.by1337.blib.command.argument.ArgumentMap;
 import org.by1337.blib.command.requires.RequiresPermission;
+import org.by1337.blib.nbt.impl.CompoundTag;
 
 import java.util.List;
 import java.util.Set;
@@ -72,9 +75,24 @@ public class SellCmd extends Command<CommandSender> {
         }
 
         if (saleByThePiece) saleByThePiece = Main.getCfg().isAllowBuyCount();
-        User user = Main.getStorage().getUserOrCreate(player);
-        user.updateBoosts();
-        SellItem sellItem = new SellItem(player, itemStack, price, Main.getCfg().getDefaultSellTime() + user.getExternalSellTime(), saleByThePiece);
+        PluginUser user = Main.getStorage().getUserOrCreate(player);
+       // user.updateBoosts();
+
+        PluginSellItem sellItem = new PluginSellItem(new SellItem(
+                PluginSellItem.serializeItemStack(itemStack),
+                player.getName(),
+                player.getUniqueId(),
+                price,
+                saleByThePiece,
+                TagUtil.getTags(itemStack),
+                System.currentTimeMillis(),
+                System.currentTimeMillis() + Main.getCfg().getDefaultSellTime() + user.getExternalSellTime(),
+                Main.getUniqueIdGenerator().nextId(),
+                itemStack.getType().ordinal(),
+                itemStack.getAmount(),
+                Main.getServerId(),
+                new CompoundTag()
+        ));
 
         for (String tag : sellItem.getTags()) {
             if (blackList.contains(tag)) {

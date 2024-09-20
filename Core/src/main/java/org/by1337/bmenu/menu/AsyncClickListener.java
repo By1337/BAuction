@@ -37,9 +37,6 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
      */
     private long lastClick = 0;
 
-    @Nullable
-    private ExecutorService executor;
-
     private RunManager runManager;
     private final boolean async;
 
@@ -58,8 +55,7 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
         Bukkit.getPluginManager().registerEvents(this, BMenuApi.getInstance());
 
         if (async) {
-            executor = BMenuApi.getExecutor();
-            runManager = executor::execute;
+            runManager = BMenuApi.getExecutor()::execute;
         } else {
             runManager = Runnable::run;
         }
@@ -110,10 +106,6 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
 
     public void close() {
         HandlerList.unregisterAll(this);
-        if (executor != null) {
-            executor.shutdown();
-            executor = null;
-        }
     }
 
     /**
@@ -164,8 +156,7 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
     protected void reRegister() {
         Bukkit.getPluginManager().registerEvents(this, BMenuApi.getInstance());
         if (async) {
-            executor = BMenuApi.getExecutor();
-            runManager = executor::execute;
+            runManager = BMenuApi.getExecutor()::execute;
         } else {
             runManager = Runnable::run;
         }
@@ -213,7 +204,6 @@ public abstract class AsyncClickListener extends Placeholder implements Listener
                "inventory=" + inventory +
                ", viewer=" + viewer +
                ", lastClick=" + lastClick +
-               ", executor=" + executor +
                ", runManager=" + runManager +
                ", async=" + async +
                '}';

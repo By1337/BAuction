@@ -3,10 +3,11 @@ package org.by1337.bauction.db.kernel.module;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.common.db.event.Event;
 import org.by1337.bauction.common.db.event.EventPipeline;
+import org.by1337.bauction.common.db.type.UnsoldItem;
 import org.by1337.bauction.db.kernel.DatabaseModule;
 import org.by1337.bauction.db.kernel.MemoryDatabase;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.UnsoldItem;
+import org.by1337.bauction.db.kernel.PluginSellItem;
+import org.by1337.bauction.db.kernel.PluginUnsoldItem;
 import org.by1337.bauction.db.kernel.event.*;
 import org.by1337.bauction.util.threading.ThreadCreator;
 import org.by1337.bauction.util.time.TimeParser;
@@ -56,26 +57,28 @@ public class ExpiredItemsRemover implements DatabaseModule, Closeable {
     }
 
     private long removeSellItems() {
-        SellItem sellItem = database.getFirstSellItem();
+        PluginSellItem sellItem = database.getFirstSellItem();
         if (sellItem != null) {
-            long remove = sellItem.removalDate - System.currentTimeMillis();
+            long remove = sellItem.getRemovalDate() - System.currentTimeMillis();
             if (remove <= 0) {
                 database.onEvent(new RemoveSellItemEvent(sellItem)).thenAccept(event -> {
                     if (event.isValid()) {
                         database.onEvent(new AddUnsoldItemEvent(
-                                new UnsoldItem(
-                                        event.getSellItem().item,
-                                        System.currentTimeMillis(),
-                                        event.getSellItem().sellerUuid,
-                                        Main.getUniqueIdGenerator().nextId(),
-                                        System.currentTimeMillis() + removeTime,
-                                        new CompoundTag()
+                                new PluginUnsoldItem(
+                                       new UnsoldItem(
+                                               sellItem.getItem(),
+                                               System.currentTimeMillis(),
+                                               sellItem.getSellerUuid(),
+                                               Main.getUniqueIdGenerator().nextId(),
+                                               System.currentTimeMillis() + removeTime,
+                                               new CompoundTag()
+                                       )
                                 ))
                         );
                     } else {
                         LOGGER.warn(
-                                "[ExpiredItemsRemover] I deleted SellItem {} and tried to add UnsoldItem but the database won't let me do it because {}",
-                                sellItem.compactToString(),
+                                "[ExpiredItemsRemover] I deleted PluginSellItem {} and tried to add PluginUnsoldItem but the database won't let me do it because {}",
+                                sellItem,
                                 event.getReason()
                         );
                     }
@@ -89,9 +92,9 @@ public class ExpiredItemsRemover implements DatabaseModule, Closeable {
     }
 
     private long removeUnsoldItems() {
-        UnsoldItem unsoldItem = database.getFirstUnsoldItem();
+        PluginUnsoldItem unsoldItem = database.getFirstUnsoldItem();
         if (unsoldItem != null) {
-            long remove = unsoldItem.deleteVia;
+            long remove = unsoldItem.getDeleteVia();
             if (remove <= 0) {
                 database.onEvent(new RemoveUnsoldItemEvent(unsoldItem));
                 return FOUR_TICKS;

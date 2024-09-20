@@ -13,7 +13,7 @@ import org.by1337.bauction.action.BuyItemCountProcess;
 import org.by1337.bauction.action.BuyItemProcess;
 import org.by1337.bauction.action.TakeItemProcess;
 import org.by1337.bauction.action.TakeUnsoldItemProcess;
-import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.PluginSellItem;
 import org.by1337.bauction.db.kernel.event.RemoveSellItemEvent;
 import org.by1337.bauction.menu.SelectCountMenu;
 import org.by1337.blib.command.Command;
@@ -319,7 +319,7 @@ public abstract class Menu extends AsyncClickListener {
                 .argument(new ArgumentString<>("menu"))
                 .argument(new ArgumentStrings<>("commands"))
                 .executor((v, args) -> {
-                            String menu = (String) args.getOrThrow("menu", "User [OPEN_MENU] <menu id>");
+                            String menu = (String) args.getOrThrow("menu", "PluginUser [OPEN_MENU] <menu id>");
                             var settings = v.menuLoader.getMenu(menu);
                             if (settings == null) {
                                 throw new CommandException("Unknown menu %s", menu);
@@ -389,7 +389,7 @@ public abstract class Menu extends AsyncClickListener {
         commands.addSubCommand(new Command<Menu>("[REMOVE_SELL_ITEM]")
                 .argument(new ArgumentString<>("id"))
                 .executor((menu, args) -> {
-                            SellItem sellItem;
+                            PluginSellItem sellItem;
                             if (args.containsKey("id")) {
                                 long id = Long.parseLong(((String) args.get("id")));
                                 sellItem = Main.getStorage().getSellItem(id);
@@ -398,10 +398,10 @@ public abstract class Menu extends AsyncClickListener {
                                     menu.refresh();
                                     return;
                                 }
-                            } else if (menu.lastClickedItem != null && menu.lastClickedItem.getData() instanceof SellItem s) {
+                            } else if (menu.lastClickedItem != null && menu.lastClickedItem.getData() instanceof PluginSellItem s) {
                                 sellItem = s;
                             } else {
-                                Main.getMessage().error("[REMOVE_SELL_ITEM] The command does not specify an id which means that I will expect the item clicked by the player to be a SellItem! Last click %s", menu.lastClickedItem);
+                                Main.getMessage().error("[REMOVE_SELL_ITEM] The command does not specify an id which means that I will expect the item clicked by the player to be a PluginSellItem! Last click %s", menu.lastClickedItem);
                                 return;
                             }
                             WeakReference<Menu> menuWeakReference = new WeakReference<>(menu);
@@ -422,7 +422,7 @@ public abstract class Menu extends AsyncClickListener {
                             }
                             if (menu instanceof SelectCountMenu selectCountMenu) {
                                 int count = selectCountMenu.getCount();
-                                SellItem sellItem = selectCountMenu.getSellItem();
+                                PluginSellItem sellItem = selectCountMenu.getSellItem();
                                 BuyItemCountProcess buyItemCount = new BuyItemCountProcess(selectCountMenu, sellItem, count);
                                 buyItemCount.run();
                             } else {

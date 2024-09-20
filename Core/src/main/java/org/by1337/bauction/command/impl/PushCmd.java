@@ -4,24 +4,24 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.common.db.type.SellItem;
+import org.by1337.bauction.db.kernel.PluginSellItem;
+import org.by1337.bauction.db.kernel.PluginUser;
 import org.by1337.bauction.db.kernel.event.AddSellItemEvent;
 import org.by1337.bauction.lang.Lang;
-import org.by1337.bauction.util.common.NumberUtil;
+import org.by1337.bauction.util.auction.TagUtil;
 import org.by1337.bauction.util.time.TimeCounter;
 import org.by1337.bauction.util.time.TimeParser;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
-import org.by1337.blib.command.argument.ArgumentInteger;
 import org.by1337.blib.command.argument.ArgumentIntegerAllowedMath;
 import org.by1337.blib.command.argument.ArgumentMap;
 import org.by1337.blib.command.argument.ArgumentString;
 import org.by1337.blib.command.requires.RequiresPermission;
+import org.by1337.blib.nbt.impl.CompoundTag;
 
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class PushCmd extends Command<CommandSender> {
@@ -47,11 +47,25 @@ public class PushCmd extends Command<CommandSender> {
         }
         TimeCounter timeCounter = new TimeCounter();
         Random random = new Random();
-        User user = Main.getStorage().getUserOrCreate(player);
-        user.updateBoosts();
+        PluginUser user = Main.getStorage().getUserOrCreate(player);
+       // user.updateBoosts();
         long time = TimeParser.parse(((String) args.getOrDefault("time", "2d")));
         for (int i = 0; i < amount; i++) {
-            SellItem sellItem = new SellItem(player, itemStack, price + random.nextInt(price / 2), time);
+            PluginSellItem sellItem = new PluginSellItem(new SellItem(
+                    PluginSellItem.serializeItemStack(itemStack),
+                    player.getName(),
+                    player.getUniqueId(),
+                    price + random.nextInt(price / 2),
+                    false,
+                    TagUtil.getTags(itemStack),
+                    System.currentTimeMillis(),
+                    System.currentTimeMillis() + Main.getCfg().getDefaultSellTime() + user.getExternalSellTime(),
+                    Main.getUniqueIdGenerator().nextId(),
+                    itemStack.getType().ordinal(),
+                    itemStack.getAmount(),
+                    Main.getServerId(),
+                    new CompoundTag()
+            ));
             AddSellItemEvent event = new AddSellItemEvent(sellItem, user);
 
             if (!Main.getStorage().onEvent(event).join().isValid()) {

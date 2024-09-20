@@ -3,8 +3,8 @@ package org.by1337.bauction.api.event;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.by1337.bauction.db.kernel.UnsoldItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.PluginUnsoldItem;
+import org.by1337.bauction.db.kernel.PluginUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,19 +13,19 @@ public class TakeUnsoldItemProcess extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
     private boolean cancelled;
     @NotNull
-    private final User user;
+    private final PluginUser user;
     @NotNull
-    private final UnsoldItem unsoldItem;
+    private final PluginUnsoldItem unsoldItem;
     @Nullable
     private String reason;
 
 
-    public TakeUnsoldItemProcess(@NotNull User user, @NotNull UnsoldItem unsoldItem) {
+    public TakeUnsoldItemProcess(@NotNull PluginUser user, @NotNull PluginUnsoldItem unsoldItem) {
         this.user = user;
         this.unsoldItem = unsoldItem;
     }
 
-    public TakeUnsoldItemProcess(boolean isAsync, @NotNull User user, @NotNull UnsoldItem unsoldItem) {
+    public TakeUnsoldItemProcess(boolean isAsync, @NotNull PluginUser user, @NotNull PluginUnsoldItem unsoldItem) {
         super(isAsync);
         this.user = user;
         this.unsoldItem = unsoldItem;
@@ -33,13 +33,13 @@ public class TakeUnsoldItemProcess extends Event implements Cancellable {
 
 
     @NotNull
-    public User getUser() {
+    public PluginUser getUser() {
         return user;
     }
 
 
     @NotNull
-    public UnsoldItem getUnsoldItem() {
+    public PluginUnsoldItem getUnsoldItem() {
         return unsoldItem;
     }
 

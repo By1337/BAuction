@@ -120,6 +120,62 @@ public class SellItem {
         return SellItem.builder(this).extra(extra).build();
     }
 
+    public NBT getItem() {
+        return item;
+    }
+
+    public String getSellerName() {
+        return sellerName;
+    }
+
+    public UUID getSellerUuid() {
+        return sellerUuid;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public boolean isSaleByThePiece() {
+        return saleByThePiece;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public long getTimeListedForSale() {
+        return timeListedForSale;
+    }
+
+    public long getRemovalDate() {
+        return removalDate;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public int getMaterial() {
+        return material;
+    }
+
+    public int getAmount() {
+        return amount;
+    }
+
+    public double getPriceForOne() {
+        return priceForOne;
+    }
+
+    public String getServer() {
+        return server;
+    }
+
+    public CompoundTag getExtra() {
+        return extra;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

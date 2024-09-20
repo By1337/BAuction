@@ -2,37 +2,37 @@ package org.by1337.bauction.api.event;
 
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.by1337.bauction.db.kernel.UnsoldItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.PluginUnsoldItem;
+import org.by1337.bauction.db.kernel.PluginUser;
 import org.jetbrains.annotations.NotNull;
 
 public class EventTakeUnsoldItem extends Event {
     private static final HandlerList handlers = new HandlerList();
 
     @NotNull
-    private final User user;
+    private final PluginUser user;
     @NotNull
-    private final UnsoldItem unsoldItem;
+    private final PluginUnsoldItem unsoldItem;
 
-    public EventTakeUnsoldItem(@NotNull User user, @NotNull UnsoldItem unsoldItem) {
+    public EventTakeUnsoldItem(@NotNull PluginUser user, @NotNull PluginUnsoldItem unsoldItem) {
         this.user = user;
         this.unsoldItem = unsoldItem;
     }
 
-    public EventTakeUnsoldItem(boolean isAsync, @NotNull User user, @NotNull UnsoldItem unsoldItem) {
+    public EventTakeUnsoldItem(boolean isAsync, @NotNull PluginUser user, @NotNull PluginUnsoldItem unsoldItem) {
         super(isAsync);
         this.user = user;
         this.unsoldItem = unsoldItem;
     }
 
     @NotNull
-    public User getUser() {
+    public PluginUser getUser() {
         return user;
     }
 
 
     @NotNull
-    public UnsoldItem getUnsoldItem() {
+    public PluginUnsoldItem getUnsoldItem() {
         return unsoldItem;
     }
 

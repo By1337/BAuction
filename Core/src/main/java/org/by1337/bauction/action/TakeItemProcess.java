@@ -2,8 +2,8 @@ package org.by1337.bauction.action;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.PluginSellItem;
+import org.by1337.bauction.db.kernel.PluginUser;
 
 import org.by1337.bauction.db.kernel.event.TakeItemEvent;
 import org.by1337.bauction.event.Event;
@@ -16,17 +16,17 @@ import org.by1337.bmenu.menu.Menu;
 import org.jetbrains.annotations.Nullable;
 
 public class TakeItemProcess extends Placeholder {
-    private final SellItem takingItem;
-    private final User taker;
+    private final PluginSellItem takingItem;
+    private final PluginUser taker;
     private final Menu menu;
 
-    public TakeItemProcess(Menu menu, User taker, @Nullable SellItem takingItem) {
+    public TakeItemProcess(Menu menu, PluginUser taker, @Nullable PluginSellItem takingItem) {
         this.menu = menu;
         this.taker = taker;
         this.takingItem = takingItem;
         if (takingItem != null) {
             registerPlaceholder("{buyer_name}", taker::getNickName);
-            registerPlaceholders((SellItem) takingItem);
+            registerPlaceholders((PluginSellItem) takingItem);
         }
 
     }
@@ -34,15 +34,15 @@ public class TakeItemProcess extends Placeholder {
     public TakeItemProcess(Menu menu) {
         this.menu = menu;
         this.taker = Main.getStorage().getUserOrCreate(menu.getPlayer());
-        if (menu.getLastClickedItem() != null && menu.getLastClickedItem().getData() instanceof SellItem) {
-            takingItem = (SellItem) menu.getLastClickedItem().getData();
+        if (menu.getLastClickedItem() != null && menu.getLastClickedItem().getData() instanceof PluginSellItem) {
+            takingItem = (PluginSellItem) menu.getLastClickedItem().getData();
         } else {
             Main.getMessage().error("isn't sell item! Last clicked item='%s'", menu.getLastClickedItem());
             takingItem = null;
         }
         registerPlaceholder("{taker_name}", taker::getNickName);
         if (takingItem != null)
-            registerPlaceholders((SellItem) takingItem);
+            registerPlaceholders((PluginSellItem) takingItem);
     }
 
     public void run() {

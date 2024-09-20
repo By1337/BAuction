@@ -73,6 +73,34 @@ public class User {
         return User.builder(this).extra(extra).build();
     }
 
+    public String getNickName() {
+        return nickName;
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public int getDealCount() {
+        return dealCount;
+    }
+
+    public double getDealSum() {
+        return dealSum;
+    }
+
+    public int getExternalSlots() {
+        return externalSlots;
+    }
+
+    public long getExternalSellTime() {
+        return externalSellTime;
+    }
+
+    public CompoundTag getExtra() {
+        return extra;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

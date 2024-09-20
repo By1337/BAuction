@@ -5,9 +5,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.api.auc.ItemHolder;
-import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.PluginSellItem;
 import org.by1337.bauction.util.common.NumberUtil;
-import org.by1337.blib.chat.placeholder.Placeholder;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.blib.command.argument.ArgumentInteger;
@@ -22,7 +21,7 @@ public class SelectCountMenu extends Menu implements ItemHolder {
     private static final Command<SelectCountMenu> SELECT_COUNT_MENU_COMMAND;
     private final Cache cache;
     private static boolean seenIllegalCash;
-    private SellItem sellItem;
+    private PluginSellItem sellItem;
 
     public SelectCountMenu(MenuSetting setting, Player player, @Nullable Menu previousMenu, MenuLoader menuLoader) {
         super(setting, player, previousMenu, menuLoader);
@@ -40,7 +39,7 @@ public class SelectCountMenu extends Menu implements ItemHolder {
         }
         if (previousMenu != null) {
             if (previousMenu.getLastClickedItem() != null) {
-                if (previousMenu.getLastClickedItem().getData() instanceof SellItem sellItem0) {
+                if (previousMenu.getLastClickedItem().getData() instanceof PluginSellItem sellItem0) {
                     sellItem = sellItem0;
                     registerPlaceholders(sellItem);
                     registerPlaceholder("{count}", () -> count);
@@ -71,7 +70,7 @@ public class SelectCountMenu extends Menu implements ItemHolder {
         return count;
     }
 
-    public SellItem getSellItem() {
+    public PluginSellItem getSellItem() {
         return sellItem;
     }
 

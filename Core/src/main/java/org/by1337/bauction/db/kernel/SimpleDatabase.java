@@ -1,6 +1,7 @@
 package org.by1337.bauction.db.kernel;
 
 import org.bukkit.entity.Player;
+import org.by1337.bauction.common.db.type.User;
 import org.by1337.bauction.db.SortingItems;
 import org.by1337.bauction.util.auction.Category;
 import org.by1337.bauction.util.auction.Sorting;
@@ -18,24 +19,24 @@ import java.util.function.Supplier;
 
 @ThreadSafe
 public abstract class SimpleDatabase {
-    private static final Comparator<SellItem> SELL_ITEM_COMPARATOR = (o, o1) -> {
-        int res = Long.compare(o.removalDate, o1.removalDate);
+    private static final Comparator<PluginSellItem> SELL_ITEM_COMPARATOR = (o, o1) -> {
+        int res = Long.compare(o.getRemovalDate(), o1.getRemovalDate());
         if (res == 0) {
-            return Long.compare(o.id, o1.id);
+            return Long.compare(o.getId(), o1.getId());
         }
         return res;
     };
-    private static final Comparator<UnsoldItem> UNSOLD_ITEM_COMPARATOR = (o, o1) -> {
-        int res = Long.compare(o.deleteVia, o1.deleteVia);
+    private static final Comparator<PluginUnsoldItem> UNSOLD_ITEM_COMPARATOR = (o, o1) -> {
+        int res = Long.compare(o.getDeleteVia(), o1.getDeleteVia());
         if (res == 0) {
-            return Long.compare(o.id, o1.id);
+            return Long.compare(o.getId(), o1.getId());
         }
         return res;
     };
     protected final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    private final Map<UUID, User> users = new HashMap<>();
-    private final TreeSet<SellItem> sortedSellItems;
-    private final TreeSet<UnsoldItem> sortedUnsoldItems;
+    private final Map<UUID, PluginUser> users = new HashMap<>();
+    private final TreeSet<PluginSellItem> sortedSellItems;
+    private final TreeSet<PluginUnsoldItem> sortedUnsoldItems;
 
     private final Map<NameKey, Category> categoryMap;
     private final Map<NameKey, Sorting> sortingMap;
@@ -54,12 +55,12 @@ public abstract class SimpleDatabase {
     }
 
     @Nullable
-    public SellItem getFirstSellItem() {
+    public PluginSellItem getFirstSellItem() {
         return readLock(() -> sortedSellItems.isEmpty() ? null : sortedSellItems.first());
     }
 
     @Nullable
-    public UnsoldItem getFirstUnsoldItem() {
+    public PluginUnsoldItem getFirstUnsoldItem() {
         return readLock(() -> sortedUnsoldItems.isEmpty() ? null : sortedUnsoldItems.first());
     }
 
@@ -71,9 +72,9 @@ public abstract class SimpleDatabase {
         return readLock(() -> indexed.sellItemsMap.containsKey(id));
     }
 
-    protected void addSellItem(@NotNull SellItem sellItem) {
-        if (hasSellItem(sellItem.id)) {
-            throw new IllegalStateException("SellItem with id '" + sellItem.id + "' already exists in the database!");
+    protected void addSellItem(@NotNull PluginSellItem sellItem) {
+        if (hasSellItem(sellItem.getId())) {
+            throw new IllegalStateException("PluginSellItem with id '" + sellItem.getId() + "' already exists in the database!");
         }
         writeLock(() -> {
             sortedSellItems.add(sellItem);
@@ -82,14 +83,14 @@ public abstract class SimpleDatabase {
     }
 
     @Nullable
-    public SellItem getSellItem(long id) {
+    public PluginSellItem getSellItem(long id) {
         return readLock(() -> indexed.sellItemsMap.get(id));
     }
 
     protected void removeSellItem(long id) {
-        SellItem item = getSellItem(id);
+        PluginSellItem item = getSellItem(id);
         if (item == null) {
-            throw new NoSuchElementException("Has no SellItem with id: " + id);
+            throw new NoSuchElementException("Has no PluginSellItem with id: " + id);
         }
         writeLock(() -> {
             sortedSellItems.remove(item);
@@ -102,14 +103,14 @@ public abstract class SimpleDatabase {
     }
 
     @Nullable
-    public UnsoldItem getUnsoldItem(long id) {
+    public PluginUnsoldItem getUnsoldItem(long id) {
         return readLock(() -> indexed.unsoldItemsMap.get(id));
     }
 
     protected void removeUnsoldItem(long id) {
-        UnsoldItem item = getUnsoldItem(id);
+        PluginUnsoldItem item = getUnsoldItem(id);
         if (item == null) {
-            throw new NoSuchElementException("Has no UnsoldItem with id: " + id);
+            throw new NoSuchElementException("Has no PluginUnsoldItem with id: " + id);
         }
         writeLock(() -> {
             sortedUnsoldItems.remove(item);
@@ -117,9 +118,9 @@ public abstract class SimpleDatabase {
         });
     }
 
-    protected void addUnsoldItem(@NotNull UnsoldItem unsoldItem) {
-        if (hasUnsoldItem(unsoldItem.id)) {
-            throw new IllegalStateException("UnsoldItem with id '" + unsoldItem.id + "' already exists in the database!");
+    protected void addUnsoldItem(@NotNull PluginUnsoldItem unsoldItem) {
+        if (hasUnsoldItem(unsoldItem.getId())) {
+            throw new IllegalStateException("PluginUnsoldItem with id '" + unsoldItem.getId() + "' already exists in the database!");
         }
         writeLock(() -> {
             sortedUnsoldItems.add(unsoldItem);
@@ -128,25 +129,25 @@ public abstract class SimpleDatabase {
     }
 
     @Nullable
-    public User getUser(UUID uuid) {
+    public PluginUser getUser(UUID uuid) {
         return readLock(() -> users.get(uuid));
     }
 
-    public User getUserOrCreate(Player player) {
+    public PluginUser getUserOrCreate(Player player) {
         return getUserOrCreate(player.getName(), player.getUniqueId());
     }
 
-    public User getUserOrCreate(String name, UUID uuid) {
-        User user = getUser(uuid);
+    public PluginUser getUserOrCreate(String name, UUID uuid) {
+        PluginUser user = getUser(uuid);
         if (user != null) return user;
-        user = new User(name, uuid, new CompoundTag());
-        User finalUser = user;
+        user = new PluginUser(new User(name, uuid, 0, 0, 0, 0, new CompoundTag()));
+        PluginUser finalUser = user;
         writeLock(() -> users.put(uuid, finalUser));
         return user;
     }
 
-    protected void setUser(User user) {
-        writeLock(() -> users.put(user.uuid, user));
+    protected void setUser(PluginUser user) {
+        writeLock(() -> users.put(user.getUuid(), user));
     }
 
     public int getUnsoldItemsCount() {
@@ -156,14 +157,14 @@ public abstract class SimpleDatabase {
         return readLock(users::size);
     }
 
-    public void forEachUnsoldItems(Consumer<UnsoldItem> action) {
+    public void forEachUnsoldItems(Consumer<PluginUnsoldItem> action) {
         readLock(() -> sortedUnsoldItems.forEach(action));
     }
-    public void forEachUsers(Consumer<User> action) {
+    public void forEachUsers(Consumer<PluginUser> action) {
         readLock(() -> users.values().forEach(action));
     }
 
-    public void forEachSellItemsBy(Consumer<SellItem> action, NameKey category, NameKey sorting) {
+    public void forEachSellItemsBy(Consumer<PluginSellItem> action, NameKey category, NameKey sorting) {
         readLock(() -> {
             Map<NameKey, SortingItems> map = indexed.sortedItems.get(category);
             if (map == null) {
@@ -190,21 +191,21 @@ public abstract class SimpleDatabase {
         });
     }
 
-    public void forEachSellItems(Consumer<SellItem> action) {
+    public void forEachSellItems(Consumer<PluginSellItem> action) {
         readLock(() -> sortedSellItems.forEach(action));
     }
 
-    public void forEachSellItemsByUser(Consumer<SellItem> action, @NotNull UUID uuid) {
+    public void forEachSellItemsByUser(Consumer<PluginSellItem> action, @NotNull UUID uuid) {
         readLock(() -> {
-            Pair<TreeSet<SellItem>, TreeSet<UnsoldItem>> pair = indexed.itemsByOwner.get(uuid);
+            Pair<TreeSet<PluginSellItem>, TreeSet<PluginUnsoldItem>> pair = indexed.itemsByOwner.get(uuid);
             if (pair == null) return;
             pair.getKey().forEach(action);
         });
     }
 
-    public void forEachUnsoldItemsByUser(Consumer<UnsoldItem> action, @NotNull UUID uuid) {
+    public void forEachUnsoldItemsByUser(Consumer<PluginUnsoldItem> action, @NotNull UUID uuid) {
         readLock(() -> {
-            Pair<TreeSet<SellItem>, TreeSet<UnsoldItem>> pair = indexed.itemsByOwner.get(uuid);
+            Pair<TreeSet<PluginSellItem>, TreeSet<PluginUnsoldItem>> pair = indexed.itemsByOwner.get(uuid);
             if (pair == null) return;
             pair.getRight().forEach(action);
         });
@@ -212,7 +213,7 @@ public abstract class SimpleDatabase {
 
     public int getSellItemsCountByUser(@NotNull UUID uuid) {
         return readLock(() -> {
-            Pair<TreeSet<SellItem>, TreeSet<UnsoldItem>> pair = indexed.itemsByOwner.get(uuid);
+            Pair<TreeSet<PluginSellItem>, TreeSet<PluginUnsoldItem>> pair = indexed.itemsByOwner.get(uuid);
             if (pair == null) return 0;
             return pair.getKey().size();
         });
@@ -220,7 +221,7 @@ public abstract class SimpleDatabase {
 
     public int getUnsoldItemsCountByUser(@NotNull UUID uuid) {
         return readLock(() -> {
-            Pair<TreeSet<SellItem>, TreeSet<UnsoldItem>> pair = indexed.itemsByOwner.get(uuid);
+            Pair<TreeSet<PluginSellItem>, TreeSet<PluginUnsoldItem>> pair = indexed.itemsByOwner.get(uuid);
             if (pair == null) return 0;
             return pair.getRight().size();
         });
@@ -228,9 +229,9 @@ public abstract class SimpleDatabase {
 
 
     private class Indexed {
-        private final Map<Long, SellItem> sellItemsMap = new HashMap<>();
-        private final Map<Long, UnsoldItem> unsoldItemsMap = new HashMap<>();
-        private final Map<UUID, Pair<TreeSet<SellItem>, TreeSet<UnsoldItem>>> itemsByOwner = new HashMap<>();
+        private final Map<Long, PluginSellItem> sellItemsMap = new HashMap<>();
+        private final Map<Long, PluginUnsoldItem> unsoldItemsMap = new HashMap<>();
+        private final Map<UUID, Pair<TreeSet<PluginSellItem>, TreeSet<PluginUnsoldItem>>> itemsByOwner = new HashMap<>();
         private final Map<NameKey, Map<NameKey, SortingItems>> sortedItems = new HashMap<>();
 
         public Indexed() {
@@ -245,36 +246,36 @@ public abstract class SimpleDatabase {
             });
         }
 
-        private void addUnsoldItem(@NotNull UnsoldItem unsoldItem) {
+        private void addUnsoldItem(@NotNull PluginUnsoldItem unsoldItem) {
             isWriteLock();
-            unsoldItemsMap.put(unsoldItem.id, unsoldItem);
-            Pair<TreeSet<SellItem>, TreeSet<UnsoldItem>> pair = itemsByOwner.computeIfAbsent(unsoldItem.sellerUuid, k ->
+            unsoldItemsMap.put(unsoldItem.getId(), unsoldItem);
+            Pair<TreeSet<PluginSellItem>, TreeSet<PluginUnsoldItem>> pair = itemsByOwner.computeIfAbsent(unsoldItem.getSellerUuid(), k ->
                     new Pair<>(new TreeSet<>(SELL_ITEM_COMPARATOR), new TreeSet<>(UNSOLD_ITEM_COMPARATOR))
             );
             pair.getRight().add(unsoldItem);
         }
 
-        private void removeUnsoldItem(@NotNull UnsoldItem unsoldItem) {
+        private void removeUnsoldItem(@NotNull PluginUnsoldItem unsoldItem) {
             isWriteLock();
-            unsoldItemsMap.remove(unsoldItem.id);
-            Pair<TreeSet<SellItem>, TreeSet<UnsoldItem>> pair = itemsByOwner.computeIfAbsent(unsoldItem.sellerUuid, k ->
+            unsoldItemsMap.remove(unsoldItem.getId());
+            Pair<TreeSet<PluginSellItem>, TreeSet<PluginUnsoldItem>> pair = itemsByOwner.computeIfAbsent(unsoldItem.getSellerUuid(), k ->
                     new Pair<>(new TreeSet<>(SELL_ITEM_COMPARATOR), new TreeSet<>(UNSOLD_ITEM_COMPARATOR))
             );
             pair.getRight().remove(unsoldItem);
             if (pair.getLeft().isEmpty() && pair.getRight().isEmpty()) {
-                itemsByOwner.remove(unsoldItem.sellerUuid);
+                itemsByOwner.remove(unsoldItem.getSellerUuid());
             }
         }
 
-        private void removeSellItem(@NotNull SellItem sellItem) {
+        private void removeSellItem(@NotNull PluginSellItem sellItem) {
             isWriteLock();
-            sellItemsMap.remove(sellItem.id);
-            Pair<TreeSet<SellItem>, TreeSet<UnsoldItem>> pair = itemsByOwner.computeIfAbsent(sellItem.sellerUuid, k ->
+            sellItemsMap.remove(sellItem.getId());
+            Pair<TreeSet<PluginSellItem>, TreeSet<PluginUnsoldItem>> pair = itemsByOwner.computeIfAbsent(sellItem.getSellerUuid(), k ->
                     new Pair<>(new TreeSet<>(SELL_ITEM_COMPARATOR), new TreeSet<>(UNSOLD_ITEM_COMPARATOR))
             );
             pair.getLeft().remove(sellItem);
             if (pair.getLeft().isEmpty() && pair.getRight().isEmpty()) {
-                itemsByOwner.remove(sellItem.sellerUuid);
+                itemsByOwner.remove(sellItem.getSellerUuid());
             }
             sortedItems.forEach((key, value) -> {
                 Category category = categoryMap.get(key);
@@ -285,10 +286,10 @@ public abstract class SimpleDatabase {
             });
         }
 
-        private void addSellItem(@NotNull SellItem sellItem) {
+        private void addSellItem(@NotNull PluginSellItem sellItem) {
             isWriteLock();
-            sellItemsMap.put(sellItem.id, sellItem);
-            Pair<TreeSet<SellItem>, TreeSet<UnsoldItem>> pair = itemsByOwner.computeIfAbsent(sellItem.sellerUuid, k ->
+            sellItemsMap.put(sellItem.getId(), sellItem);
+            Pair<TreeSet<PluginSellItem>, TreeSet<PluginUnsoldItem>> pair = itemsByOwner.computeIfAbsent(sellItem.getSellerUuid(), k ->
                     new Pair<>(new TreeSet<>(SELL_ITEM_COMPARATOR), new TreeSet<>(UNSOLD_ITEM_COMPARATOR))
             );
             pair.getLeft().add(sellItem);

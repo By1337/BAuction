@@ -5,7 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.PluginUser;
 import org.by1337.bauction.lang.Lang;
 import org.by1337.bauction.menu.PlayerItemsView;
 import org.by1337.blib.command.Command;
@@ -59,7 +59,7 @@ public class ViewCommand extends Command<CommandSender> {
             }
         }
 
-        User user = Main.getStorage().getUser(uuid);
+        PluginUser user = Main.getStorage().getUser(uuid);
 
         if (user == null) {
             Main.getMessage().sendMsg(sender, Lang.getMessage("player-not-found"));

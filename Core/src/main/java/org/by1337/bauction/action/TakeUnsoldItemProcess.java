@@ -2,8 +2,8 @@ package org.by1337.bauction.action;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.UnsoldItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.PluginUnsoldItem;
+import org.by1337.bauction.db.kernel.PluginUser;
 import org.by1337.bauction.db.kernel.event.TakeUnsoldItemEvent;
 import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
@@ -16,11 +16,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class TakeUnsoldItemProcess extends Placeholder {
     private final Menu menu;
-    private final User taker;
+    private final PluginUser taker;
     private @Nullable
-    final UnsoldItem takingItem;
+    final PluginUnsoldItem takingItem;
 
-    public TakeUnsoldItemProcess(Menu menu, User taker, @Nullable UnsoldItem takingItem) {
+    public TakeUnsoldItemProcess(Menu menu, PluginUser taker, @Nullable PluginUnsoldItem takingItem) {
         this.menu = menu;
         this.taker = taker;
         this.takingItem = takingItem;
@@ -32,8 +32,8 @@ public class TakeUnsoldItemProcess extends Placeholder {
     public TakeUnsoldItemProcess(Menu menu) {
         this.menu = menu;
         this.taker = Main.getStorage().getUserOrCreate(menu.getPlayer());
-        if (menu.getLastClickedItem() != null && menu.getLastClickedItem().getData() instanceof UnsoldItem) {
-            takingItem = (UnsoldItem) menu.getLastClickedItem().getData();
+        if (menu.getLastClickedItem() != null && menu.getLastClickedItem().getData() instanceof PluginUnsoldItem) {
+            takingItem = (PluginUnsoldItem) menu.getLastClickedItem().getData();
         } else {
             Main.getMessage().error("isn't sell item! Last clicked item='%s'", menu.getLastClickedItem());
             takingItem = null;

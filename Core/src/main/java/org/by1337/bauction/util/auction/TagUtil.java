@@ -10,7 +10,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.Plugin;
 import org.by1337.blib.BLib;
 import org.by1337.blib.configuration.YamlContext;
-import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.PluginSellItem;
 import org.by1337.blib.nbt.impl.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 
@@ -106,7 +106,7 @@ public class TagUtil {
         return list;
     }
 
-    public static boolean matchesCategory(Category category, SellItem sellItem) {
+    public static boolean matchesCategory(Category category, PluginSellItem sellItem) {
         if (category.tags().contains("any")) return true;
         for (String s : sellItem.getTags()) {
             if (category.tags().contains(s))

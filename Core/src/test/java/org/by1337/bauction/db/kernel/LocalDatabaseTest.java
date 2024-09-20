@@ -1,6 +1,8 @@
 package org.by1337.bauction.db.kernel;
 
 import org.bukkit.Material;
+import org.by1337.bauction.common.db.type.SellItem;
+import org.by1337.bauction.common.db.type.UnsoldItem;
 import org.by1337.bauction.test.util.BLibApi;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.PluginBootstrap;
@@ -18,8 +20,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LocalDatabaseTest {
     private MemoryDatabase database;
-    private User seller;
-    private User buyer;
+    private PluginUser seller;
+    private PluginUser buyer;
     private Main plugin;
     private PluginBootstrap pluginBootstrap;
 
@@ -44,7 +46,7 @@ class LocalDatabaseTest {
     }
 
     void sellItemTest() {
-        SellItem sellItem = createSellItem();
+        PluginSellItem sellItem = createSellItem();
 
         AddSellItemEvent event = new AddSellItemEvent(sellItem, seller);
 
@@ -67,19 +69,19 @@ class LocalDatabaseTest {
     }
 
     void buyItemCountTest() {
-        SellItem sellItem = createSellItem();
+        PluginSellItem sellItem = createSellItem();
         assertTrue(database.onEvent(new AddSellItemEvent(sellItem, seller)).join().isValid());
 
         BuyCountItemEvent event = database.onEvent(new BuyCountItemEvent(buyer, sellItem, 15)).join();
 
         assertTrue(event.isValid());
 
-        assertEquals(64 - 15, Objects.requireNonNull(database.getFirstSellItem()).amount);
+        assertEquals(64 - 15, Objects.requireNonNull(database.getFirstSellItem()).getAmount());
 
-        database.removeSellItem(database.getFirstSellItem().id);
+        database.removeSellItem(database.getFirstSellItem().getId());
     }
     void takeItemTest() {
-        SellItem sellItem = createSellItem();
+        PluginSellItem sellItem = createSellItem();
         assertTrue(database.onEvent(new AddSellItemEvent(sellItem, seller)).join().isValid());
 
         TakeItemEvent event = database.onEvent(new TakeItemEvent(sellItem, seller)).join();
@@ -89,7 +91,7 @@ class LocalDatabaseTest {
         assertEquals(0, database.getSellItemsCount());
     }
     void addAndTakeUnsoldItemTest() {
-        UnsoldItem unsoldItem = createUnsoldItem();
+        PluginUnsoldItem unsoldItem = createUnsoldItem();
         assertTrue(database.onEvent(new AddUnsoldItemEvent(unsoldItem)).join().isValid());
 
         TakeUnsoldItemEvent event = database.onEvent(new TakeUnsoldItemEvent(seller, unsoldItem)).join();
@@ -99,33 +101,35 @@ class LocalDatabaseTest {
         assertEquals(0, database.getUnsoldItemsCount());
     }
 
-    private SellItem createSellItem() {
-        return new SellItem(
-                new CompoundTag(),
-                seller.nickName,
-                seller.uuid,
-                100,
-                true,
-                Set.of("123"),
-                Long.MAX_VALUE,
-                Long.MAX_VALUE,
-                Main.getUniqueIdGenerator().nextId(),
-                Material.AIR,
-                64,
-                10,
-                null,
-                "server",
-                new CompoundTag()
+    private PluginSellItem createSellItem() {
+        return new PluginSellItem(
+               new SellItem(
+                       new CompoundTag(),
+                       seller.getNickName(),
+                       seller.getUuid(),
+                       100,
+                       true,
+                       Set.of("123"),
+                       Long.MAX_VALUE,
+                       Long.MAX_VALUE,
+                       Main.getUniqueIdGenerator().nextId(),
+                       0,
+                       64,
+                       "server",
+                       new CompoundTag()
+               )
         );
     }
-    private UnsoldItem createUnsoldItem(){
-        return new UnsoldItem(
-                new CompoundTag(),
-                Long.MAX_VALUE,
-                seller.uuid,
-                Main.getUniqueIdGenerator().nextId(),
-                Long.MAX_VALUE,
-                new CompoundTag()
+    private PluginUnsoldItem createUnsoldItem(){
+        return new PluginUnsoldItem(
+               new UnsoldItem(
+                       new CompoundTag(),
+                       Long.MAX_VALUE,
+                       seller.getUuid(),
+                       Main.getUniqueIdGenerator().nextId(),
+                       Long.MAX_VALUE,
+                       new CompoundTag()
+               )
         );
     }
 

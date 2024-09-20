@@ -2,8 +2,8 @@ package org.by1337.bauction.menu;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.UnsoldItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.PluginUnsoldItem;
+import org.by1337.bauction.db.kernel.PluginUser;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.bmenu.menu.*;
@@ -18,10 +18,10 @@ public class UnsoldItemsMenu extends Menu {
     protected int currentPage = 0;
     protected int maxPage = 0;
 
-    protected User user;
+    protected PluginUser user;
     private final Cache cache;
     private static boolean seenIllegalCash;
-    private final List<UnsoldItem> unsoldItems = new ArrayList<>();
+    private final List<PluginUnsoldItem> unsoldItems = new ArrayList<>();
 
     public UnsoldItemsMenu(MenuSetting setting, Player player, @Nullable Menu previousMenu, MenuLoader menuLoader) {
         super(setting, player, previousMenu, menuLoader);
@@ -41,7 +41,7 @@ public class UnsoldItemsMenu extends Menu {
     }
 
     private void init() {
-        user = (User) Main.getStorage().getUserOrCreate(viewer);
+        user = (PluginUser) Main.getStorage().getUserOrCreate(viewer);
         registerPlaceholder("{max_page}", () -> maxPage == 0 ? 1 : maxPage);
         registerPlaceholder("{current_page}", () -> currentPage + 1);
         registerPlaceholders(user);
@@ -53,7 +53,7 @@ public class UnsoldItemsMenu extends Menu {
         Iterator<Integer> slotsIterator = cache.getSlots().listIterator();
         customItems.clear();
         for (int x = currentPage * cache.getSlots().size(); x < unsoldItems.size(); x++) {
-            UnsoldItem item = unsoldItems.get(x);
+            PluginUnsoldItem item = unsoldItems.get(x);
             if (slotsIterator.hasNext()) {
                 int slot = slotsIterator.next();
 

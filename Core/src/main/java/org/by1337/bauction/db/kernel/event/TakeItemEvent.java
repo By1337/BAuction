@@ -1,17 +1,17 @@
 package org.by1337.bauction.db.kernel.event;
 
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.PluginSellItem;
+import org.by1337.bauction.db.kernel.PluginUser;
 
 public class TakeItemEvent extends SellItemEvent {
-    private final User user;
+    private final PluginUser user;
 
-    public TakeItemEvent(SellItem sellItem, User user) {
+    public TakeItemEvent(PluginSellItem sellItem, PluginUser user) {
         super(sellItem);
         this.user = user;
     }
 
-    public User getUser() {
+    public PluginUser getUser() {
         return user;
     }
 }

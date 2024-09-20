@@ -3,7 +3,7 @@ package org.by1337.bauction.boost;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.by1337.blib.configuration.YamlContext;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.PluginUser;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -16,7 +16,7 @@ public class BoostManager {
         boosts = context.getList("boosts", Boost.class);
     }
 
-    public User userUpdate(@NotNull User user) {
+    public PluginUser userUpdate(@NotNull PluginUser user) {
         Player player = Bukkit.getPlayer(user.getUuid());
         if (player == null) return user;
         int slots = 0;
@@ -27,8 +27,8 @@ public class BoostManager {
                 sellTime += boost.getExternalSellTime();
             }
         }
-        user.setExternalSlots(slots);
-        user.setExternalSellTime(sellTime);
+     //   user.setExternalSlots(slots);
+      //  user.setExternalSellTime(sellTime);
         return user;
     }
 

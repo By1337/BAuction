@@ -1,10 +1,9 @@
 package org.by1337.bauction.util.auction;
 
 import org.by1337.blib.util.NameKey;
-import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.PluginSellItem;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -60,7 +59,7 @@ public class Category implements Comparable<Category> {
         this.tags = tags;
     }
 
-    public boolean matches(SellItem sellItem){
+    public boolean matches(PluginSellItem sellItem){
         return TagUtil.matchesCategory(this, sellItem);
     }
     @Override

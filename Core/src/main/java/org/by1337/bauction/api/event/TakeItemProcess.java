@@ -3,8 +3,8 @@ package org.by1337.bauction.api.event;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.PluginSellItem;
+import org.by1337.bauction.db.kernel.PluginUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,9 +18,9 @@ public class TakeItemProcess extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
     private boolean cancelled;
     @NotNull
-    private final User user;
+    private final PluginUser user;
     @NotNull
-    private final SellItem sellItem;
+    private final PluginSellItem sellItem;
     @Nullable
     private String reason;
 
@@ -30,7 +30,7 @@ public class TakeItemProcess extends Event implements Cancellable {
      * @param user The player attempting to remove the item from sale.
      * @param sellItem The item to be removed from sale.
      */
-    public TakeItemProcess(@NotNull User user, @NotNull SellItem sellItem) {
+    public TakeItemProcess(@NotNull PluginUser user, @NotNull PluginSellItem sellItem) {
         this.user = user;
         this.sellItem = sellItem;
     }
@@ -42,7 +42,7 @@ public class TakeItemProcess extends Event implements Cancellable {
      * @param user The player attempting to remove the item from sale.
      * @param sellItem The item to be removed from sale.
      */
-    public TakeItemProcess(boolean isAsync, @NotNull User user, @NotNull SellItem sellItem) {
+    public TakeItemProcess(boolean isAsync, @NotNull PluginUser user, @NotNull PluginSellItem sellItem) {
         super(isAsync);
         this.user = user;
         this.sellItem = sellItem;
@@ -54,7 +54,7 @@ public class TakeItemProcess extends Event implements Cancellable {
      * @return The user attempting to remove the item from sale.
      */
     @NotNull
-    public User getUser() {
+    public PluginUser getUser() {
         return user;
     }
 
@@ -64,7 +64,7 @@ public class TakeItemProcess extends Event implements Cancellable {
      * @return The item to be removed from sale.
      */
     @NotNull
-    public SellItem getSellItem() {
+    public PluginSellItem getSellItem() {
         return sellItem;
     }
 

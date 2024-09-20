@@ -2,7 +2,7 @@ package org.by1337.bauction.auto.buy;
 
 import org.bukkit.inventory.ItemStack;
 import org.by1337.blib.BLib;
-import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.PluginSellItem;
 import org.by1337.bauction.api.serialize.SerializableToByteArray;
 import org.by1337.bauction.serialize.SerializeUtils;
 import org.by1337.bauction.util.auction.TagUtil;
@@ -48,7 +48,7 @@ public class BuyingItem implements SerializableToByteArray {
         return itemStack.clone();
     }
 
-    public boolean canBuy(SellItem sellItem) {
+    public boolean canBuy(PluginSellItem sellItem) {
         if ((sellItem.getPrice() / sellItem.getAmount()) > maxPrice) return false;
         TagsEqualsState state = checkTags(sellItem.getTags());
         if (state == TagsEqualsState.NOT_EQUALS) return false;

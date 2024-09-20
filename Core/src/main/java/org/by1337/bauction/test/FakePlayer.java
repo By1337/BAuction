@@ -6,11 +6,14 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.common.db.type.SellItem;
+import org.by1337.bauction.db.kernel.PluginSellItem;
+import org.by1337.bauction.db.kernel.PluginUser;
 import org.by1337.bauction.db.kernel.MemoryDatabase;
 import org.by1337.bauction.db.kernel.event.AddSellItemEvent;
 import org.by1337.bauction.db.kernel.event.BuyItemEvent;
+import org.by1337.bauction.util.auction.TagUtil;
+import org.by1337.blib.nbt.impl.CompoundTag;
 
 import java.util.Random;
 import java.util.UUID;
@@ -48,9 +51,9 @@ public class FakePlayer {
     private void buyItem() {
         if (storage.getSellItemsCount() == 0) return;
 
-        SellItem item = storage.getFirstSellItem();
+        PluginSellItem item = storage.getFirstSellItem();
 
-        User user = storage.getUserOrCreate(nickName, uuid);
+        PluginUser user = storage.getUserOrCreate(nickName, uuid);
 
         BuyItemEvent event = new BuyItemEvent(user, item);
         Main.getStorage().onEvent(event).whenComplete((e, t) -> {
@@ -62,11 +65,26 @@ public class FakePlayer {
     }
 
     private void sellItem() {
-        User user = storage.getUserOrCreate(nickName, uuid);
-        user.setExternalSlots(9999);
+        PluginUser user = storage.getUserOrCreate(nickName, uuid);
+        user.setSource(user.getSource().setExternalSlots(99999));
+
         ItemStack itemStack = new ItemStack(Material.values()[random.nextInt(50) + 1]);
         itemStack.setAmount(random.nextInt(itemStack.getType().getMaxStackSize() - 1) + 1);
-        SellItem sellItem = new SellItem(nickName, uuid, itemStack, random.nextInt(200) + 200, Main.getCfg().getDefaultSellTime() + user.getExternalSellTime(), true);
+        PluginSellItem sellItem = new PluginSellItem(new SellItem(
+                PluginSellItem.serializeItemStack(itemStack),
+                nickName,
+                uuid,
+                random.nextInt(200) + 200,
+                true,
+                TagUtil.getTags(itemStack),
+                System.currentTimeMillis(),
+                System.currentTimeMillis() + Main.getCfg().getDefaultSellTime() + user.getExternalSellTime(),
+                Main.getUniqueIdGenerator().nextId(),
+                itemStack.getType().ordinal(),
+                itemStack.getAmount(),
+                Main.getServerId(),
+                new CompoundTag()
+        ));
         AddSellItemEvent event = new AddSellItemEvent(sellItem, user);
         storage.onEvent(event).whenComplete((e, t) -> {
         });

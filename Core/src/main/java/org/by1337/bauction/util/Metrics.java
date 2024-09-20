@@ -311,7 +311,7 @@ public class Metrics {
             connection.addRequestProperty("Content-Encoding", "gzip");
             connection.addRequestProperty("Content-Length", String.valueOf(compressedData.length));
             connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("User-Agent", "Metrics-Service/1");
+            connection.setRequestProperty("PluginUser-Agent", "Metrics-Service/1");
             connection.setDoOutput(true);
             try (DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream())) {
                 outputStream.write(compressedData);

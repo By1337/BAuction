@@ -3,8 +3,8 @@ package org.by1337.bauction.api.event;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.PluginSellItem;
+import org.by1337.bauction.db.kernel.PluginUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,31 +13,31 @@ public class BuyItemProcess extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
     private boolean cancelled;
     @NotNull
-    private final User buyer;
+    private final PluginUser buyer;
     @NotNull
-    private final SellItem sellItem;
+    private final PluginSellItem sellItem;
     @Nullable
     private String reason;
 
 
-    public BuyItemProcess(@NotNull User buyer, @NotNull SellItem sellItem) {
+    public BuyItemProcess(@NotNull PluginUser buyer, @NotNull PluginSellItem sellItem) {
         this.buyer = buyer;
         this.sellItem = sellItem;
     }
 
-    public BuyItemProcess(boolean isAsync, @NotNull User buyer, @NotNull SellItem sellItem) {
+    public BuyItemProcess(boolean isAsync, @NotNull PluginUser buyer, @NotNull PluginSellItem sellItem) {
         super(isAsync);
         this.buyer = buyer;
         this.sellItem = sellItem;
     }
 
     @NotNull
-    public User getBuyer() {
+    public PluginUser getBuyer() {
         return buyer;
     }
 
     @NotNull
-    public SellItem getSellItem() {
+    public PluginSellItem getSellItem() {
         return sellItem;
     }
 

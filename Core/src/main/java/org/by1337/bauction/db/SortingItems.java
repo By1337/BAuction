@@ -1,6 +1,6 @@
 package org.by1337.bauction.db;
 
-import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.PluginSellItem;
 import org.by1337.bauction.util.auction.Sorting;
 import org.by1337.blib.util.NameKey;
 
@@ -10,10 +10,10 @@ import java.util.TreeSet;
 
 public class SortingItems {
 
-    private TreeSet<SellItem> items;
+    private TreeSet<PluginSellItem> items;
     private final NameKey sortingName;
     private final Sorting sorting;
-    private final Comparator<SellItem> comparator;
+    private final Comparator<PluginSellItem> comparator;
 
     public SortingItems(Sorting sorting) {
         sortingName = sorting.nameKey();
@@ -26,11 +26,11 @@ public class SortingItems {
         });
     }
 
-    public void addItem(SellItem sellItem) {
+    public void addItem(PluginSellItem sellItem) {
         items.add(sellItem);
     }
 
-    public void remove(SellItem sellItem) {
+    public void remove(PluginSellItem sellItem) {
         items.remove(sellItem);
     }
 
@@ -38,7 +38,7 @@ public class SortingItems {
         items.clear();
     }
 
-    public Collection<SellItem> getItems() {
+    public Collection<PluginSellItem> getItems() {
         return items;
     }
 

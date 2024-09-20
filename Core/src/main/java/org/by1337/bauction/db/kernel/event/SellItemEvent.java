@@ -1,16 +1,16 @@
 package org.by1337.bauction.db.kernel.event;
 
 import org.by1337.bauction.common.db.event.Event;
-import org.by1337.bauction.db.kernel.SellItem;
+import org.by1337.bauction.db.kernel.PluginSellItem;
 
 public class SellItemEvent extends Event {
-    protected final SellItem sellItem;
+    protected final PluginSellItem sellItem;
 
-    public SellItemEvent(SellItem sellItem) {
+    public SellItemEvent(PluginSellItem sellItem) {
         this.sellItem = sellItem;
     }
 
-    public SellItem getSellItem() {
+    public PluginSellItem getSellItem() {
         return sellItem;
     }
 }

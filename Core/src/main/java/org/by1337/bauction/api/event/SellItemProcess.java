@@ -3,8 +3,8 @@ package org.by1337.bauction.api.event;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.PluginSellItem;
+import org.by1337.bauction.db.kernel.PluginUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,9 +21,9 @@ public class SellItemProcess extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
     private boolean cancelled;
     @NotNull
-    private final User user;
+    private final PluginUser user;
     @NotNull
-    private final SellItem sellItem;
+    private final PluginSellItem sellItem;
     @Nullable
     private String reason;
 
@@ -33,7 +33,7 @@ public class SellItemProcess extends Event implements Cancellable {
      * @param user The player listing the item for sale.
      * @param sellItem The item being listed for sale.
      */
-    public SellItemProcess(@NotNull User user, @NotNull SellItem sellItem) {
+    public SellItemProcess(@NotNull PluginUser user, @NotNull PluginSellItem sellItem) {
         this.user = user;
         this.sellItem = sellItem;
     }
@@ -45,7 +45,7 @@ public class SellItemProcess extends Event implements Cancellable {
      * @param sellItem The item being listed for sale.
      * @param isAsync – true indicates the event will fire asynchronously
      */
-    public SellItemProcess(boolean isAsync, @NotNull User user, @NotNull SellItem sellItem) {
+    public SellItemProcess(boolean isAsync, @NotNull PluginUser user, @NotNull PluginSellItem sellItem) {
         super(isAsync);
         this.user = user;
         this.sellItem = sellItem;
@@ -57,7 +57,7 @@ public class SellItemProcess extends Event implements Cancellable {
      * @return The user listing the item for sale.
      */
     @NotNull
-    public User getUser() {
+    public PluginUser getUser() {
         return user;
     }
 
@@ -67,7 +67,7 @@ public class SellItemProcess extends Event implements Cancellable {
      * @return The item being listed for sale.
      */
     @NotNull
-    public SellItem getSellItem() {
+    public PluginSellItem getSellItem() {
         return sellItem;
     }
 

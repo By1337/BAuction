@@ -2,8 +2,8 @@ package org.by1337.bauction.api.event;
 
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.PluginSellItem;
+import org.by1337.bauction.db.kernel.PluginUser;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -15,9 +15,9 @@ public class EventTakeItem extends Event {
     private static final HandlerList handlers = new HandlerList();
 
     @NotNull
-    private final User user;
+    private final PluginUser user;
     @NotNull
-    private final SellItem sellItem;
+    private final PluginSellItem sellItem;
 
     /**
      * Constructs a EventSellItem with the specified user and item that has been successfully listed for sale.
@@ -25,7 +25,7 @@ public class EventTakeItem extends Event {
      * @param user     The player who successfully listed the item for sale.
      * @param sellItem The item that has been successfully listed for sale.
      */
-    public EventTakeItem(@NotNull User user, @NotNull SellItem sellItem) {
+    public EventTakeItem(@NotNull PluginUser user, @NotNull PluginSellItem sellItem) {
         this.user = user;
         this.sellItem = sellItem;
     }
@@ -37,7 +37,7 @@ public class EventTakeItem extends Event {
      * @param user     The player who successfully listed the item for sale.
      * @param sellItem The item that has been successfully listed for sale.
      */
-    public EventTakeItem(boolean isAsync, @NotNull User user, @NotNull SellItem sellItem) {
+    public EventTakeItem(boolean isAsync, @NotNull PluginUser user, @NotNull PluginSellItem sellItem) {
         super(isAsync);
         this.user = user;
         this.sellItem = sellItem;
@@ -49,7 +49,7 @@ public class EventTakeItem extends Event {
      * @return The user who listed the item for sale.
      */
     @NotNull
-    public User getUser() {
+    public PluginUser getUser() {
         return user;
     }
 
@@ -59,7 +59,7 @@ public class EventTakeItem extends Event {
      * @return The item that has been listed for sale.
      */
     @NotNull
-    public SellItem getSellItem() {
+    public PluginSellItem getSellItem() {
         return sellItem;
     }
 

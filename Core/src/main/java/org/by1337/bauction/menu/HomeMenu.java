@@ -3,8 +3,8 @@ package org.by1337.bauction.menu;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.PluginSellItem;
+import org.by1337.bauction.db.kernel.PluginUser;
 import org.by1337.bauction.util.auction.Category;
 import org.by1337.bauction.util.common.ItemUtil;
 import org.by1337.bauction.util.auction.Sorting;
@@ -28,11 +28,11 @@ public class HomeMenu extends Menu {
     protected CyclicList<Category> categories = new CyclicList<>();
     protected Category custom;
     protected int lastCustomCategorySize;
-    protected ArrayList<SellItem> sellItems = null;
+    protected ArrayList<PluginSellItem> sellItems = null;
     protected Category lastCategory = null;
     protected Sorting lastSorting = null;
     protected int lastPage = -1;
-    protected User user;
+    protected PluginUser user;
     protected final Cache cache;
     private static boolean seenIllegalCash;
 
@@ -56,7 +56,7 @@ public class HomeMenu extends Menu {
     private void init() {
         sortings.addAll(Main.getCfg().getSortingMap().values());
         categories.addAll(Main.getCfg().getCategoryMap().values());
-        user = (User) Main.getStorage().getUserOrCreate(viewer);
+        user = (PluginUser) Main.getStorage().getUserOrCreate(viewer);
         registerPlaceholder("{max_page}", () -> maxPage == 0 ? 1 : maxPage);
         registerPlaceholder("{current_page}", () -> currentPage + 1);
         registerPlaceholder("{categories}", this::getCategoriesNames);
@@ -71,7 +71,7 @@ public class HomeMenu extends Menu {
         Iterator<Integer> slotsIterator = cache.getSlots().listIterator();
         customItems.clear();
         for (int x = currentPage * cache.getSlots().size(); x < sellItems.size(); x++) {
-            SellItem item = sellItems.get(x);
+            PluginSellItem item = sellItems.get(x);
             if (slotsIterator.hasNext()) {
                 int slot = slotsIterator.next();
                 MenuItemBuilder menuItemBuilder;
@@ -85,7 +85,7 @@ public class HomeMenu extends Menu {
                     menuItemBuilder = cache.getSellingItemOnlyFull();
                 }
                 MenuItem menuItem = menuItemBuilder.build(this, item.getItemStack(), item);
-                if (ItemUtil.isShulker(item.getMaterial())) {
+                if (ItemUtil.isShulker(item.getBukkitMaterial())) {
                     var toAdd = cache.getIfShulker();
                     menuItem.getItemStack().editMeta(m -> {
                         var lore = new ArrayList<>(Objects.requireNonNullElse(m.lore(), Collections.emptyList()));
@@ -278,7 +278,7 @@ public class HomeMenu extends Menu {
                 new Command<HomeMenu>("[FIND_ANALOGS]")
                         .argument(new ArgumentBoolean<>("soft"))
                         .executor((menu, args) -> {
-                            if (menu.getLastClickedItem() == null || !(menu.getLastClickedItem().getData() instanceof SellItem sellItem))
+                            if (menu.getLastClickedItem() == null || !(menu.getLastClickedItem().getData() instanceof PluginSellItem sellItem))
                                 throw new CommandException("Clicked item is not sell item!");
                             boolean soft = (boolean) args.getOrDefault("soft", false);
 

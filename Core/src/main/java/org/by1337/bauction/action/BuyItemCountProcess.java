@@ -5,8 +5,8 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
-import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.db.kernel.PluginSellItem;
+import org.by1337.bauction.db.kernel.PluginUser;
 import org.by1337.bauction.db.kernel.event.BuyCountItemEvent;
 import org.by1337.bauction.event.Event;
 import org.by1337.bauction.event.EventType;
@@ -20,11 +20,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class BuyItemCountProcess extends Placeholder {
     private final Menu menu;
-    private final User buyer;
-    private @Nullable final SellItem buyingItem;
+    private final PluginUser buyer;
+    private @Nullable final PluginSellItem buyingItem;
     private final int count;
 
-    public BuyItemCountProcess(Menu menu, @Nullable SellItem buyingItem, int count) {
+    public BuyItemCountProcess(Menu menu, @Nullable PluginSellItem buyingItem, int count) {
         this.menu = menu;
         this.buyer = Main.getStorage().getUserOrCreate(menu.getPlayer());
         this.buyingItem = buyingItem;

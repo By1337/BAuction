@@ -1,7 +1,6 @@
 package org.by1337.bauction.common.db.type;
 
 import org.by1337.bauction.common.io.codec.Codec;
-import org.by1337.bauction.common.io.codec.SellItemCodec;
 import org.by1337.bauction.common.io.codec.UnsoldItemCodec;
 import org.by1337.blib.nbt.NBT;
 import org.by1337.blib.nbt.impl.CompoundTag;
@@ -45,7 +44,7 @@ public class UnsoldItem {
     }
 
     public UnsoldItem setItem(NBT item) {
-       return builder(this).item(item).build();
+        return builder(this).item(item).build();
     }
 
     public UnsoldItem setExpired(long expired) {
@@ -66,6 +65,30 @@ public class UnsoldItem {
 
     public UnsoldItem setExtra(CompoundTag extra) {
         return builder(this).extra(extra).build();
+    }
+
+    public NBT getItem() {
+        return item;
+    }
+
+    public long getExpired() {
+        return expired;
+    }
+
+    public UUID getSellerUuid() {
+        return sellerUuid;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public long getDeleteVia() {
+        return deleteVia;
+    }
+
+    public CompoundTag getExtra() {
+        return extra;
     }
 
     @Override

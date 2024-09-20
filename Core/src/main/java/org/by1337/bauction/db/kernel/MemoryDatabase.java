@@ -4,6 +4,7 @@ import org.bukkit.inventory.ItemStack;
 import org.by1337.bauction.Main;
 import org.by1337.bauction.common.db.event.Event;
 import org.by1337.bauction.common.db.event.EventPipeline;
+import org.by1337.bauction.common.db.type.SellItem;
 import org.by1337.bauction.db.kernel.event.*;
 import org.by1337.bauction.util.auction.Category;
 import org.by1337.bauction.util.auction.Sorting;
@@ -72,20 +73,20 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
     }
 
     private void addUnsoldItemEventHandler(AddUnsoldItemEvent event) {
-        UnsoldItem unsoldItem = event.getUnsoldItem();
+        PluginUnsoldItem unsoldItem = event.getUnsoldItem();
         try {
             addUnsoldItem(unsoldItem);
         } catch (Throwable t) {
             event.setValid(false);
             event.setReason("<red>An internal error occurred"); // todo lang file
-            LOGGER.error("An error occurred while trying to add UnsoldItem item", t);
+            LOGGER.error("An error occurred while trying to add PluginUnsoldItem item", t);
         }
     }
 
     private void takeUnsoldItemEventHandler(TakeUnsoldItemEvent event) {
-        UnsoldItem unsoldItem = event.getUnsoldItem();
-        User user = event.getTaker();
-        if (!user.uuid.equals(unsoldItem.sellerUuid)) {
+        PluginUnsoldItem unsoldItem = event.getUnsoldItem();
+        PluginUser user = event.getTaker();
+        if (!user.getUuid().equals(unsoldItem.getSellerUuid())) {
             event.setValid(false);
             event.setReason("You can't take someone else's item!"); // todo lang file
             return;
@@ -94,42 +95,41 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
     }
 
     private void buyCountItemEventHandler(BuyCountItemEvent event) {
-        SellItem sellItem = event.getSellItem();
-        User user = event.getBuyer();
+        PluginSellItem sellItem = event.getSellItem();
+        PluginUser user = event.getBuyer();
         int count = event.getCount();
-        @Nullable User itemOwner = getUser(sellItem.sellerUuid);
-        if (user.uuid.equals(sellItem.sellerUuid)) {
+        @Nullable PluginUser itemOwner = getUser(sellItem.getSellerUuid());
+        if (user.getUuid().equals(sellItem.getSellerUuid())) {
             event.setValid(false);
             event.setReason("You can't buy your item!"); // todo lang file
             return;
         }
-        if (sellItem.amount < count) {
+        if (sellItem.getAmount() < count) {
             event.setValid(false);
-            event.setReason("You are trying to buy more items than are available for sale. Available: " + sellItem.amount + "."); // todo lang file
+            event.setReason("You are trying to buy more items than are available for sale. Available: " + sellItem.getAmount() + "."); // todo lang file
             return;
         }
-        if (!sellItem.saleByThePiece) {
+        if (!sellItem.isSaleByThePiece()) {
             event.setValid(false);
             event.setReason("This item is not sold by the piece!"); // todo lang file
             return;
         }
         try {
-            removeSellItem(sellItem.id);
-            int residue = sellItem.amount - count;
+            removeSellItem(sellItem.getId());
+            int residue = sellItem.getAmount() - count;
             if (residue > 0) {
                 ItemStack itemStack = sellItem.getItemStack();
                 itemStack.setAmount(residue);
 
-                SellItem result = SellItem.builder()
-                        .copy(sellItem)
+                SellItem result = SellItem
+                        .builder(sellItem.getSource())
                         .id(Main.getUniqueIdGenerator().nextId())
-                        .itemStack(itemStack)
                         .amount(residue)
-                        .price(sellItem.priceForOne * residue)
-                        .item(SellItem.serializeItemStack(itemStack))
+                        .price(sellItem.getPriceForOne() * residue)
+                        .item(PluginSellItem.serializeItemStack(itemStack))
                         .build();
 
-                addSellItem(result);
+                addSellItem(new PluginSellItem(result));
             }
 
         } catch (NoSuchElementException e) {
@@ -139,70 +139,70 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
         } catch (Throwable t) {
             event.setValid(false);
             event.setReason("<red>An internal error occurred"); // todo lang file
-            LOGGER.error("An error occurred while trying to update SellItem item", t);
+            LOGGER.error("An error occurred while trying to update PluginSellItem item", t);
             return;
         }
-        user.dealCount++; // todo new stats system?
-        user.dealSum += sellItem.price;
-        if (itemOwner != null) {
-            itemOwner.dealCount++;
-            itemOwner.dealSum += sellItem.price;
-        }
+//        user.dealCount++; // todo new stats system?
+//        user.dealSum += sellItem.price;
+//        if (itemOwner != null) {
+//            itemOwner.dealCount++;
+//            itemOwner.dealSum += sellItem.price;
+//        }
 
     }
 
     private void buyItemEventHandler(BuyItemEvent event) {
-        SellItem sellItem = event.getSellItem();
-        User user = event.getBuyer();
-        @Nullable User itemOwner = getUser(sellItem.sellerUuid);
-        if (user.uuid.equals(sellItem.sellerUuid)) {
+        PluginSellItem sellItem = event.getSellItem();
+        PluginUser user = event.getBuyer();
+        @Nullable PluginUser itemOwner = getUser(sellItem.getSellerUuid());
+        if (user.getUuid().equals(sellItem.getSellerUuid())) {
             event.setValid(false);
             event.setReason("You can't buy your item!"); // todo lang file
             return;
         }
         removeSellItemHandler(event);
         if (event.isValid()) {
-            user.dealCount++; // todo new stats system?
-            user.dealSum += sellItem.price;
-            if (itemOwner != null) {
-                itemOwner.dealCount++;
-                itemOwner.dealSum += sellItem.price;
-            }
+//            user.dealCount++; // todo new stats system?
+//            user.dealSum += sellItem.price;
+//            if (itemOwner != null) {
+//                itemOwner.dealCount++;
+//                itemOwner.dealSum += sellItem.price;
+//            }
         }
     }
 
     private void removeUnsoldItemHandler(UnsoldItemEvent event) {
-        UnsoldItem unsoldItem = event.getUnsoldItem();
+        PluginUnsoldItem unsoldItem = event.getUnsoldItem();
         try {
-            removeUnsoldItem(unsoldItem.id);
+            removeUnsoldItem(unsoldItem.getId());
         } catch (NoSuchElementException e) {
             event.setValid(false);
             event.setReason("This item no longer exists"); // todo lang file
         } catch (Throwable t) {
             event.setValid(false);
             event.setReason("<red>An internal error occurred"); // todo lang file
-            LOGGER.error("An error occurred while trying to delete UnsoldItem item", t);
+            LOGGER.error("An error occurred while trying to delete PluginUnsoldItem item", t);
         }
     }
 
     private void removeSellItemHandler(SellItemEvent event) {
-        SellItem sellItem = event.getSellItem();
+        PluginSellItem sellItem = event.getSellItem();
         try {
-            removeSellItem(sellItem.id);
+            removeSellItem(sellItem.getId());
         } catch (NoSuchElementException e) {
             event.setValid(false);
             event.setReason("This item no longer exists"); // todo lang file
         } catch (Throwable t) {
             event.setValid(false);
             event.setReason("<red>An internal error occurred"); // todo lang file
-            LOGGER.error("An error occurred while trying to delete SellItem item", t);
+            LOGGER.error("An error occurred while trying to delete PluginSellItem item", t);
         }
     }
 
     private void takeItemEventHandler(TakeItemEvent event) {
-        SellItem sellItem = event.getSellItem();
-        User user = event.getUser();
-        if (!sellItem.sellerUuid.equals(user.uuid)) {
+        PluginSellItem sellItem = event.getSellItem();
+        PluginUser user = event.getUser();
+        if (!sellItem.getSellerUuid().equals(user.getUuid())) {
             event.setValid(false);
             event.setReason("You do not own this item!"); // todo lang file
             return;
@@ -211,18 +211,18 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
     }
 
     private void addSellItemEventHandler(AddSellItemEvent event) {
-        SellItem sellItem = event.getSellItem();
-        User user = event.getUser();
-        if (getSellItemsCountByUser(user.getUuid()) >= user.getMaxItems()) {
+        PluginSellItem sellItem = event.getSellItem();
+        PluginUser user = event.getUser();
+        if (getSellItemsCountByUser(user.getUuid()) >= user.getMaxSellItems()) {
             event.setValid(false);
             event.setReason("items count limit!"); // todo lang file
             return;
         }
-        if (CompoundTag.getSizeInBytes(sellItem.item) > Main.getCfg().getItemMaxSize()) {
+        if (CompoundTag.getSizeInBytes(sellItem.getItem()) > Main.getCfg().getItemMaxSize()) {
             event.setValid(false);
             event.setReason("item too large"); // todo lang file
             return;
-        } else if (sellItem.item instanceof ByteArrNBT arrNBT) {
+        } else if (sellItem.getItem() instanceof ByteArrNBT arrNBT) {
             int size = CompoundTag.getSizeInBytes(new CompressedNBT(arrNBT.getValue()).decompress());
             if (size > Main.getCfg().getMaximumUncompressedItemSize()) {
                 event.setValid(false);
@@ -235,7 +235,7 @@ public class MemoryDatabase extends SimpleDatabase implements Closeable {
         } catch (Throwable t) {
             event.setValid(false);
             event.setReason("<red>An internal error occurred"); // todo lang file
-            LOGGER.error("An error occurred while trying to add a new SellItem to the database", t);
+            LOGGER.error("An error occurred while trying to add a new PluginSellItem to the database", t);
         }
     }
 
