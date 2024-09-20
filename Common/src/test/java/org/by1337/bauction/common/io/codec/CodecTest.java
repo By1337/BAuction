@@ -34,7 +34,7 @@ public class CodecTest {
                 -1,
                 0,
                 100,
-                "server",
+                UUID.randomUUID(),
                 new CompoundTag()
         );
         user = new User(
@@ -52,6 +52,7 @@ public class CodecTest {
                 UUID.randomUUID(),
                 -1,
                 Long.MAX_VALUE,
+                UUID.randomUUID(),
                 new CompoundTag()
         );
     }

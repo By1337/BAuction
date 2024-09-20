@@ -39,7 +39,6 @@
 # - Note that the seed cannot be negative, and its value is limited from 0 to 2,147,483,648.
 # - Be careful when editing the configuration file to avoid losing changes made by the plugin.
 #   These settings will help you properly configure the auction plugin for optimal operation on your server.
-#   `server-id` - server ID, must be unique for all servers. Length restrictions 10 characters
 db-type: file
 mysql-settings:
   is-head: true
@@ -49,6 +48,5 @@ mysql-settings:
   password: ''
   port: 3306
 
-server-id: 'server-1'
 name-generator:
   last-seed: 1336

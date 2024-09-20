@@ -1,14 +1,16 @@
 package org.by1337.bauction.datafix;
 
-import org.bukkit.plugin.Plugin;
+import org.by1337.bauction.Main;
+import org.by1337.bauction.datafix.config.DbCfg109;
+import org.by1337.bauction.datafix.config.Messages107;
+import org.by1337.bauction.datafix.config.MessagesUpdater;
+import org.by1337.bauction.datafix.config.TagUtil107;
 import org.by1337.bauction.datafix.db.DBUpdate110;
+import org.by1337.bauction.datafix.db.mysql.MySqlDBUpdater1;
 import org.by1337.bauction.datafix.db.mysql.MySqlDBUpdater2;
 import org.by1337.bauction.util.config.ConfigUtil;
 import org.by1337.blib.configuration.YamlConfig;
 import org.by1337.blib.configuration.YamlContext;
-import org.by1337.bauction.Main;
-import org.by1337.bauction.datafix.config.*;
-import org.by1337.bauction.datafix.db.mysql.MySqlDBUpdater1;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class UpdateManager {
-    private final static int CURRENT_VERSION = 12;
+    private final static int CURRENT_VERSION = 13;
 
     public static void checkUpdate() {
         if (Main.RUNNING_IN_IDE) return;
@@ -130,9 +132,14 @@ public class UpdateManager {
             new MessagesUpdater().update();
             version++;
             run(version, config);
+        } else if (version == 12) {
+            version++;
+            config.set("server-display-name", "Server #1");
+            run(version, config);
         }
     }
-    private static void makeDataFolderAsOld(){
+
+    private static void makeDataFolderAsOld() {
         File home = new File(Main.getInstance().getDataFolder() + "/data");
         if (home.exists()) {
             File moveTo = new File(Main.getInstance().getDataFolder() + "/data_old");

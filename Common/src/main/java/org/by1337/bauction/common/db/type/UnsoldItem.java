@@ -15,14 +15,16 @@ public class UnsoldItem {
     public final UUID sellerUuid;
     public final long id;
     public final long deleteVia;
+    public final UUID server;
     public final CompoundTag extra;
 
-    public UnsoldItem(NBT item, long expired, UUID sellerUuid, long id, long deleteVia, CompoundTag extra) {
+    public UnsoldItem(NBT item, long expired, UUID sellerUuid, long id, long deleteVia, UUID server, CompoundTag extra) {
         this.item = item;
         this.expired = expired;
         this.sellerUuid = sellerUuid;
         this.id = id;
         this.deleteVia = deleteVia;
+        this.server = server;
         this.extra = extra;
     }
 
@@ -33,6 +35,7 @@ public class UnsoldItem {
         this.id = builder.id;
         this.deleteVia = builder.deleteVia;
         this.extra = builder.extra;
+        this.server = builder.server;
     }
 
     public static Builder builder() {
@@ -67,6 +70,10 @@ public class UnsoldItem {
         return builder(this).extra(extra).build();
     }
 
+    public UnsoldItem setServer(UUID server) {
+        return builder(this).server(server).build();
+    }
+
     public NBT getItem() {
         return item;
     }
@@ -91,17 +98,21 @@ public class UnsoldItem {
         return extra;
     }
 
+    public UUID getServer() {
+        return server;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UnsoldItem that = (UnsoldItem) o;
-        return expired == that.expired && id == that.id && deleteVia == that.deleteVia && Objects.equals(item, that.item) && Objects.equals(sellerUuid, that.sellerUuid) && Objects.equals(extra, that.extra);
+        return expired == that.expired && id == that.id && deleteVia == that.deleteVia && Objects.equals(item, that.item) && Objects.equals(sellerUuid, that.sellerUuid) && Objects.equals(server, that.server) && Objects.equals(extra, that.extra);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(item, expired, sellerUuid, id, deleteVia, extra);
+        return Objects.hash(item, expired, sellerUuid, id, deleteVia, server, extra);
     }
 
     public static class Builder {
@@ -112,17 +123,19 @@ public class UnsoldItem {
         private long id;
         private long deleteVia;
         private CompoundTag extra;
+        private UUID server;
 
         public Builder() {
         }
 
-        Builder(NBT item, long expired, UUID sellerUuid, long id, long deleteVia, CompoundTag extra) {
+        public Builder(NBT item, long expired, UUID sellerUuid, long id, long deleteVia, CompoundTag extra, UUID server) {
             this.item = item;
             this.expired = expired;
             this.sellerUuid = sellerUuid;
             this.id = id;
             this.deleteVia = deleteVia;
             this.extra = extra;
+            this.server = server;
         }
 
         public Builder(UnsoldItem unsoldItem) {
@@ -132,6 +145,7 @@ public class UnsoldItem {
             this.id = unsoldItem.id;
             this.deleteVia = unsoldItem.deleteVia;
             this.extra = unsoldItem.extra;
+            this.server = unsoldItem.server;
         }
 
         public Builder item(NBT item) {
@@ -163,22 +177,31 @@ public class UnsoldItem {
             this.extra = extra;
             return Builder.this;
         }
+        public Builder server(UUID server) {
+            this.server = server;
+            return Builder.this;
+        }
 
         public UnsoldItem build() {
             if (this.item == null) {
                 throw new NullPointerException("The property \"item\" is null. "
                                                + "Please set the value by \"item()\". "
-                                               + "The properties \"item\", \"sellerUuid\" and \"extra\" are required.");
+                                               + "The properties \"item\", \"server\", \"sellerUuid\" and \"extra\" are required.");
             }
             if (this.sellerUuid == null) {
                 throw new NullPointerException("The property \"sellerUuid\" is null. "
                                                + "Please set the value by \"sellerUuid()\". "
-                                               + "The properties \"item\", \"sellerUuid\" and \"extra\" are required.");
+                                               + "The properties \"item\", \"server\", \"sellerUuid\" and \"extra\" are required.");
             }
             if (this.extra == null) {
                 throw new NullPointerException("The property \"extra\" is null. "
                                                + "Please set the value by \"extra()\". "
-                                               + "The properties \"item\", \"sellerUuid\" and \"extra\" are required.");
+                                               + "The properties \"item\", \"server\", \"sellerUuid\" and \"extra\" are required.");
+            }
+            if (this.server == null) {
+                throw new NullPointerException("The property \"server\" is null. "
+                                               + "Please set the value by \"server()\". "
+                                               + "The properties \"item\", \"server\", \"sellerUuid\" and \"extra\" are required.");
             }
 
             return new UnsoldItem(this);

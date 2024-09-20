@@ -115,7 +115,7 @@ class LocalDatabaseTest {
                        Main.getUniqueIdGenerator().nextId(),
                        0,
                        64,
-                       "server",
+                       Main.getServerUUID(),
                        new CompoundTag()
                )
         );
@@ -128,6 +128,7 @@ class LocalDatabaseTest {
                        seller.getUuid(),
                        Main.getUniqueIdGenerator().nextId(),
                        Long.MAX_VALUE,
+                       Main.getServerUUID(),
                        new CompoundTag()
                )
         );

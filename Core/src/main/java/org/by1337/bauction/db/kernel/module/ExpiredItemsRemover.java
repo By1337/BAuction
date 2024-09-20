@@ -71,6 +71,7 @@ public class ExpiredItemsRemover implements DatabaseModule, Closeable {
                                                sellItem.getSellerUuid(),
                                                Main.getUniqueIdGenerator().nextId(),
                                                System.currentTimeMillis() + removeTime,
+                                               sellItem.getServer(),
                                                new CompoundTag()
                                        )
                                 ))

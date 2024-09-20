@@ -16,6 +16,7 @@ boosts: # it's list
     external-slots: 0
     external-sell-time: '10y'
 
+server-display-name: 'Сервер #1'
 lang: 'ru_ru' # Плагин подгружает имена предметов, полный список поддерживаемых языков https://github.com/InventivetalentDev/minecraft-assets/tree/1.16.5/assets/minecraft/lang
 home-menu: 'home' # id меню которое будет открыто командой /ah
 player-items-view-menu: 'playerItemsView'

@@ -80,6 +80,10 @@ public class PluginUnsoldItem extends Placeholder implements ItemHolder {
         return source.getExtra();
     }
 
+    public UUID getServer() {
+        return source.getServer();
+    }
+
     @Override
     public String toString() {
         return "PluginUnsoldItem{" +

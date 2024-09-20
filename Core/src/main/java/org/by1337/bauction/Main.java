@@ -76,7 +76,6 @@ public final class Main extends JavaPlugin {
     private PlaceholderHook placeholderHook;
     private UniqueIdGenerator uniqueIdGenerator;
     private DbCfg dbCfg;
-    private Set<String> blackList = new HashSet<>();
     private EventManager eventManager;
     private FileLogger fileLogger;
     private MenuLoader menuLoader;
@@ -86,6 +85,7 @@ public final class Main extends JavaPlugin {
     private AssetsManager assetsManager;
 
     @VisibleForTesting
+    @SuppressWarnings("all")
     protected Main(JavaPluginLoader loader, PluginDescriptionFile description, File dataFolder, File file) {
         super(loader, description, dataFolder, file);
     }
@@ -191,9 +191,6 @@ public final class Main extends JavaPlugin {
         enablePipeline.enable("load PAPI hook", p -> !RUNNING_IN_IDE, () -> {
             placeholderHook = new PlaceholderHook();
             placeholderHook.register();
-        });
-        enablePipeline.enable("load black list", () -> {
-            blackList = new HashSet<>(cfg.getConfig().getList("black-list", String.class, Collections.emptyList()));
         });
         enablePipeline.enable("load db", this::loadDb);
         enablePipeline.enable("check version", VersionChecker::new);
@@ -354,7 +351,7 @@ public final class Main extends JavaPlugin {
                                 .addSubCommand(new ParseNbtCmd("nbt"))
                         )
                 )
-                .addSubCommand(new SellCmd("sell", blackList))
+                .addSubCommand(new SellCmd("sell", cfg.getBlackList()))
                 .addSubCommand(new SearchCmd("search", menuLoader, cfg.getHomeMenu(), trieManager))
                 .addSubCommand(new ViewCommand("view", menuLoader, cfg.getPlayerItemsViewMenu()))
                 .executor(((sender, args) -> {
@@ -408,8 +405,8 @@ public final class Main extends JavaPlugin {
         return RUNNING_IN_IDE ? super.getResource(DEBUG_LANG + "/" + filename) : super.getResource(filename);
     }
 
-    public static String getServerId() {
-        return instance.dbCfg == null ? "unknown" : instance.dbCfg.getServerId();
+    public static UUID getServerUUID() {
+        return instance.cfg.getServerUUID();
     }
 
     public Command<CommandSender> getCommand() {

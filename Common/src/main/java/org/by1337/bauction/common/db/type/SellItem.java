@@ -23,10 +23,10 @@ public class SellItem {
     public final int material;
     public final int amount;
     public final transient double priceForOne;
-    public final String server;
+    public final UUID server;
     public final CompoundTag extra;
 
-    public SellItem(NBT item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, long id, int material, int amount, String server, CompoundTag extra) {
+    public SellItem(NBT item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, long id, int material, int amount, UUID server, CompoundTag extra) {
         this.item = item;
         this.sellerName = sellerName;
         this.sellerUuid = sellerUuid;
@@ -112,7 +112,7 @@ public class SellItem {
         return SellItem.builder(this).amount(amount).build();
     }
 
-    public SellItem setServer(String server) {
+    public SellItem setServer(UUID server) {
         return SellItem.builder(this).server(server).build();
     }
 
@@ -168,13 +168,14 @@ public class SellItem {
         return priceForOne;
     }
 
-    public String getServer() {
+    public UUID getServer() {
         return server;
     }
 
     public CompoundTag getExtra() {
         return extra;
     }
+
 
     @Override
     public boolean equals(Object o) {
@@ -201,7 +202,7 @@ public class SellItem {
         private long id;
         private int material;
         private int amount;
-        private String server;
+        private UUID server;
         private CompoundTag extra;
 
         public Builder() {
@@ -223,7 +224,7 @@ public class SellItem {
             this.extra = sellItem.extra;
         }
 
-        Builder(NBT item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, long id, int material, int amount, String server, CompoundTag extra) {
+        Builder(NBT item, String sellerName, UUID sellerUuid, double price, boolean saleByThePiece, Set<String> tags, long timeListedForSale, long removalDate, long id, int material, int amount, UUID server, CompoundTag extra) {
             this.item = item;
             this.sellerName = sellerName;
             this.sellerUuid = sellerUuid;
@@ -294,7 +295,7 @@ public class SellItem {
             return Builder.this;
         }
 
-        public Builder server(String server) {
+        public Builder server(UUID server) {
             this.server = server;
             return Builder.this;
         }

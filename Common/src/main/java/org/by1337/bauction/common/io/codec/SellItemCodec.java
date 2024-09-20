@@ -8,7 +8,7 @@ import org.by1337.btcp.common.io.AbstractByteBuffer;
 import java.util.Set;
 
 public class SellItemCodec implements Codec<SellItem> {
-    public static int CURRENT_VERSION = 201;
+    public static int CURRENT_VERSION = 202;
     public static final int MAGIC_NUMBER = 0xB13A0F1;
 
     @Override
@@ -27,7 +27,7 @@ public class SellItemCodec implements Codec<SellItem> {
         builder.id(buffer.readVarLong());
         builder.material(buffer.readVarInt());
         builder.amount(buffer.readVarInt());
-        builder.server(buffer.readUtf());
+        builder.server(buffer.readUUID());
         builder.extra((CompoundTag) NbtType.COMPOUND.read(buffer));
         return builder.build();
     }
@@ -46,7 +46,7 @@ public class SellItemCodec implements Codec<SellItem> {
         buffer.writeVarLong(val.id);
         buffer.writeVarInt(val.material);
         buffer.writeVarInt(val.amount);
-        buffer.writeUtf(val.server);
+        buffer.writeUUID(val.server);
         val.extra.write(buffer);
     }
 

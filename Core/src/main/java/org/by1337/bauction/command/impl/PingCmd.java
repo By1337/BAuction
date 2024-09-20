@@ -34,7 +34,7 @@ public class PingCmd extends Command<CommandSender> {
             WaitNotifyCallBack<PacketPingResponse> callBack = new WaitNotifyCallBack<>() {
                 @Override
                 protected void back0(@Nullable PacketPingResponse packet) {
-                    if (packet.getTo().equals(Main.getServerId())) {
+                    if (packet.getTo().equals(Main.getServerUUID())) {
                         Main.getMessage().sendMsg(sender, "&aPing '%s' %s ms.", packet.getFrom(), packet.getPing());
                         response.getAndIncrement();
                     }
@@ -45,7 +45,7 @@ public class PingCmd extends Command<CommandSender> {
             for (int i = 1; i <= 5; i++) {
                 int last = response.get();
                 Main.getMessage().sendMsg(sender, "&7Start pinging server %s... trying %s", server, i);
-                PacketPingRequest packet = new PacketPingRequest(Main.getServerId(), server);
+                PacketPingRequest packet = new PacketPingRequest(Main.getServerUUID(), server);
                 connection.saveSend(packet);
 
                 for (int i1 = 0; i1 < servers; i1++) {

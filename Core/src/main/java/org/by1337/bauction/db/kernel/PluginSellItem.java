@@ -144,7 +144,7 @@ public class PluginSellItem extends Placeholder implements ItemHolder {
         return source.getPriceForOne();
     }
 
-    public String getServer() {
+    public UUID getServer() {
         return source.getServer();
     }
 

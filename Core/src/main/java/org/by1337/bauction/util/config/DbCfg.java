@@ -6,7 +6,6 @@ import java.util.Objects;
 
 public class DbCfg {
     private DbType dbType;
-    private String serverId;
     private int lastSeed;
     private boolean isHead;
     private String host;
@@ -23,7 +22,6 @@ public class DbCfg {
 
     private void load() {
         dbType = context.getAsString("db-type").equals("file") ? DbType.FILE : DbType.MYSQL;
-        serverId = context.getAsString("server-id");
         lastSeed = context.getAsInteger("name-generator.last-seed");
 
         isHead = context.getAsBoolean("mysql-settings.is-head");
@@ -35,7 +33,6 @@ public class DbCfg {
     }
 
     public void validate() {
-        Objects.requireNonNull(serverId, "missing server-id!");
         Objects.requireNonNull(host, "missing mysql-settings.host");
         Objects.requireNonNull(dbName, "missing mysql-settings.db-name");
         Objects.requireNonNull(user, "missing mysql-settings.user");
@@ -45,10 +42,6 @@ public class DbCfg {
 
     public DbType getDbType() {
         return dbType;
-    }
-
-    public String getServerId() {
-        return serverId;
     }
 
     public int getLastSeed() {

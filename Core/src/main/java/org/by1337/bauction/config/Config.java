@@ -1,15 +1,18 @@
 package org.by1337.bauction.config;
 
+import org.by1337.bauction.Main;
 import org.by1337.bauction.boost.BoostManager;
 import org.by1337.bauction.util.auction.Category;
 import org.by1337.bauction.util.config.ConfigUtil;
 import org.by1337.bauction.util.common.NumberUtil;
 import org.by1337.bauction.util.auction.Sorting;
+import org.by1337.bauction.util.time.TimeParser;
 import org.by1337.blib.configuration.YamlContext;
 import org.by1337.blib.util.NameKey;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.io.File;
+import java.nio.file.Files;
+import java.util.*;
 
 public class Config {
     private YamlContext message;
@@ -28,6 +31,9 @@ public class Config {
     private String homeMenu;
     private String playerItemsViewMenu;
     private String lang;
+    private Set<String> blackList;
+    private UUID serverUUID;
+    private String serverDisplayName;
 
     public Config() {
         reload();
@@ -43,7 +49,7 @@ public class Config {
 
 
         maxSlots = config.getAsInteger("default-slots");
-        defaultSellTime = NumberUtil.getTime(config.getAsString("default-offer-time"));
+        defaultSellTime = TimeParser.parse(config.getAsString("default-offer-time"));
 
         boostManager = new BoostManager(config);
 
@@ -56,7 +62,16 @@ public class Config {
         homeMenu = config.getAsString("home-menu");
         playerItemsViewMenu = config.getAsString("player-items-view-menu");
         lang = config.getAsString("lang", "en_us");
+        blackList = new HashSet<>(config.getList("black-list", String.class, Collections.emptyList()));
+        serverDisplayName = config.getAsString("server-display-name");
 
+        File serverUUIDFile = new File(Main.getInstance().getDataFolder(), "server-uid");
+        if (!serverUUIDFile.exists()) {
+            serverUUID = UUID.randomUUID();
+            ConfigUtil.tryRun(() -> Files.writeString(serverUUIDFile.toPath(), serverUUID.toString()));
+        } else {
+            ConfigUtil.tryRun(() -> serverUUID = UUID.fromString(Files.readString(serverUUIDFile.toPath())));
+        }
     }
 
     public void loadConfigs() {
@@ -66,6 +81,17 @@ public class Config {
         ConfigUtil.trySave("menu/README.yml1");
     }
 
+    public UUID getServerUUID() {
+        return serverUUID;
+    }
+
+    public String getServerDisplayName() {
+        return serverDisplayName;
+    }
+
+    public Set<String> getBlackList() {
+        return blackList;
+    }
 
     public YamlContext getMessage() {
         return message;

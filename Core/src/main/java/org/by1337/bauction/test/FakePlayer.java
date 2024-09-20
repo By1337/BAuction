@@ -82,7 +82,7 @@ public class FakePlayer {
                 Main.getUniqueIdGenerator().nextId(),
                 itemStack.getType().ordinal(),
                 itemStack.getAmount(),
-                Main.getServerId(),
+                Main.getServerUUID(),
                 new CompoundTag()
         ));
         AddSellItemEvent event = new AddSellItemEvent(sellItem, user);

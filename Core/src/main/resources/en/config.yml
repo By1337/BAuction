@@ -1,4 +1,4 @@
-version: 12 # DO NOT CHANGE
+version: 13 # DO NOT CHANGE
 # List of boosts
 boosts: # it's a list
   - name: donat-1 # name (can be any)
@@ -16,6 +16,7 @@ boosts: # it's a list
     external-slots: 0
     external-sell-time: '10y'
 
+server-display-name: 'Server #1'
 lang: 'en_us' # The plugin loads item names, full list of supported languages https://github.com/InventivetalentDev/minecraft-assets/tree/1.16.5/assets/minecraft/lang
 home-menu: 'home' # id of the menu opened by the /ah command
 player-items-view-menu: 'playerItemsView'

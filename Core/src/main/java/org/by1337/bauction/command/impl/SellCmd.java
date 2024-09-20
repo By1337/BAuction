@@ -90,7 +90,7 @@ public class SellCmd extends Command<CommandSender> {
                 Main.getUniqueIdGenerator().nextId(),
                 itemStack.getType().ordinal(),
                 itemStack.getAmount(),
-                Main.getServerId(),
+                Main.getServerUUID(),
                 new CompoundTag()
         ));
 

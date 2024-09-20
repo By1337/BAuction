@@ -60,7 +60,7 @@ public class BuyItemProcess extends Placeholder {
                 OfflinePlayer seller = Bukkit.getOfflinePlayer(buyingItem.getSellerUuid());
                 if (event.isValid()) {
                     Main.getEcon().withdrawPlayer(player, buyingItem.getPrice());
-                    if (/*!buyingItem.getServer().equals(Main.getServerId()) && Main.getStorage() instanceof MysqlDb mysqlDb*/ false) {// todo multi server econ
+                    if (/*!buyingItem.getServer().equals(Main.getServerUUID()) && Main.getStorage() instanceof MysqlDb mysqlDb*/ false) {// todo multi server econ
                       //  mysqlDb.getMoneyGiver().give(buyingItem.getPrice(), buyingItem.getSellerUuid(), buyingItem.getServer());
                     } else {
                         Main.getEcon().depositPlayer(seller, buyingItem.getPrice());
